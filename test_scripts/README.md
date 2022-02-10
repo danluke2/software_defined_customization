@@ -19,7 +19,7 @@ tests
 
 
 
-## Steps to perform NCO/DCA overhead experiment:
+## NCO/DCA overhead experiment:
 
 
 1) (NCO) install database browser:
@@ -83,7 +83,7 @@ input to start running:
 
 
 
-## Steps to perform bulk file transfer overhead experiment:
+## Bulk file transfer overhead experiment:
 
 
 1) (Server) download Ubuntu image file
@@ -125,7 +125,7 @@ input to start running:
 
 
 
-## Steps to perform batch DNS overhead experiment:
+## Batch DNS overhead experiment:
 
 
 1) (Server) Install dnsmasq on one of the Layer 4.5 capable VM
@@ -170,7 +170,7 @@ input to start running:
 
 
 
-## Steps to perform middlebox demo:
+## Middlebox demo:
 
 
 1) Steps assume the prior overhead DNS experiment was done, but also that
