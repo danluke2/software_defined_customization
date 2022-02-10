@@ -1,4 +1,4 @@
-# Layer 4.5
+# Software Defined Network Customization at Layer 4.5
 
 # Purpose:
 Prototype of Layer 4.5 customization framework   
