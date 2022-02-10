@@ -1,4 +1,4 @@
-// @file test_modules/demo_dns_app_tag.c
+// @file core_modules/demo_dns_app_tag.c
 // @brief The customization module to insert dns app tag for demo
 
 #include <linux/module.h>
@@ -7,7 +7,7 @@
 #include <linux/init.h>
 #include <linux/uio.h> // For iter structures
 
-#include "../common_structs.h"
+#include "common_structs.h"
 
 static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
@@ -25,6 +25,22 @@ char cust_tag_test[21] = "XTAGdig";
 size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test)-1; // i.e., 20 bytes
 
 struct customization_node *dns_cust;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Line 42 should be blank b/c NCO will write the module_id variable to that line
+// followed by any other variables we determine NCO should declare when building
 
 
 

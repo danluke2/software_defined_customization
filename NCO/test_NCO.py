@@ -40,7 +40,7 @@ DB_ERROR = -1
 CLOSE_SOCK = -2
 
 
-parser = argparse.ArgumentParser(description='Process some integers.')
+parser = argparse.ArgumentParser(description='NCO testing')
 parser.add_argument('--t', type=int, required=True)
 
 args = parser.parse_args()
@@ -253,7 +253,7 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release):
 
 
 def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
-    db_connection = db_connect('pcc.db')
+    db_connection = db_connect('nco.db')
 
     #handle initial client initiated check-in, then client is in a recv state
 
@@ -353,10 +353,6 @@ def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
 ######################### MODULE THREAD FUNCTIONS #############################
 
 
-#module has successfully been built, need to:
-#   1. insert module into the built table
-#   2. remove module from required build table - NOT for test scenario
-
 def insert_and_update_module_tables(db_connection, module, module_id, host_id):
     require_install = 1
     install_time = 0 #indicates ASAP
@@ -382,7 +378,7 @@ def build_ko_module(db_connection, host_id, module, module_id):
 
 
 def build_module_thread(cv, t):
-    db_connection = db_connect('pcc.db')
+    db_connection = db_connect('nco.db')
     again = "y"
     time.sleep(t)
     with cv:
@@ -399,13 +395,13 @@ def build_module_thread(cv, t):
                 host_list = select_all_hosts(db_connection)
                 hosts = [x[1] for x in host_list]
                 for host in hosts:
-                    err = build_ko_module(db_connection, host, "pcc_test", host)
+                    err = build_ko_module(db_connection, host, "nco_test", host)
                     if err == -1:
                         #move on to next module instead of updating the tables
                         continue
                     else:
                         print(f"Inserting module for host {host}")
-                        err = insert_and_update_module_tables(db_connection, "pcc_test", host, host)
+                        err = insert_and_update_module_tables(db_connection, "nco_test", host, host)
                         if err == DB_ERROR:
                             print(f"Error occured updating module tables")
 
