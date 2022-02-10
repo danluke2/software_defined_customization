@@ -1,6 +1,6 @@
-# Experiments from Paper Submission HOWTO
+# Step for repeating experiments from paper submission
 
-This README explains the steps to perform the experiments from the NetSoft 22
+This README explains the steps to perform the experiments from the NetSoft '22
 paper submission.
 
 
