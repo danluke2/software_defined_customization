@@ -1,7 +1,8 @@
 # Software Defined Network Customization at Layer 4.5
 
 # Purpose:
-Prototype of Layer 4.5 customization framework   
+Prototype of Layer 4.5 customization framework to match HotNet 2022 submission paper (under review).  Contains a Netwrok-wide Customization Orchestrator (NCO)
+to distribute Layer 4.5 customization modules to devices.  NCO communicates with Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
 
 ## Acronyms:
 
