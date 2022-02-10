@@ -118,7 +118,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
     customizations folder will load after checking if Layer 4.5 is running
 
 
-# Steps to run sample python3 customization:
+# Steps to run sample client/server customization:
 
 1) In the test\_modules folder, make and install sample python kernel modules:
 
