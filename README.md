@@ -1,17 +1,21 @@
 # Software Defined Network Customization at Layer 4.5
 
-# Purpose:
+
 Prototype of Layer 4.5 customization framework to match HotNet 2022 submission paper (under review).  Contains a Netwrok-wide Customization Orchestrator (NCO)
 to distribute Layer 4.5 customization modules to devices.  NCO communicates with Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
 
-## Acronyms:
+
+### Acronyms:
 
 1) NCO: Network-wide Customization Orchestrator
 
 1) DCA: Device Customization Agent
 
+1) CIB: Customization Information Base
 
-### Status:
+
+
+### Overview:
 
 
 1) Customization modules register with Layer 4.5 DCA
@@ -48,6 +52,7 @@ key derived Sock FD
     * each socket can have a single customization applied
 
 
+
 1) On send/recv, tap.c returns a call to DCA (if customizing socket), which in
 turn will report the number of bytes sent to the app, as if modifications did not take place
 
@@ -68,7 +73,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 
 
-# Steps to install Layer 4.5:
+### Steps to install Layer 4.5:
 
 1) Install Ubuntu 20.04.3 LTS (Focal Fossa) VM (tested on kernel 5.13.0-28)
 
@@ -118,7 +123,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
     customizations folder will load after checking if Layer 4.5 is running
 
 
-# Steps to run sample client/server customization:
+### Steps to run sample client/server customization:
 
 1) In the test\_modules folder, make and install sample python kernel modules:
 
