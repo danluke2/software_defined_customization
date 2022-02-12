@@ -5,6 +5,7 @@
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/init.h>
+#include <linux/inet.h>
 #include <linux/uio.h> // For iter structures
 
 #include "../common_structs.h"
