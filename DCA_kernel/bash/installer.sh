@@ -54,6 +54,14 @@ insmod $INSTALL_LOCATION/layer4_5.ko layer4_5_path="$INSTALL_LOCATION"
 echo "Layer 4.5 started"
 
 
+echo "***************************"
+echo "Adding Layer 4.5 to modules config for auto load on boot"
+MODULE_FILE=/etc/modules-load.d/modules.conf
+cat <<EOT >> $MODULE_FILE
+layer4_5
+EOT
+
+
 # if layer4_5 module insertion succeeds, then build the loader service and enable
 echo "***************************"
 echo "Installing loader service"
