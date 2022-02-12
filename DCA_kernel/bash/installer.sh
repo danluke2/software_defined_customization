@@ -54,10 +54,10 @@ insmod $INSTALL_LOCATION/layer4_5.ko layer4_5_path="$INSTALL_LOCATION"
 echo "Layer 4.5 started"
 
 
-if layer4_5 module insertion succeeds, then build the loader service and enable
+# if layer4_5 module insertion succeeds, then build the loader service and enable
 echo "***************************"
 echo "Installing loader service"
-cp support/loader.sh $INSTALL_LOCATION/
+cp bash/loader.sh $INSTALL_LOCATION/
 mkdir -p $INSTALL_LOCATION/customizations
 
 cd $CURDIR
@@ -90,6 +90,5 @@ EOT
 systemctl enable layer4_5_loader.service
 
 
-#start Customization Assistant here?
 echo "***************************"
-echo "Installing Customization Assistant service"
+echo "(TODO) Installing DCA service"
