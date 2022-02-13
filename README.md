@@ -105,17 +105,12 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
     * this should install all required dependencies (otherwise submit issue)
 
-    * adjust the layer 4.5 Makefile to compile in the desired debug level
+    * Makefile is set with DEBUG defined by default to print messages to a trace file
 
-        * DEBUG - useful messages to see various events, such as customization applied to socket
-
-        * DEBUG1 - extra events that may happen but also are not very useful in general
-
-        * DEBUG2 - events that may happen often and situationally helpful
-
-        * DEBUG3 - events that would generate a lot of messages
 
 1) Verify no errors during install and that layer4_5 kernel module is inserted: lsmod \| grep layer
+
+    * NOTE: BTF error is not an issue at the moment and will be remedied later
 
     * location of layer4_5 modules: /usr/lib/modules/$(uname -r)/layer4_5
 
@@ -123,39 +118,33 @@ turn will report the number of bytes sent to the app, as if modifications did no
     customizations folder will load after checking if Layer 4.5 is running
 
 
-### Steps to run sample client/server customization:
+
+
+### Steps to run a sample client only customization:
 
 1) In the test\_modules folder, make and install sample python kernel modules:
 
     * Modify Makefile in this folder to adjust path variables
 
-        * KBUILD_EXTRA_SYMBOLS must point to layer 4.5 generated Module.symvers file
-
-        * MODULE_DIR points to directory holding modules to be built
+        * GIT_LOCATION must be updated to reflect your folder path
 
         * BUILD\_MODULE is command line arg to direct building a specific module
 
-    * run 'make BUILD\_MODULE=sample\_python\_client.o' and 'make BUILD\_MODULE=sample\_python\_server.o'
+    * run 'make BUILD\_MODULE=sample\_python\_client.o'
 
         * verify no errors during module build
 
-    * insert both module:
+
+    * insert client module:
 
         * sudo insmod sample\_python\_client.ko
 
-        * sudo insmod sample\_python\_server.ko
-
-        * if DEBUG enabled, verify modules loading messages present in trace log
+        * Verify client module loaded messages are present in trace log
 
             * /sys/kernel/tracing/trace
 
-    * to autoload on reboot, put the .ko file in /usr/lib/modules/$(uname -r)/layer4_5/customizations folder
+            * TODO: example of loaded module messages
 
-1) In new terminal window, launch tcpdump to verify changes are applied to messages:
-
-    * sudo tcpdump -i any -X
-
-    * alternatively, launch Wireshark
 
 1) Launch the python echo client and server in two separate terminals:
 
@@ -165,20 +154,99 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
     * python3 echo\_client.py --proto tcp (udp)
 
+
 1) If desired to help read trace log file, in another terminal, grep for process id's
  of target customization: pgrep python3
 
-1) type some messages into the echo client and verify tcpdump shows modified messages
 
-    * echo client/server should show un-modified messages if both sides customized
+1) Type some messages into the echo client and verify the echo server receives
+a modified message and replies with this modified message
+
 
 1) type 'quit' to close client connection, which may also terminate the server
 (otherwise terminate the server)
+
 
 1) dump the kernel trace file to find corresponding messages for layer 4.5 messages:
 
     * sudo gedit /sys/kernel/tracing/trace
 
-    * adjust layer 4.5 Makefile if more debug messages are desired
+    * TODO: example of relevant messages
 
-    * reset the trace file between runs if desired (as root, sudo su): > /sys/kernel/tracing/trace
+1) reset the trace file between runs if desired (as root, sudo su): > /sys/kernel/tracing/trace
+
+
+1) remove the client module: sudo rmmod sample\_python\_client
+
+
+
+### Steps to run sample client and server customizations:
+
+1) In the test\_modules folder, make and install sample python kernel modules:
+
+    * Modify Makefile in this folder to adjust path variables
+
+        * GIT_LOCATION must be updated to reflect your folder path
+
+        * BUILD\_MODULE is command line arg to direct building a specific module
+
+    * run 'make BUILD\_MODULE=sample\_python\_client.o' and 'make BUILD\_MODULE=sample\_python\_server.o'
+
+        * verify no errors during module build
+
+        * if client was previously built, no need to rebuild it
+
+
+    * insert client and server modules:
+
+        * sudo insmod sample\_python\_client.ko
+
+        * sudo insmod sample\_python\_server.ko
+
+        * Verify client and server module loaded messages are present in trace log
+
+            * /sys/kernel/tracing/trace
+
+            * TODO: example of relevant messages
+
+
+
+1) Launch the python echo client and server in two separate terminals:
+
+    * /test\_scripts/client\_server
+
+    * python3 echo\_server.py --proto tcp (udp)
+
+    * python3 echo\_client.py --proto tcp (udp)
+
+
+1) In a new terminal window, launch tcpdump to verify changes are applied to messages:
+
+    * sudo tcpdump -i any -X
+
+    * alternatively, launch Wireshark    
+
+
+1) type some messages into the echo client and verify tcpdump shows modified messages
+
+    * echo client/server should show un-modified messages
+
+
+1) type 'quit' to close client connection, which may also terminate the server
+(otherwise terminate the server)
+
+
+1) dump the kernel trace file to find corresponding messages for layer 4.5 messages:
+
+    * sudo gedit /sys/kernel/tracing/trace
+
+    * TODO: example of relevant messages
+
+1) reset the trace file between runs if desired (as root, sudo su): > /sys/kernel/tracing/trace
+
+
+1) remove the client/server module:
+
+    * sudo rmmod sample\_python\_client
+
+    * sudo rmmod sample\_python\_server
