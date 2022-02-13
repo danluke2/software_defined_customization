@@ -129,9 +129,9 @@ int __init sample_client_start(void)
 		return -1;
 	}
 
-	python_cust->target_flow.protocol = 17; // UDP
+	// python_cust->target_flow.protocol = 17; // UDP
   // python_cust->protocol = 6; // TCP
-  // python_cust->protocol = 256; // Any
+  python_cust->protocol = 256; // TCP and UDP
 	memcpy(python_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
 
   // Client: no source IP or port set unless client called bind first
