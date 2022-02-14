@@ -138,7 +138,7 @@ int __init sample_client_start(void)
 	memcpy(dns_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
 
 	dns_cust->target_flow.dest_port = 53;
-  dns_cust->target_flow.dest_ip = in_aton("0.0.0.0");
+  dns_cust->target_flow.dest_ip = in_aton("10.0.0.10");
   dns_cust->target_flow.source_ip = 0;
   dns_cust->target_flow.source_port = 0;
 

@@ -138,12 +138,12 @@ int __init sample_client_start(void)
 	memcpy(dns_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
 
 
-	dns_cust->target_flow.dest_port = 53;
+	dns_cust->target_flow.dest_port = 0;
 
   // dnsmasq doesn't bind unless you force it
-  dns_cust->target_flow.dest_ip = in_aton("0.0.0.0");
-  dns_cust->target_flow.source_ip = in_aton("10.0.0.10");
-  dns_cust->target_flow.source_port = 0;
+  dns_cust->target_flow.dest_ip = in_aton("10.0.0.10");
+  dns_cust->target_flow.source_ip = in_aton("10.0.0.20");
+  dns_cust->target_flow.source_port = 53;
 
 	dns_cust->send_function = NULL;
 	dns_cust->recv_function = modify_buffer_recv;

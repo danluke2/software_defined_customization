@@ -181,11 +181,11 @@ int __init sample_client_start(void)
   server_cust->target_flow.protocol = 6; // TCP
 	memcpy(server_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
 
-	server_cust->target_flow.dest_port = 8080;
-  server_cust->target_flow.source_port = 0;
+	server_cust->target_flow.dest_port = 0;
+  server_cust->target_flow.source_port = 8080;
 
   server_cust->target_flow.dest_ip = in_aton("0.0.0.0");
-  server_cust->target_flow.source_ip = in_aton("0.0.0.0");
+  server_cust->target_flow.source_ip = in_aton("10.0.0.20");
 
 	server_cust->send_function = modify_buffer_send;
 	server_cust->recv_function = NULL;
