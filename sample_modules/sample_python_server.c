@@ -1,4 +1,4 @@
-// @file test_modules/sample_python_server.c
+// @file sample_python_server.c
 // @brief A sample customization module to modify python3 send/recv calls
 
 #include <linux/module.h>
@@ -8,7 +8,7 @@
 #include <linux/inet.h>
 #include <linux/uio.h> // For iter structures
 
-#include "../common_structs.h"
+#include "../DCA_kernel/common_structs.h"
 
 
 extern int register_customization(struct customization_node *cust);
@@ -133,16 +133,15 @@ int __init sample_server_start(void)
 
   // python_cust->target_flow.protocol = 17; //UDP
   // python_cust->protocol = 6; //TCP
-  python_cust->protocol = 256; // TCP and UDP
+  python_cust->target_flow.protocol = 256; // TCP and UDP
 	memcpy(python_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
 
   // Server: source IP or port set b/c bind is called at setup
-  // destination applies to the incoming packet (i.e. server values)
-	python_cust->target_flow.dest_port = 65432;
-  python_cust->target_flow.source_port = 0; // set if you know client port
+	python_cust->target_flow.dest_port = 0; // set if you know client port
+  python_cust->target_flow.source_port = 65432;
 
   //IP is a __be32 value
-  python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
+  python_cust->target_flow.dest_ip = 0;
   python_cust->target_flow.source_ip = in_aton("127.0.0.1");
 
   // These functions must be defined and will be used to modify the

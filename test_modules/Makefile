@@ -5,7 +5,7 @@ GIT_LOCATION = /home/dan/software_defined_customization
 
 KBUILD_EXTRA_SYMBOLS := /lib/modules/$(shell uname -r)/layer4_5/Module.symvers
 #this is the directory of the makefile
-MODULE_DIR = $(GIT_LOCATION)/DCA_kernel/test_modules
+MODULE_DIR = $(GIT_LOCATION)/test_modules
 #this is the module you want to create (ex: sample_python_client.o)
 BUILD_MODULE = must_pass_command_arg
 

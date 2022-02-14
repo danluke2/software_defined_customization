@@ -1,13 +1,16 @@
 # Step for repeating experiments from paper submission
 
 This README explains the steps to perform the experiments from the NetSoft '22
-paper submission.
+paper submission.  (NOTE: being updated to make easier to correlate with paper
+  and repeat experiments)
 
 
-1) Requires 2 VM's running Layer 4.5 framework
+1) To match the paper's experiments this requires 2 VM's running Layer 4.5 framework
 
     * These VM's need a method to communicate over the network.  Paper used an
     intnet setup.
+
+    * To test functionality only, one VM can be used
 
 
 1) Modules were built and installed on each VM, but the NCO could also be used

@@ -1,11 +1,11 @@
 # Software Defined Network Customization at Layer 4.5
 
 
-Prototype of Layer 4.5 customization framework to match HotNet 2022 submission paper (under review).  Contains a Netwrok-wide Customization Orchestrator (NCO)
+Prototype of Layer 4.5 customization framework to match NetSoft 2022 submission paper (under review).  Contains a Network-wide Customization Orchestrator (NCO)
 to distribute Layer 4.5 customization modules to devices.  NCO communicates with Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
 
 
-### Acronyms:
+Acronyms:
 
 1) NCO: Network-wide Customization Orchestrator
 
@@ -15,7 +15,7 @@ to distribute Layer 4.5 customization modules to devices.  NCO communicates with
 
 
 
-### Overview:
+## Overview:
 
 
 1) Customization modules register with Layer 4.5 DCA
@@ -73,7 +73,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 
 
-### Steps to install Layer 4.5:
+## Steps to install Layer 4.5:
 
 1) Install Ubuntu 20.04.3 LTS (Focal Fossa) VM (tested on kernel 5.13.0-28)
 
@@ -119,134 +119,8 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 
 
+### Next Steps:
 
-### Steps to run a sample client only customization:
+1) To run sample modules, see README in sample\_modules
 
-1) In the test\_modules folder, make and install sample python kernel modules:
-
-    * Modify Makefile in this folder to adjust path variables
-
-        * GIT_LOCATION must be updated to reflect your folder path
-
-        * BUILD\_MODULE is command line arg to direct building a specific module
-
-    * run 'make BUILD\_MODULE=sample\_python\_client.o'
-
-        * verify no errors during module build
-
-
-    * insert client module:
-
-        * sudo insmod sample\_python\_client.ko
-
-        * Verify client module loaded messages are present in trace log
-
-            * /sys/kernel/tracing/trace
-
-            * TODO: example of loaded module messages
-
-
-1) Launch the python echo client and server in two separate terminals:
-
-    * /test\_scripts/client\_server
-
-    * python3 echo\_server.py --proto tcp (udp)
-
-    * python3 echo\_client.py --proto tcp (udp)
-
-
-1) If desired to help read trace log file, in another terminal, grep for process id's
- of target customization: pgrep python3
-
-
-1) Type some messages into the echo client and verify the echo server receives
-a modified message and replies with this modified message
-
-
-1) type 'quit' to close client connection, which may also terminate the server
-(otherwise terminate the server)
-
-
-1) dump the kernel trace file to find corresponding messages for layer 4.5 messages:
-
-    * sudo gedit /sys/kernel/tracing/trace
-
-    * TODO: example of relevant messages
-
-1) reset the trace file between runs if desired (as root, sudo su): > /sys/kernel/tracing/trace
-
-
-1) remove the client module: sudo rmmod sample\_python\_client
-
-
-
-### Steps to run sample client and server customizations:
-
-1) In the test\_modules folder, make and install sample python kernel modules:
-
-    * Modify Makefile in this folder to adjust path variables
-
-        * GIT_LOCATION must be updated to reflect your folder path
-
-        * BUILD\_MODULE is command line arg to direct building a specific module
-
-    * run 'make BUILD\_MODULE=sample\_python\_client.o' and 'make BUILD\_MODULE=sample\_python\_server.o'
-
-        * verify no errors during module build
-
-        * if client was previously built, no need to rebuild it
-
-
-    * insert client and server modules:
-
-        * sudo insmod sample\_python\_client.ko
-
-        * sudo insmod sample\_python\_server.ko
-
-        * Verify client and server module loaded messages are present in trace log
-
-            * /sys/kernel/tracing/trace
-
-            * TODO: example of relevant messages
-
-
-
-1) Launch the python echo client and server in two separate terminals:
-
-    * /test\_scripts/client\_server
-
-    * python3 echo\_server.py --proto tcp (udp)
-
-    * python3 echo\_client.py --proto tcp (udp)
-
-
-1) In a new terminal window, launch tcpdump to verify changes are applied to messages:
-
-    * sudo tcpdump -i any -X
-
-    * alternatively, launch Wireshark    
-
-
-1) type some messages into the echo client and verify tcpdump shows modified messages
-
-    * echo client/server should show un-modified messages
-
-
-1) type 'quit' to close client connection, which may also terminate the server
-(otherwise terminate the server)
-
-
-1) dump the kernel trace file to find corresponding messages for layer 4.5 messages:
-
-    * sudo gedit /sys/kernel/tracing/trace
-
-    * TODO: example of relevant messages
-
-1) reset the trace file between runs if desired (as root, sudo su): > /sys/kernel/tracing/trace
-
-
-1) remove the client/server module:
-
-    * sudo rmmod sample\_python\_client
-
-    * sudo rmmod sample\_python\_server
+1) To run experiments from paper, see README in test\_scripts and modules in test\_modules

@@ -3,12 +3,9 @@
 import socket
 import os
 import subprocess
-
 import json
-
 import random
 import time
-
 import shutil #for copy files
 from threading import Thread
 from threading import Condition
@@ -20,6 +17,11 @@ import argparse
 
 from db_helper import *
 
+
+parser = argparse.ArgumentParser(description='NCO testing')
+parser.add_argument('--sleep', type=int, required=False, help="Build thread sleep timer")
+
+args = parser.parse_args()
 
 HOST = '10.0.0.20'
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
@@ -40,10 +42,7 @@ DB_ERROR = -1
 CLOSE_SOCK = -2
 
 
-parser = argparse.ArgumentParser(description='NCO testing')
-parser.add_argument('--t', type=int, required=True)
 
-args = parser.parse_args()
 
 
 
@@ -255,7 +254,7 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release):
 def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
     db_connection = db_connect('nco.db')
 
-    #handle initial client initiated check-in, then client is in a recv state
+    #handle initial client-initiated check-in, then client is in a recv state
 
     try:
         #Client immediately sends a customization report upon connection
@@ -268,7 +267,6 @@ def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
 
     client_mac = json_data["mac"]
     kernel_release = json_data["release"]
-
 
     host = select_host(db_connection, client_mac)
 
@@ -384,12 +382,14 @@ def build_module_thread(cv, t):
     with cv:
         #continuosly check if there are modules to build to host symvers
         while again == "y":
-            #clear built table
-            # drop_table(db_connection, "built_modules")
-            # #init table again
-            # init_built_modules_table(db_connection)
+            clear = input("Clear the built table (y/n)?")
+            if clear == "y":
+                #clear built table
+                drop_table(db_connection, "built_modules")
+                #init table again
+                init_built_modules_table(db_connection)
 
-            build = input("Built table cleared, press y to start test with build:")
+            build = input("Build modules to each host (y/n)?")
             if build == "y":
                 build_start = int(time.time() * 1000)
                 host_list = select_all_hosts(db_connection)
@@ -398,6 +398,7 @@ def build_module_thread(cv, t):
                     err = build_ko_module(db_connection, host, "nco_test", host)
                     if err == -1:
                         #move on to next module instead of updating the tables
+                        print(f"Build module error for host {host}")
                         continue
                     else:
                         print(f"Inserting module for host {host}")
@@ -423,7 +424,7 @@ if __name__ == "__main__":
 
     try:
         #build module thread runs independent of client connections
-        Thread(target=build_module_thread, args=(condition,args.t)).start();
+        Thread(target=build_module_thread, args=(condition,args.sleep)).start();
         print("Module build thread running")
     except:
         print("Client thread creation error!")

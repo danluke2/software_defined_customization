@@ -49,7 +49,7 @@ extern struct proto udp_prot;
 void register_tcp_taps(void)
 {
   #ifdef DEBUG1
-    trace_printk(KERN_DEBUG "L4.5: address of tcp_prot is %p", &tcp_prot);
+    trace_printk(KERN_DEBUG "L4.5: address of tcp_prot is %p\n", &tcp_prot);
   #endif
 	ref_tcp_v4_connect = (void *)tcp_prot.connect;
 	ref_tcp_close = (void *)tcp_prot.close;
@@ -82,7 +82,7 @@ void unregister_tcp_taps(void)
 void register_udp_taps(void)
 {
   #ifdef DEBUG1
-	  trace_printk("L4.5: address of udp_prot is %p", &udp_prot);
+	  trace_printk("L4.5: address of udp_prot is %p\n", &udp_prot);
   #endif
 	ref_udp_close = (void *)udp_prot.close;
 	ref_udp_sendmsg = (void *)udp_prot.sendmsg;
@@ -124,8 +124,11 @@ int new_tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
   #ifdef DEBUG
     if(cust_socket != NULL)
     {
-      // Socket added to tracking table, dump socket info to log
-      trace_print_cust_socket(cust_socket, "tcp_connect");
+      if(cust_socket->customization != NULL)
+      {
+        // Socket added to tracking table, dump socket info to log
+        trace_print_cust_socket(cust_socket, "tcp_connect");
+      }
     }
   #endif
 	return connect_return;
@@ -148,8 +151,11 @@ struct sock* new_inet_csk_accept(struct sock *sk, int flags, int *err, bool kern
   #ifdef DEBUG
     if(cust_socket != NULL)
     {
-      // Socket added to tracking table, dump socket info to log
-      trace_print_cust_socket(cust_socket, "tcp_accept");
+      if(cust_socket->customization != NULL)
+      {
+        // Socket added to tracking table, dump socket info to log
+        trace_print_cust_socket(cust_socket, "tcp_connect");
+      }
     }
   #endif
   return new_sock;
@@ -165,7 +171,7 @@ void common_close(struct sock *sk)
   int ret;
   ret = delete_cust_socket(current->pid, sk);
 
-  #ifdef DEBUG2
+  #ifdef DEBUG3
     trace_printk("L4.5: socket close call, pid=%d\n", current->pid);
   	if(ret == 0)
     {
@@ -239,8 +245,11 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
     #ifdef DEBUG
       else
       {
-        // Socket added to tracking table, dump socket info to log
-        trace_print_cust_socket(cust_socket, "sendmsg");
+        if(cust_socket->customization != NULL)
+        {
+          // Socket added to tracking table, dump socket info to log
+          trace_print_cust_socket(cust_socket, "sendmsg");
+        }
       }
     #endif
 	}
@@ -305,7 +314,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
   if(recvmsg_return <= 0)
   {
     // a 0 length or error message has no need for customization removal
-    #ifdef DEBUG1
+    #ifdef DEBUG3
       trace_printk("L4.5: received 0 length message, pid %d\n", task->pid);
     #endif
     return recvmsg_return;
@@ -331,8 +340,11 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     #ifdef DEBUG
       else
       {
-        // Socket added to tracking table, dump socket info to log
-        trace_print_cust_socket(cust_socket, "recvmsg");
+        if(cust_socket->customization != NULL)
+        {
+          // Socket added to tracking table, dump socket info to log
+          trace_print_cust_socket(cust_socket, "recvmsg");
+        }
       }
     #endif
 	}

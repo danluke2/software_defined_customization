@@ -4,7 +4,7 @@
 Set the requirements for module development.  Not properly handling memory in
 modules can easily result in a crashed kernel.
 
-### Stuff:
+### RULES:
 
 1) If the modules send or recv buffer is freed and set to NULL, then no future
 customization calls will occur for that module
@@ -30,3 +30,6 @@ These include:
 
 1) Do not modify the src_iter structure given to the module, unless done as side
 effect of standard function (copy_from_iter_full)
+
+
+1) to autoload a module on reboot, put the .ko file in /usr/lib/modules/$(uname -r)/layer4_5/customizations folder

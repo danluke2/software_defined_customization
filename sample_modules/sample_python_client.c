@@ -1,4 +1,4 @@
-// @file test_modules/sample_python_client.c
+// @file sample_python_client.c
 // @brief A sample customization module to modify python3 send/recv calls
 
 #include <linux/module.h>
@@ -8,7 +8,7 @@
 #include <linux/inet.h>
 #include <linux/uio.h> // For iter structures
 
-#include "../common_structs.h"
+#include "../DCA_kernel/common_structs.h"
 
 
 extern int register_customization(struct customization_node *cust);
@@ -131,7 +131,7 @@ int __init sample_client_start(void)
 
 	// python_cust->target_flow.protocol = 17; // UDP
   // python_cust->protocol = 6; // TCP
-  python_cust->protocol = 256; // TCP and UDP
+  python_cust->target_flow.protocol = 256; // TCP and UDP
 	memcpy(python_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
 
   // Client: no source IP or port set unless client called bind first

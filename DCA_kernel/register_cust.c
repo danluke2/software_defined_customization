@@ -183,7 +183,7 @@ int register_customization(struct customization_node *module_cust)
     trace_print_module_params(cust);
   #endif
 
-  #ifdef DEBUG2
+  #ifdef DEBUG1
     trace_printk("L4.5: Registration time: %llu\n", cust->registration_time_struct.tv_sec);
   #endif
 
@@ -229,7 +229,7 @@ int unregister_customization(struct customization_node *module_cust)
   // Last: store customization in retired list and set retired time
   ktime_get_real_ts64(&matching_cust->retired_time_struct);
 
-  #ifdef DEBUG2
+  #ifdef DEBUG1
     trace_printk("L4.5: Retire time %llu\n", matching_cust->retired_time_struct.tv_sec);
   #endif
 

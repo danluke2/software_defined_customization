@@ -17,7 +17,7 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
   struct customization_node *cust_node;
   int sendmsg_return;
 
-	#ifdef DEBUG2
+	#ifdef DEBUG1
 		trace_printk("L4.5: Start of DCA sendmsg, given size = %lu\n", size);
 		trace_print_msg_params(msg);
 	#endif
@@ -27,7 +27,7 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 	if(cust_node == NULL || cust_sock->customize_send_or_skip == SKIP)
 	{
 		// customization could have been unregistered right before this call
-		#ifdef DEBUG1
+		#ifdef DEBUG
       trace_printk("L4.5 ALERT: Cust_node NULL or send SKIP set unexpectedly, pid %d\n", cust_sock->pid);
     #endif
 		goto skip_and_send;
@@ -36,7 +36,7 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 	// this case should never happen, but checking to ensure no future errors
 	if(cust_node->send_function == NULL || cust_sock->send_buf_st.buf == NULL)
 	{
-		#ifdef DEBUG1
+		#ifdef DEBUG
       trace_printk("L4.5 ALERT: send function or buffer set to NULL unexpectedly, pid %d\n", cust_sock->pid);
     #endif
 		goto skip_and_send;
@@ -69,7 +69,7 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 	// modules could set to NULL to signal no longer customizing the socket
   if(cust_sock->send_buf_st.buf == NULL)
   {
-		#ifdef DEBUG1
+		#ifdef DEBUG
       trace_printk("L4.5: send buffer set as NULL by cust module, pid %d\n", cust_sock->pid);
     #endif
     goto skip_and_send;
@@ -146,7 +146,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
 	size_t copy_length = len; // just to ensure it is defined
   size_t copy_success;
 
-	#ifdef DEBUG2
+	#ifdef DEBUG1
 		trace_printk("L4.5 Start of DCA recvmsg\n");
 		trace_print_msg_params(msg);
 	#endif
@@ -168,7 +168,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
 
 	if(cust_node == NULL || cust_sock->customize_recv_or_skip == SKIP)
 	{
-		#ifdef DEBUG1
+		#ifdef DEBUG
       trace_printk("L4.5 ALERT: Cust_node NULL or recv SKIP set unexpectedly, pid %d\n", cust_sock->pid);
     #endif
 		goto skip_and_recv;
@@ -177,7 +177,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
 	// this case should never happen, but possible if cust removed just before this call
 	if(cust_node->recv_function == NULL || cust_sock->recv_buf_st.buf == NULL)
 	{
-		#ifdef DEBUG1
+		#ifdef DEBUG
       trace_printk("L4.5 ALERT: recv function or buffer set to NULL unexpectedly, pid %d\n", cust_sock->pid);
     #endif
 		goto skip_and_recv;
@@ -207,7 +207,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
 	// modules could set to NULL to signal no longer customizing the socket
   if(cust_sock->recv_buf_st.buf == NULL)
   {
-		#ifdef DEBUG1
+		#ifdef DEBUG
       trace_printk("L4.5: send buffer set as NULL by cust module, pid %d\n", cust_sock->pid);
     #endif
     goto skip_and_recv;

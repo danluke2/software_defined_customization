@@ -7,14 +7,16 @@ layer4_5-objs := init.o \
 					 util/compare.o \
 					 util/json-maker.o
 
-
 obj-m += layer4_5.o
 
 KCFLAGS = -Wall -O3 -g
-#comment out debug values to print less to trace file
-# DEBUG will provide most comments which I find useful
-# DEBUG1 has somewhat useful comments
+
+# define more  debug values to print more to trace file
+# NOTE: each DEBUG definition is independent of the others
+# DEBUG will provide most comments which I find useful for customized flows
+# DEBUG1 has extra comments for customized flows that might be useful
 # DEBUG2 has very situational comments that can just clog up the file
+# DEBUG3 most amount of comments
 DEBUG_FLAGS = -DDEBUG
 
 all: layer4_5

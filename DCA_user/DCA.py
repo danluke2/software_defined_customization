@@ -6,7 +6,7 @@ import sys
 import subprocess
 import time
 import json
-
+import argparse
 # Used for mac address lookup
 import fcntl
 import struct
@@ -17,16 +17,38 @@ import platform #for linux distro
 from netlink_helper import *
 
 
-downloadDir = sys.argv[1]
 
 
-HOST = '10.0.0.20'
+parser = argparse.ArgumentParser(description='DCA user space program')
+parser.add_argument('--ip', type=str, required=False, help="NCO IP")
+parser.add_argument('--port', type=int, required=False, help="NCO port")
+parser.add_argument('--dir', type=str, required=True, help="KO Module download dir")
+parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
+
+args = parser.parse_args()
+
+downloadDir = args.dir
+
+HOST = '10.0.2.15'
 PORT = 65432        # The port used by the NCO
+INTERFACE="enp0s8"
 
 
-symver_location = '/home/dan/layer4.5/'
+if args.ip:
+    HOST=args.ip
+
+if args.port:
+    PORT=args.port
+
+if args.iface:
+    INTERFACE=args.iface
+
+
+
+
 system_name = platform.system()
 system_release = platform.release()
+symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
 
 
 max = 5
@@ -39,14 +61,14 @@ def send_periodic_report(conn_socket):
 
 def send_initial_report(conn_socket):
     send_dict = {}
-    send_dict['mac'] =  getHwAddr('enp0s8')
+    send_dict['mac'] =  getHwAddr(INTERFACE)
     send_dict['release'] = system_release
     send_string = json.dumps(send_dict, indent=4)
     s.sendall(bytes(send_string,encoding="utf-8"))
 
 def send_full_report(conn_socket):
     send_dict = query_layer4_5()
-    send_dict['mac'] =  getHwAddr('enp0s8')
+    send_dict['mac'] =  getHwAddr(INTERFACE)
     send_dict['release'] = system_release
     send_string = json.dumps(send_dict, indent=4)
     s.sendall(bytes(send_string,encoding="utf-8"))
@@ -119,6 +141,12 @@ def send_symvers(conn_socket):
     send_dict = {"file" : "Module.symvers", "size":filesize}
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+
+    data = conn_socket.recv(1024)
+    data = data.decode("utf-8")
+    if data != 'Clear to send':
+        print("NCO can't accept")
+        return
 
     with open(symver_location + 'Module.symvers', 'rb') as file_to_send:
         print("symver file open")
@@ -194,7 +222,7 @@ def retire_modules(conn_socket, count):
 sleep_time = 10
 #connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again
-while True:
+while (input("DCA loop again?") == "y"):
     connected = False
     stop_recv = False
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -266,3 +294,4 @@ while True:
 
             except Exception as e:
                 print(f"Command parsing error, {e}")
+                break

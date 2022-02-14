@@ -8,7 +8,8 @@
 #include <linux/inet.h>
 #include <linux/uio.h> // For iter structures
 
-#include "../common_structs.h"
+#include "../DCA_kernel/common_structs.h"
+#include "../DCA_kernel/util/printing.h"
 
 static int __init sample_client_start(void);
 static void __exit sample_client_end(void);

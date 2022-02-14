@@ -57,9 +57,12 @@ echo "Layer 4.5 started"
 echo "***************************"
 echo "Adding Layer 4.5 to modules config for auto load on boot"
 MODULE_FILE=/etc/modules-load.d/modules.conf
-cat <<EOT >> $MODULE_FILE
-layer4_5
-EOT
+if grep -Fxq "layer4_5" $MODULE_FILE
+then
+  echo "Layer 4.5 already added to file"
+else
+	echo "layer4_5" >> $MODULE_FILE
+fi
 
 
 # if layer4_5 module insertion succeeds, then build the loader service and enable
