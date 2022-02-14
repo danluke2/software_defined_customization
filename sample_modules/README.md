@@ -47,8 +47,9 @@ Here we include sample modules to use with the Layer 4.5 installation.
 a modified message and replies with this modified message
 
 
-1) type 'quit' to close client connection, which may also terminate the server
-(otherwise terminate the server)
+1) type 'quit' to close the connection
+
+    * If using UDP, manually terminate the server
 
 
 1) dump the kernel trace file to find corresponding messages for layer 4.5 messages:
@@ -66,7 +67,7 @@ a modified message and replies with this modified message
 
 
 
-### Steps to run sample client and server customizations:
+## Steps to run sample client and server customizations:
 
 1) In the test\_modules folder, make and install sample python kernel modules:
 
@@ -83,19 +84,19 @@ a modified message and replies with this modified message
         * if client was previously built, no need to rebuild it
 
 
-    * insert client and server modules:
+1) insert client and server modules:
 
-        * sudo insmod sample\_python\_client.ko
+    * sudo insmod sample\_python\_client.ko
 
-        * sudo insmod sample\_python\_server.ko
+    * sudo insmod sample\_python\_server.ko
 
-        * Verify client and server module loaded messages are present in trace log
+    * Verify client and server module loaded messages are present in trace log
 
-            * /sys/kernel/tracing/trace
+        * /sys/kernel/tracing/trace
 
-            * ![](../assets/client_load.png)
+        * ![](../assets/client_load.png)
 
-            * ![](../assets/server_load.png)
+        * ![](../assets/server_load.png)
 
 
 
