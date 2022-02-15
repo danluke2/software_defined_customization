@@ -1,24 +1,60 @@
 # Step for repeating experiments from paper submission
 
 This README explains the steps to perform the experiments from the NetSoft '22
-paper submission.  (NOTE: being updated to make easier to correlate with paper
-  and repeat experiments)
+paper submission.  
+
+NOTE: being updated to make easier to correlate with paper
+  and repeat experiments
 
 
+Note: Modules were built and installed on each VM, but the NCO could also be used
+to build remotely and install via DCA connection
+
+
+
+
+
+## Prerequisites:
 1) To match the paper's experiments this requires 2 VM's running Layer 4.5 framework
 
     * These VM's need a method to communicate over the network.  Paper used an
     intnet setup.
 
-    * To test functionality only, one VM can be used
+    * download git repo to each VM (Client and Server)
 
 
-1) Modules were built and installed on each VM, but the NCO could also be used
-to build remotely and install via DCA connection
+1) (Client/DCA VM) Install sshpass and curl to allow remote server login and command execution
+
+    * sudo apt install sshpass curl
 
 
-1) Data collection and display needs to be more automated to make easier to repeat
-tests
+1) (Client/DCA VM) Install matplotlib for plotting graphs:
+
+    * pip3 install matplotlib
+
+
+1) (Server/NCO VM) Install ssh server and enable root login:
+
+    * sudo apt install openssh-server
+
+    * open /etc/ssh/sshd\_config
+
+    * add 'PermitRootLogin yes'
+
+    * restart ssh: sudo systemctl restart ssh
+
+1) (Server/NCO VM) set root password:
+
+    * sudo passwd root
+
+    * set to 'default'
+
+
+1) (Client/DCA) ssh to Server VM to establish key:
+
+    * sudo ssh root@10.0.0.20
+
+    * password = 'default'
 
 
 

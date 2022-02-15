@@ -1,8 +1,6 @@
 #!/bin/bash
 
-#Purpose: perform $1 downloads of test file (number of trials to perform)
-
-# need higher level script to setup each phase: base, tap, cust
+#Purpose: perform $1 downloads of test file for each config (number of trials to perform)
 
 
 # client connect to server over ssh, launch web server, then on client run experiment, save data to file
@@ -11,9 +9,13 @@
 OUTPUT=logs/bulk_base.txt
 touch $OUTPUT
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "rmmod layer4_5; pkill python; cd Desktop; nohup python3 ../software_defined_customization/test_scripts/client_server/python_simple_server.py; exit"
+sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python ; cd /home/dan/Desktop ; python3 ../software_defined_customization/test_scripts/client_server/python_simple_server.py >/dev/null 2>&1 &"
 
-echo starting baseline downloads
+sleep 2
+# store md5 sum at start of file for comparison
+echo "d14cb9b6f48feda0563cda7b5335e4c0" >> $OUTPUT
+
+echo "*************** starting baseline downloads ***************"
 
 for ((i=1;i<=$1;i++))
 do
@@ -21,14 +23,14 @@ do
   before=$(date '+%s%3N');
   curl http://10.0.0.20:8080/overhead.iso -o overhead.iso;
   after=$(date '+%s%3N');
-  echo "****** Time = $((after - before)) " >> $OUTPUT;
   sum=($(md5sum overhead.iso));
   echo "$sum" >> $OUTPUT;
+  echo "$((after - before)) " >> $OUTPUT;
   rm overhead.iso;
   sleep 2;
 done
 
-echo finished baseline test
+echo "*************** finished baseline test ***************"
 
 
 # client connect to server over ssh, install L4.5, launch server, client install L4.5, run experiment, save data to file
@@ -37,11 +39,18 @@ echo finished baseline test
 OUTPUT=logs/bulk_tap.txt
 touch $OUTPUT
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; ./software_defined_customization/DCA_kernel/bash/installer.sh; cd Desktop; python3 ../software_defined_customization/test_scripts/client_server/python_simple_server.py; exit"
+echo Installing Layer 4.5 on server and client
 
-./software_defined_customization/DCA_kernel/bash/installer.sh;
+sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; cd /home/dan/;  ./software_defined_customization/DCA_kernel/bash/installer.sh; cd Desktop; python3 ../software_defined_customization/test_scripts/client_server/python_simple_server.py >/dev/null 2>&1 &"
 
-echo starting tap downloads
+sleep 2
+echo "d14cb9b6f48feda0563cda7b5335e4c0" >> $OUTPUT
+
+/home/dan/software_defined_customization/DCA_kernel/bash/installer.sh;
+
+sleep 2
+
+echo "*************** starting tap downloads ***************"
 
 for ((i=1;i<=$1;i++))
 do
@@ -49,14 +58,14 @@ do
   before=$(date '+%s%3N');
   curl http://10.0.0.20:8080/overhead.iso -o overhead.iso;
   after=$(date '+%s%3N');
-  echo "****** Time = $((after - before)) " >> $OUTPUT;
   sum=($(md5sum overhead.iso));
   echo "$sum" >> $OUTPUT;
+  echo "$((after - before)) " >> $OUTPUT;
   rm overhead.iso;
   sleep 2;
 done
 
-echo finished tap test
+echo "*************** finished tap test ***************"
 
 
 # client connect to server over ssh, install module, launch server, client install module, run experiment, save data to file
@@ -64,13 +73,19 @@ echo finished tap test
 OUTPUT=logs/bulk_cust.txt
 touch $OUTPUT
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; cd software_defined_customization/test_modules; make BUILD_MODULE=overhead_test_bulk_file_server.o; insmod overhead_test_bulk_file_server;  cd Desktop; python3 ../software_defined_customization/test_scripts/client_server/python_simple_server.py; exit"
+sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; cd /home/dan/software_defined_customization/test_modules; make BUILD_MODULE=overhead_test_bulk_file_server.o; insmod overhead_test_bulk_file_server.ko;  cd /home/dan/Desktop; python3 ../software_defined_customization/test_scripts/client_server/python_simple_server.py >/dev/null 2>&1 &"
 
-cd software_defined_customization/test_modules;
+
+sleep 2
+echo "d14cb9b6f48feda0563cda7b5335e4c0" >> $OUTPUT
+
+cd ../test_modules;
 make BUILD_MODULE=overhead_test_bulk_file_client.o;
-insmod overhead_test_bulk_file_client;
+insmod overhead_test_bulk_file_client.ko;
+cd ../test_scripts
 
-echo starting cust downloads
+sleep 2
+echo "*************** starting cust downloads ***************"
 
 for ((i=1;i<=$1;i++))
 do
@@ -78,35 +93,23 @@ do
   before=$(date '+%s%3N');
   curl http://10.0.0.20:8080/overhead.iso -o overhead.iso;
   after=$(date '+%s%3N');
-  echo "****** Time = $((after - before)) " >> $OUTPUT;
   sum=($(md5sum overhead.iso));
   echo "$sum" >> $OUTPUT;
+  echo "$((after - before)) " >> $OUTPUT;
   rm overhead.iso;
   sleep 2;
 done
 
-echo finished cust test
+echo "*************** finished cust test ***************"
+
+echo cleaning up
+
+sudo rmmod overhead_test_bulk_file_client
+sudo rmmod layer4_5
+
+sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; rmmod overhead_test_bulk_file_server; rmmod layer4_5; exit"
 
 
-# import data from file into this program to plot data
+echo generating plot
 
-
-
-
-
-echo starting downloads
-
-for ((i=1;i<=$1;i++))
-do
-  echo "Download $i";
-  before=$(date '+%s%3N');
-  curl http://10.0.0.20:8080/overhead.iso -o overhead.iso;
-  after=$(date '+%s%3N');
-  echo "****** Time = $((after - before)), " >> logs/bulk.txt;
-  sum=($(md5sum overhead.iso));
-  echo "START MD5 diff";
-  diff  <(echo "$sum" ) <(echo "d14cb9b6f48feda0563cda7b5335e4c0");
-  echo "END MD5 diff";
-  rm overhead.iso;
-  sleep 5;
-done
+python3 bulk_transfer_exp.py
