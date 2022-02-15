@@ -56,13 +56,14 @@ echo "Layer 4.5 started"
 
 echo "***************************"
 echo "Adding Layer 4.5 to modules config for auto load on boot"
-MODULE_FILE=/etc/modules-load.d/modules.conf
-if grep -Fxq "layer4_5" $MODULE_FILE
-then
-  echo "Layer 4.5 already added to file"
-else
-	echo "layer4_5" >> $MODULE_FILE
+MODULE_FILE=/etc/modules-load.d/layer4-5.conf
+if test -f "$MODULE_FILE"; then
+    echo "$MODULE_FILE exists."
+		rm $MODULE_FILE
 fi
+cp /etc/modules-load.d/modules.conf $MODULE_FILE
+echo "layer4_5" >> $MODULE_FILE
+
 
 
 # if layer4_5 module insertion succeeds, then build the loader service and enable

@@ -96,6 +96,8 @@ input to start running:
 
 1) (Server) make and install the server customization module:
 
+    * location: software\_defined\_customization/test\_modules
+
     * make BUILD\_MODULE=overhead\_test\_bulk\_file\_server.o
 
     * sudo insmod overhead\_test\_bulk\_file\_server.ko
@@ -103,11 +105,13 @@ input to start running:
 
 1) (Server) launch a simple python3 web server hosting the large file
 
-    * client/server folder supplies a simple server with PUT capability added
+    * client\_server folder supplies a simple server with PUT capability added
 
 
 
 1) (Client) make and install the client customization module:
+
+    * location: software\_defined\_customization/test\_modules
 
     * make BUILD\_MODULE=overhead\_test\_bulk\_file\_client.o
 
@@ -116,11 +120,11 @@ input to start running:
 
 1) (Client) run the bulk transfer script to perform tests
 
+    * NOTE: update file name and md5sum in the file to match your file
+
     * ./bulk\_transfer.sh 15
 
     * performs 15 trials
-
-    * NOTE: update file name and md5sum in the file to match your file
 
     * record batch times printed to terminal
 

@@ -154,7 +154,7 @@ struct sock* new_inet_csk_accept(struct sock *sk, int flags, int *err, bool kern
       if(cust_socket->customization != NULL)
       {
         // Socket added to tracking table, dump socket info to log
-        trace_print_cust_socket(cust_socket, "tcp_connect");
+        trace_print_cust_socket(cust_socket, "tcp_accept");
       }
     }
   #endif

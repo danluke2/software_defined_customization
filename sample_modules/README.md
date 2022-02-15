@@ -3,6 +3,54 @@
 Here we include sample modules to use with the Layer 4.5 installation.
 
 
+* sample\_python\_client: Inserts a tag to the front of the message sent to
+the server.
+
+    * Example:
+
+        * (Client) Hello
+
+        * (Server) testCustModHello
+
+    * Matches the flows:
+
+      * source IP/port: \*/\*
+
+      * dest IP/port: 127.0.0.1/65432
+
+      * L4 protocol: TCP or UDP
+
+      * Application: python3
+
+
+* sample\_python\_server: Removes the tag at the front of the message sent from
+the client.
+
+    * NOTE: This module assumes the client module is loaded.  If loaded without
+    the client module, then kernel may crash.
+
+    * Example:
+
+        * (Client) Hello
+
+        * (Network) testCustModHello
+
+        * (Server) Hello
+
+    * Matches the flows:
+
+      * source IP/port: 127.0.0.1/65432
+
+      * dest IP/port: \*/\*
+
+      * L4 protocol: TCP or UDP
+
+      * Application: python3    
+
+## Video walkthrough
+
+* Provided in: sample_walkthough.mp4
+
 
 ## Steps to run a sample client only customization:
 
@@ -47,7 +95,7 @@ Here we include sample modules to use with the Layer 4.5 installation.
 a modified message and replies with this modified message
 
 
-1) type 'quit' to close the connection
+1) In the client terminal, type 'quit' to close the connection
 
     * If using UDP, manually terminate the server
 
@@ -63,7 +111,11 @@ a modified message and replies with this modified message
 1) reset the trace file between runs if desired (as root, sudo su): > /sys/kernel/tracing/trace
 
 
-1) remove the client module: sudo rmmod sample\_python\_client
+1) remove the client module:
+
+    * Skip if moving on to next section
+
+    * sudo rmmod sample\_python\_client
 
 
 
@@ -84,17 +136,24 @@ a modified message and replies with this modified message
         * if client was previously built, no need to rebuild it
 
 
-1) insert client and server modules:
+1) (Skip if client module still loaded) Insert client module:
 
     * sudo insmod sample\_python\_client.ko
+
+    * Verify client module loaded messages are present in trace log
+
+        * /sys/kernel/tracing/trace
+
+        * ![](../assets/client_load.png)
+
+
+1) insert server modules:
 
     * sudo insmod sample\_python\_server.ko
 
     * Verify client and server module loaded messages are present in trace log
 
         * /sys/kernel/tracing/trace
-
-        * ![](../assets/client_load.png)
 
         * ![](../assets/server_load.png)
 
@@ -121,8 +180,7 @@ a modified message and replies with this modified message
     * echo client/server should show un-modified messages
 
 
-1) type 'quit' to close client connection, which may also terminate the server
-(otherwise terminate the server)
+1) In the client terminal, type 'quit' to close the connection
 
 
 1) dump the kernel trace file to find corresponding messages for layer 4.5 messages:
