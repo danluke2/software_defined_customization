@@ -170,9 +170,11 @@ a modified message and replies with this modified message
 
 1) In a new terminal window, launch tcpdump to verify changes are applied to messages:
 
-    * sudo tcpdump -i any -X
+    * sudo tcpdump tcp port 65432 -i any -X
 
-    * alternatively, launch Wireshark    
+    * alternatively, launch Wireshark  
+
+    * TODO: add image here  
 
 
 1) type some messages into the echo client and verify tcpdump shows modified messages

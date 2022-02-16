@@ -15,7 +15,8 @@
 #include <linux/scatterlist.h>
 #include <linux/random.h>
 
-#include "common_structs.h" // this needs to match DCA version
+// for the overhead test, a copy of common_structs is in same location as this module
+#include "common_structs.h"
 
 
 extern int register_customization(struct customization_node *cust);

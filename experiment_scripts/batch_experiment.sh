@@ -83,15 +83,15 @@ echo "*************** finished tap test ***************"
 OUTPUT=logs/batch_cust.txt
 touch $OUTPUT
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill dnsmasq; cd $GIT_DIR/test_modules; make BUILD_MODULE=overhead_test_batch_dns_server.o; insmod overhead_test_batch_dns_server.ko; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
+sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill dnsmasq; cd $GIT_DIR/experiment_modules; make BUILD_MODULE=overhead_test_batch_dns_server.o; insmod overhead_test_batch_dns_server.ko; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 
 sleep 2
 
-cd ../test_modules;
+cd ../experiment_modules;
 make BUILD_MODULE=overhead_test_batch_dns_client.o;
 insmod overhead_test_batch_dns_client.ko;
-cd ../test_scripts
+cd ../experiment_scripts
 
 sleep 2
 echo "*************** starting cust batch ***************"

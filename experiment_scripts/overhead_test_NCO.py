@@ -15,23 +15,30 @@ import sqlite3 as sl
 
 import argparse
 
-from db_helper import *
+from exp_CIB_helper import *
 
 
-parser = argparse.ArgumentParser(description='NCO testing')
+parser = argparse.ArgumentParser(description='NCO test program')
 parser.add_argument('--sleep', type=int, required=False, help="Build thread sleep timer")
+parser.add_argument('--ip', type=str, required=False, help="NCO IP")
+parser.add_argument('--port', type=int, required=False, help="NCO port")
+
 
 args = parser.parse_args()
 
 HOST = '10.0.0.20'
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 
+if args.ip:
+    HOST=args.ip
 
-core_mod_dir = "core_modules/"
-symvers_dir = "device_modules/host_" # + host_id
+if args.port:
+    PORT=args.port
 
 
-build_interval = 10 #run build loop ever 10 seconds
+exp_mod_dir = "../experiment_modules/"
+symvers_dir = exp_mod_dir + "device_modules/host_" # + host_id
+
 next_module_id = 1
 
 QUERY_INTERVAL = 30
@@ -42,10 +49,7 @@ DB_ERROR = -1
 CLOSE_SOCK = -2
 
 
-
-
-
-
+######################### DEVICE THREAD FUNCTIONS #############################
 
 def send_install_modules(conn_socket, host_id, modules):
     count = len(modules)
@@ -89,10 +93,6 @@ def send_ko_module(conn_socket, host_id, module):
 
 
 
-
-######################### CLIENT THREAD FUNCTIONS #############################
-
-
 def check_install_requirement_or_max_time(db_connection, host_id, end_time, interval):
     while int(time.time()) < end_time:
         # first check if new modules avail to install
@@ -118,7 +118,7 @@ def process_report(conn_socket, db_connection, host_id, MAX_BUFFER_SIZE):
     except json.decoder.JSONDecodeError as e:
         print(f"Error on process report recv call, {e}")
         return CLOSE_SOCK
-    # TODO: check report mac matches host_id and update DB?
+
     active_list = json_data["Active"]
     retired_list = json_data["Retired"]
 
@@ -160,6 +160,8 @@ def recv_symvers_file(conn_socket, host_id):
     print('recv file size: ', recv_string["size"])
     file_size = recv_string["size"]
 
+    conn_socket.sendall(b'Clear to send')
+
     with open(os.path.join(symvers_dir + str(host_id) + "/", "Module.symvers"), 'wb') as file_to_write:
         while True:
             data = conn_socket.recv(file_size)
@@ -195,7 +197,6 @@ def handle_active_update(db_connection, host_id, active_list, install_id_list):
                 insert_active(db_connection, host_id, module["ID"], module["Count"], module["ts"], 0)
                 result = REFRESH_INSTALL_LIST
             else:
-                # TODO: handle this case; maybe trigger retire call
                 print(f"host has active module not in Active or Install DB, module =", module["ID"])
 
     for module_id in active_db:
@@ -222,19 +223,17 @@ def setup_host_dirs(host_id):
     #create the modules dir based on assigned host_id
     os.mkdir(symvers_dir + host_id + "/modules")
     #put generic makefile in modules dir
-    newPath = shutil.copy(core_mod_dir + "Makefile", symvers_dir + host_id + "/modules")
-
+    newPath = shutil.copy(exp_mod_dir + "Makefile", symvers_dir + host_id + "/modules")
+    #put a copy of common_structs in modules dir also
+    newPath = shutil.copy(exp_mod_dir + "../DCA_kernel/common_structs.h", symvers_dir + host_id + "/modules")
 
 
 #mac is just the host test number, so reuse as host id to make simple
 def handle_host_insert(db_connection, mac, ip, port, kernel_release):
     max_tries = 10
     counter = 0
-    #repeatedly generate host ID and insert into db until successful
     while counter <= max_tries:
-        # generated_id = random.randint(1,65535)
         print(f"Inserting host {mac}, ID = {mac}")
-        # if host_id already exists, then DB error occurs and we try again
         err = insert_host(db_connection, mac, int(mac), ip, port, 0, 0, kernel_release, QUERY_INTERVAL)
         if (err == DB_ERROR):
             print("Could not insert host, try again")
@@ -251,8 +250,8 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release):
     return host
 
 
-def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
-    db_connection = db_connect('nco.db')
+def device_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
+    db_connection = db_connect('cib.db')
 
     #handle initial client-initiated check-in, then client is in a recv state
 
@@ -265,13 +264,13 @@ def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
         conn.close()
         return
 
-    client_mac = json_data["mac"]
+    device_mac = json_data["mac"]
     kernel_release = json_data["release"]
 
-    host = select_host(db_connection, client_mac)
+    host = select_host(db_connection, device_mac)
 
     if host == None:
-        host = handle_host_insert(db_connection, client_mac, ip, port, kernel_release)
+        host = handle_host_insert(db_connection, device_mac, ip, port, kernel_release)
 
     if host == DB_ERROR:
         print("Host DB error occurred, terminating connection")
@@ -280,30 +279,33 @@ def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
 
     # update host IP and Port if necessary
     if host["host_ip"] != ip:
-        err = update_host(db_connection, client_mac, "host_ip", ip)
+        err = update_host(db_connection, device_mac, "host_ip", ip)
         if err == DB_ERROR:
-            print(f"Host IP not updated for mac = {client_mac}")
+            print(f"Host IP not updated for mac = {device_mac}")
     if host["host_port"] != port:
-        err = update_host(db_connection, client_mac, "host_port", port)
+        err = update_host(db_connection, device_mac, "host_port", port)
         if err == DB_ERROR:
-            print(f"Host Port not updated for mac = {client_mac}")
+            print(f"Host Port not updated for mac = {device_mac}")
 
 
     host_id = host["host_id"]
 
     #get symver file and store in host_id dir if necessary
     if host["symvers_ts"] == 0:
-        err = request_symver_file(conn, db_connection, host_id, client_mac)
+        err = request_symver_file(conn, db_connection, host_id, device_mac)
         if err == DB_ERROR:
             print("Symver DB error occurred")
+            return
+        if err == CLOSE_SOCK:
+            conn.close()
+            return
 
-    # initial check-in complete now enter infinite loop while connection is active
-    # all messages at this point are server driven
+    # initial check-in complete now wait for modules to be ready
     with cv:
         print(f"Host {host_id} waiting for builder to finish")
         cv.wait()
         start = int(time.time() * 1000)
-        print(f"Host {host_id} running, time = {start}")
+        print(f"Host {host_id} start time = {start}")
 
     # get a full report from host and send updated modules
     request_report(conn, host_id)
@@ -327,7 +329,7 @@ def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
     send_install_modules(conn, host_id, modules)
 
 
-    #get updated host report to ensure install success?
+    #get updated host report to ensure install success
     request_report(conn, host_id)
     active_list = process_report(conn, db_connection, host_id, MAX_BUFFER_SIZE)
     if active_list == CLOSE_SOCK:
@@ -341,21 +343,20 @@ def client_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
             print(f"*************Module id error")
         else:
             end = int(time.time() * 1000)
-            print(f"Host {host_id} done")
+            print(f"Host {host_id} end time = {end}")
 
-            print(f"End time = {end}")
-
+    conn.close()
     return
 
 
-######################### MODULE THREAD FUNCTIONS #############################
+###################### CONSTRUCTION THREAD FUNCTIONS ###########################
 
 
 def insert_and_update_module_tables(db_connection, module, module_id, host_id):
     require_install = 1
     install_time = 0 #indicates ASAP
     print(f"inserting module {module} into built table")
-    err = insert_built_module(db_connection, host_id, module, module_id, int(time.time()), require_install, install_time)
+    err = insert_built_module(db_connection, host_id, module, module_id, int(time.time()), 0, require_install, install_time)
     if err == DB_ERROR:
         print(f"Error inserting {module} into built table")
     return err
@@ -366,7 +367,7 @@ def insert_and_update_module_tables(db_connection, module, module_id, host_id):
 # ASSUMPTION: symver file and directory exists
 def build_ko_module(db_connection, host_id, module, module_id):
     try:
-        subprocess.run(["./builder.sh", module, str(module_id), str(INSERT_LINE), str(host_id)], check=True)
+        subprocess.run(["./exp_builder.sh", module, str(module_id), str(INSERT_LINE), str(host_id)], check=True)
         result = 0
     except CalledProcessError as e:
         print(f"Error occured during module build process, error={e}")
@@ -375,9 +376,20 @@ def build_ko_module(db_connection, host_id, module, module_id):
     return result
 
 
-def build_module_thread(cv, t):
-    db_connection = db_connect('nco.db')
+
+# 1) Start construction thread and wait 't' seconds for each device DCA to connect
+# to the NCO and deliver initial report and symver file
+# 2) After all device check-ins completed, give option to clear the built module
+# table, which will hold modules built during last experiment run.  This table
+# does not need to be cleared for each trial
+# 3) give option to build module for each device in the CIB.  After the build,
+# we can verify all devices have an entry in BUILT table
+# 4) Give option to built again, but likely select 'n'.  This alerts all the
+# DCA threads that the modules are ready for deployment and the test begins
+def construction_module_thread(cv, t):
+    db_connection = db_connect('cib.db')
     again = "y"
+    # wait t time for all devices to connect and deliver symver file if needed
     time.sleep(t)
     with cv:
         #continuosly check if there are modules to build to host symvers
@@ -393,16 +405,17 @@ def build_module_thread(cv, t):
             if build == "y":
                 build_start = int(time.time() * 1000)
                 host_list = select_all_hosts(db_connection)
+                # get host_id from host_list
                 hosts = [x[1] for x in host_list]
                 for host in hosts:
-                    err = build_ko_module(db_connection, host, "nco_test", host)
+                    err = build_ko_module(db_connection, host, "nco_overhead_exp", host)
                     if err == -1:
                         #move on to next module instead of updating the tables
                         print(f"Build module error for host {host}")
                         continue
                     else:
                         print(f"Inserting module for host {host}")
-                        err = insert_and_update_module_tables(db_connection, "nco_test", host, host)
+                        err = insert_and_update_module_tables(db_connection, "nco_overhead_exp", host, host)
                         if err == DB_ERROR:
                             print(f"Error occured updating module tables")
 
@@ -424,10 +437,10 @@ if __name__ == "__main__":
 
     try:
         #build module thread runs independent of client connections
-        Thread(target=build_module_thread, args=(condition,args.sleep)).start();
-        print("Module build thread running")
+        Thread(target=construction_module_thread, args=(condition,args.sleep)).start();
+        print("Module construction thread running")
     except:
-        print("Client thread creation error!")
+        print("Construction thread creation error!")
         traceback.print_exc()
 
 
@@ -448,8 +461,8 @@ if __name__ == "__main__":
             ip, port = str(addr[0]), str(addr[1])
             print('Accepting connection from ' + ip + ':' + port)
             try:
-                Thread(target=client_thread, args=(conn, ip, port, condition)).start()
+                Thread(target=device_thread, args=(conn, ip, port, condition)).start()
             except:
-                print("Client thread creation error!")
+                print("Device thread creation error!")
                 traceback.print_exc()
         s.close()

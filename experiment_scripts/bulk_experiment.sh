@@ -6,7 +6,7 @@
 SERVER_DIR=/home/dan/Desktop
 #directory holding the software_defined_customization git repo
 GIT_DIR=/home/dan/software_defined_customization
-SIMPLE_SERVER_DIR=$GIT_DIR/test_scripts/client_server
+SIMPLE_SERVER_DIR=$GIT_DIR/experiment_scripts/client_server
 
 
 # client connect to server over ssh, launch web server, then on client run experiment, save data to file
@@ -79,16 +79,16 @@ echo "*************** finished tap test ***************"
 OUTPUT=logs/bulk_cust.txt
 touch $OUTPUT
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; cd $GIT_DIR/test_modules; make BUILD_MODULE=overhead_test_bulk_file_server.o; insmod overhead_test_bulk_file_server.ko;  cd $SERVER_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; cd $GIT_DIR/experiment_modules; make BUILD_MODULE=overhead_test_bulk_file_server.o; insmod overhead_test_bulk_file_server.ko;  cd $SERVER_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
 
 sleep 2
 echo "d14cb9b6f48feda0563cda7b5335e4c0" >> $OUTPUT
 
-cd ../test_modules;
+cd ../experiment_modules;
 make BUILD_MODULE=overhead_test_bulk_file_client.o;
 insmod overhead_test_bulk_file_client.ko;
-cd ../test_scripts
+cd ../experiment_scripts
 
 sleep 2
 echo "*************** starting cust downloads ***************"

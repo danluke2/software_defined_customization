@@ -71,7 +71,7 @@ to build remotely and install via DCA connection
 
 1) (NCO) launch NCO test program:
 
-    * python3 test\_NCO.py --t 60
+    * python3 overhead\_test\_NCO.py --t 60
 
     * this delays the build module thread 60 seconds to allow desired number of
     DCA check-ins to occur before building modules (adjust as needed)
@@ -79,12 +79,12 @@ to build remotely and install via DCA connection
 
 1) (DCA\_user) launch test DCA program
 
-    * python3 test\_DCA.py --start 0 --end 50 --dir path\_to\_temp\_dir
+    * python3 overhead\_test\_DCA.py --start 0 --end 50 --dir path\_to\_temp\_dir
 
     * start/end: create end-start device threads with unique names and fake mac
     addresses corresponding to those names
 
-    * dir: directory to hold all the kernel modules that will be transfered over
+    * dir: directory to hold all the kernel modules that will be transferred over
     the control channel
 
 
@@ -112,9 +112,9 @@ input to start running:
 
 1) Stop the DCA and NCO and verify test performed on all devices:
 
-    * (DCA) verify a kernel module was downloaded for each host
+    * (DCA) In temp directory, verify a kernel module was downloaded for each host
 
-    * (NCO) verify an entry exists for each host in CIB
+    * (NCO) In CIB, verify an entry exists for each host
 
 
 1) Repeat previous steps 15 times for each test (10,50,100,175,250)
@@ -142,7 +142,7 @@ generate the graph:
 
         * GIT_DIR=directory holding the software_defined_customization git repo
 
-        * SIMPLE_SERVER_DIR=$GIT_DIR/test_scripts/client_server
+        * SIMPLE_SERVER_DIR=$GIT_DIR/experiment_scripts/client_server
 
     * test\_scripts/buk_experiment.sh 15
 
@@ -185,6 +185,30 @@ generate the graph:
 
 
 
+## Challenge/Response prototype:
+
+1) (NCO) Start NCO to begin listening for DCA connections
+
+1) (DCA) Start DCA and verify connected to NCO
+
+1) (NCO) make, deploy, and install the test customization module:
+
+    * add 'nco\_test' to CIB build table for connected DCA device
+
+1) (NCO) Verify nco\_test is built and deployed to DCA and challenge/response
+window set to 5 seconds
+
+1) (NCO) Allow NCO to run until 20 challenge/responses have completed
+
+    * Verify each check passed via terminal output
+
+    * TODO: add image here
+
+1) (DCA) Verify each challenge/response was conducted correctly by reviewing
+tracelog entries
+
+    * TODO: add image here
+
 ## Middlebox demo:
 
 
@@ -196,14 +220,14 @@ the NCO is running on the Server with DCA on Client and Server
 
 1) (NCO) make, deploy, and install the server customization module:
 
-    * add 'demo\_dns\_server\_app' to CIB for server
+    * add 'demo\_dns\_server\_app\_tag' to CIB for server
 
     * add 'demo_dns_tag.lua' as module dependency to trigger deployment also
 
 
 1) (NCO) make, deploy, and install the client customization module:
 
-    * add 'demo\_dns\_client\_app' to CIB for server
+    * add 'demo\_dns\_client\_app\_tag' to CIB for server
 
     * add 'demo_dns_tag.lua' as module dependency to trigger deployment also
 
