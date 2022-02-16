@@ -31,10 +31,8 @@ echo "Installing dependencies"
 # Required build libraries
 $PM install python3 python3-pip linux-headers-$(uname -r)
 
-# libconfig-dev libcap-dev python-dev libevent-dev
-
-#for python encryption support in DCA, uncomment if needed
-pip install pycryptodome
+#for python encryption support in NCA
+# pip install pycryptodome
 
 
 INSTALL_LOCATION=/usr/lib/modules/$(uname -r)/layer4_5

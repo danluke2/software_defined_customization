@@ -73,7 +73,13 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 
 
-## Steps to install Layer 4.5:
+## Layer 4.5 VM Location:
+
+1) Download the pre-configured Layer 4.5 Ubuntu Focal Fossa VM: TBD
+
+
+
+## Steps to manually install Layer 4.5:
 
 1) Install Ubuntu 20.04.3 LTS (Focal Fossa) VM (tested on kernel 5.13.0-28)
 

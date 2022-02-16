@@ -172,7 +172,7 @@ void common_close(struct sock *sk)
   ret = delete_cust_socket(current->pid, sk);
 
   #ifdef DEBUG3
-    trace_printk("L4.5: socket close call, pid=%d\n", current->pid);
+    trace_printk("L4.5: socket close call, pid=%d, sk=%lu\n", current->pid, (unsigned long)sk);
   	if(ret == 0)
     {
       // prints sockets that bypassed L4.5 processing
@@ -247,6 +247,7 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
       {
         if(cust_socket->customization != NULL)
         {
+          trace_printk("L4.5: Customization assigned to pid %d, sk %lu\n", task->pid, (unsigned long)sk);
           // Socket added to tracking table, dump socket info to log
           trace_print_cust_socket(cust_socket, "sendmsg");
         }

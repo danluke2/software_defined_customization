@@ -62,7 +62,7 @@ struct customization_buffer
 // primary structure for application sockets to hold customization information
 struct customization_socket
 {
-  pid_t pid; // this can change if multiple threads being used, but we track the first one
+  pid_t pid;
   struct sock *sk;
 
 	// customization can be one way, so allow for send/recv differentiation
@@ -91,6 +91,7 @@ struct customization_node
 {
 	struct customization_flow target_flow;
 
+	// mod_id
   u16 cust_id;
 	// counter to track number of sockets cust is applied to
 	u16 sock_count;

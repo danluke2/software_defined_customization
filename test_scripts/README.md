@@ -30,7 +30,7 @@ to build remotely and install via DCA connection
 
 1) (Client/DCA VM) Install matplotlib for plotting graphs:
 
-    * pip3 install matplotlib
+    * pip install matplotlib
 
 
 1) (Server/NCO VM) Install ssh server and enable root login:
@@ -55,6 +55,7 @@ to build remotely and install via DCA connection
     * sudo ssh root@10.0.0.20
 
     * password = 'default'
+
 
 
 
@@ -129,42 +130,25 @@ input to start running:
 
     * (alternatively) use any large file
 
-
-1) (Server) make and install the server customization module:
-
-    * location: software\_defined\_customization/test\_modules
-
-    * make BUILD\_MODULE=overhead\_test\_bulk\_file\_server.o
-
-    * sudo insmod overhead\_test\_bulk\_file\_server.ko
+    * store the file as 'overhead.iso' on the Desktop
 
 
-1) (Server) launch a simple python3 web server hosting the large file
+1) (Client) Execute the bulk transfer script to perform all experiments and
+generate the graph:
 
-    * client\_server folder supplies a simple server with PUT capability added
+    * Update script parameters to match your device:
 
+        * SERVER_DIR=directory with overhead.iso
 
+        * GIT_DIR=directory holding the software_defined_customization git repo
 
-1) (Client) make and install the client customization module:
+        * SIMPLE_SERVER_DIR=$GIT_DIR/test_scripts/client_server
 
-    * location: software\_defined\_customization/test\_modules
-
-    * make BUILD\_MODULE=overhead\_test\_bulk\_file\_client.o
-
-    * sudo insmod overhead\_test\_bulk\_file\_client.ko  
-
-
-1) (Client) run the bulk transfer script to perform tests
-
-    * NOTE: update file name and md5sum in the file to match your file
-
-    * ./bulk\_transfer.sh 15
+    * test\_scripts/buk_experiment.sh 15
 
     * performs 15 trials
 
-    * record batch times printed to terminal
-
-    * insert times into box.py file (tcp data lists)
+1) (Client) View generated graph: bulk_overhead.png
 
 
 
@@ -177,39 +161,27 @@ input to start running:
 
     * DNSSEC not used during experiments
 
-    * (Optional to match paper setup) Configure dnsmasq to resolve all IP addresses to same IP address
+    * (Optional to match paper setup) Configure dnsmasq to:
+
+        * resolve all IP addresses to same IP address
+
+        * log queries
+
+        * no cache
 
 
-1) (Server) make and install the server customization module:
+1) (Client) Execute the batch dns script to perform all experiments and
+generate the graph:
 
-    * make BUILD\_MODULE=overhead\_test\_batch\_dns\_server.o
+    * Update script parameters to match your device:
 
-    * sudo insmod overhead\_test\_batch\_dns\_server.ko
+        * GIT_DIR=directory holding the software_defined_customization git repo
 
+    * test\_scripts/batch_experiment.sh 15 1000 0
 
-1) (Server) enable dnsmasq service
+        * performs 15 trials of 1000 DNS requests with 0 sec between each request
 
-    * recommend running from command line to view dnsmasq logs
-
-    * sudo dnsmasq --no-daemon -c 0
-
-
-1) (Client) make and install the client customization module:
-
-    * make BUILD\_MODULE=overhead\_test\_batch\_dns\_client.o
-
-    * sudo insmod overhead\_test\_batch\_dns\_client.ko  
-
-
-1) (Client) run the batch DNS script to perform tests
-
-    * ./batch\_dns.sh 15 1000
-
-    * performs 15 trials with 1000 DNS queries
-
-    * record batch times printed to terminal
-
-    * insert times into box.py file (udp data lists)
+1) (Client) View generated graph: batch_overhead.png
 
 
 

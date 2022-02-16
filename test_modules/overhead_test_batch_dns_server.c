@@ -92,7 +92,7 @@ int __init sample_client_start(void)
 
 	dns_cust->target_flow.dest_port = 0;
   // dnsmasq doesn't bind unless you force it, which I do
-  dns_cust->target_flow.dest_ip = in_aton("10.0.0.10");
+  dns_cust->target_flow.dest_ip = in_aton("10.0.0.40");
   dns_cust->target_flow.source_ip = in_aton("10.0.0.20");
   dns_cust->target_flow.source_port = 53;
 
@@ -106,7 +106,7 @@ int __init sample_client_start(void)
   dns_cust->retired_time_struct.tv_nsec = 0;
 
   dns_cust->send_buffer_size = 0; // accept default buffer size
-  dns_cust->recv_buffer_size = 0; // accept default buffer size
+  dns_cust->recv_buffer_size = 2048; // we don't need a full buffer
 
 	result = register_customization(dns_cust);
 
