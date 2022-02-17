@@ -68,59 +68,13 @@ to build remotely and install via DCA connection
 
     * this is just a way to visualize database and manipulate entries
 
+1) (NCO) launch experiment script:
 
-1) (NCO) launch NCO test program:
+    * update nco\_dca\_(batch)\_experiment files with your parameters
 
-    * python3 overhead\_test\_NCO.py --t 60
+    * run: nco\_dca\_batch\_experiment 15
 
-    * this delays the build module thread 60 seconds to allow desired number of
-    DCA check-ins to occur before building modules (adjust as needed)
-
-
-1) (DCA\_user) launch test DCA program
-
-    * python3 overhead\_test\_DCA.py --start 0 --end 50 --dir path\_to\_temp\_dir
-
-    * start/end: create end-start device threads with unique names and fake mac
-    addresses corresponding to those names
-
-    * dir: directory to hold all the kernel modules that will be transferred over
-    the control channel
-
-
-1) (NCO) After all devices have checked in and build module is waiting for user
-input to start running:
-
-    * enter "y" in terminal to build modules for each device in test
-
-        * this can take a while depending on how many devices to test, so I
-        recommend not rebuilding between trials and only when changing number
-        of devices
-
-    * record build time if interested in collecting
-
-    * enter "n" to start the experiment
-
-        * this notifies all waiting NCO/DCA threads that models are ready to
-        deploy
-
-    * after all modules are delivered, record time between last delivery and
-    first delivery
-
-        * NOTE: each device thread outputs a starting time and finish time so
-        a lot of times are printed to the terminal
-
-1) Stop the DCA and NCO and verify test performed on all devices:
-
-    * (DCA) In temp directory, verify a kernel module was downloaded for each host
-
-    * (NCO) In CIB, verify an entry exists for each host
-
-
-1) Repeat previous steps 15 times for each test (10,50,100,175,250)
-
-
-
+        * this performs 15 trials for each number of hosts and plots results
 
 
 ## Bulk file transfer overhead experiment:
