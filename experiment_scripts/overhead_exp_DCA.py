@@ -21,8 +21,7 @@ import argparse
 # read in argument values to pretend to be multiple different hosts talking
 # with the server for testing distribution limits
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--start', type=int, required=True, help="Starting device number+1")
-parser.add_argument('--end', type=int, required=True, help="Ending device number")
+parser.add_argument('--number', type=int, required=True, help="Number of devices to emulate")
 parser.add_argument('--dir', type=str, required=True, help="KO Module download dir")
 parser.add_argument('--ip', type=str, required=False, help="NCO IP")
 parser.add_argument('--port', type=int, required=False, help="NCO port")
@@ -189,9 +188,9 @@ def emulated_host_thread(host_id, downloadDir):
                 print(f"Command parsing error, {e}")
 
 
-number = args.end-args.start
-print(f"Starting {number} device threads")
-for x in range(args.start, args.end):
+
+print(f"Starting {args.number} device threads")
+for x in range(args.number):
     try:
         host_id = str(x+1)
 

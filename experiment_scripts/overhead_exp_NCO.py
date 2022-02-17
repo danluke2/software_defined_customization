@@ -19,21 +19,32 @@ from exp_CIB_helper import *
 
 
 parser = argparse.ArgumentParser(description='NCO test program')
+parser.add_argument('--construct', help="Perform module constuction and deployment", action="store_true")
 parser.add_argument('--sleep', type=int, required=False, help="Build thread sleep timer")
 parser.add_argument('--ip', type=str, required=False, help="NCO IP")
 parser.add_argument('--port', type=int, required=False, help="NCO port")
+parser.add_argument('--number', type=int, required=True, help="Number of DCA threads")
 
 
 args = parser.parse_args()
 
 HOST = '10.0.0.20'
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
+construct = "no"
+timer = 30
 
 if args.ip:
     HOST=args.ip
 
 if args.port:
     PORT=args.port
+
+
+if args.construct:
+    construct = "y"
+
+if args.sleep:
+    timer = args.sleep
 
 
 exp_mod_dir = "../experiment_modules/"
@@ -250,7 +261,7 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release):
     return host
 
 
-def device_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
+def device_thread(conn, ip, port, cv, start_results, end_results, index, MAX_BUFFER_SIZE = 4096):
     db_connection = db_connect('cib.db')
 
     #handle initial client-initiated check-in, then client is in a recv state
@@ -306,6 +317,7 @@ def device_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
         cv.wait()
         start = int(time.time() * 1000)
         print(f"Host {host_id} start time = {start}")
+        start_results[index] = start
 
     # get a full report from host and send updated modules
     request_report(conn, host_id)
@@ -343,7 +355,9 @@ def device_thread(conn, ip, port, cv, MAX_BUFFER_SIZE = 4096):
             print(f"*************Module id error")
         else:
             end = int(time.time() * 1000)
-            print(f"Host {host_id} end time = {end}")
+            delta = end - start
+            print(f"Host {host_id} delta time = {delta}")
+            end_results[index] = end
 
     conn.close()
     return
@@ -386,63 +400,70 @@ def build_ko_module(db_connection, host_id, module, module_id):
 # we can verify all devices have an entry in BUILT table
 # 4) Give option to built again, but likely select 'n'.  This alerts all the
 # DCA threads that the modules are ready for deployment and the test begins
-def construction_module_thread(cv, t):
+def construction_module_thread(cv, t, construct):
     db_connection = db_connect('cib.db')
-    again = "y"
+    # again = "y"
     # wait t time for all devices to connect and deliver symver file if needed
     time.sleep(t)
     with cv:
         #continuosly check if there are modules to build to host symvers
-        while again == "y":
-            clear = input("Clear the built table (y/n)?")
-            if clear == "y":
-                #clear built table
-                drop_table(db_connection, "built_modules")
-                #init table again
-                init_built_modules_table(db_connection)
+        # while again == "y":
+        if construct =="y":
+            # clear = input("Clear the built table (y/n)?")
+            # if clear == "y":
+            #clear built table
+            drop_table(db_connection, "built_modules")
+            #init table again
+            init_built_modules_table(db_connection)
 
-            build = input("Build modules to each host (y/n)?")
-            if build == "y":
-                build_start = int(time.time() * 1000)
-                host_list = select_all_hosts(db_connection)
-                # get host_id from host_list
-                hosts = [x[1] for x in host_list]
-                for host in hosts:
-                    err = build_ko_module(db_connection, host, "nco_overhead_exp", host)
-                    if err == -1:
-                        #move on to next module instead of updating the tables
-                        print(f"Build module error for host {host}")
-                        continue
-                    else:
-                        print(f"Inserting module for host {host}")
-                        err = insert_and_update_module_tables(db_connection, "nco_overhead_exp", host, host)
-                        if err == DB_ERROR:
-                            print(f"Error occured updating module tables")
+            # build = input("Build modules to each host (y/n)?")
+            # if build == "y":
+            # build_start = int(time.time() * 1000)
+            host_list = select_all_hosts(db_connection)
+            # get host_id from host_list
+            hosts = [x[1] for x in host_list]
+            for host in hosts:
+                err = build_ko_module(db_connection, host, "nco_overhead_exp", host)
+                if err == -1:
+                    #move on to next module instead of updating the tables
+                    print(f"Build module error for host {host}")
+                    continue
+                else:
+                    print(f"Inserting module for host {host}")
+                    err = insert_and_update_module_tables(db_connection, "nco_overhead_exp", host, host)
+                    if err == DB_ERROR:
+                        print(f"Error occured updating module tables")
 
-
-                build_end = int(time.time() * 1000)
-                diff = build_end - build_start
-                again = input(f"Build time was {diff} msec\n Build again?:")
-            else:
-                again = "no"
+            # build_end = int(time.time() * 1000)
+            # diff = build_end - build_start
+            # print(f"Build time was {diff} msec\n")
+            # again = input(f"Build time was {diff} msec\n Build again?:")
+            # else:
+            #     again = "no"
+        else:
+            #reset modules for deployment
+            host_list = select_all_hosts(db_connection)
+            # get host_id from host_list
+            hosts = [x[1] for x in host_list]
+            for host in hosts:
+                err = update_built_module_install_requirement(db_connection, host, host, 1, 0)
+                if err == -1:
+                    #move on to next module instead of updating the tables
+                    print(f"Reset module error for host {host}")
+                    continue
 
         cv.notifyAll()
-    print("Build module thread exiting")
+    print("Construction module thread exiting")
 
 
 
 if __name__ == "__main__":
 
     condition = Condition()
-
-    try:
-        #build module thread runs independent of client connections
-        Thread(target=construction_module_thread, args=(condition,args.sleep)).start();
-        print("Module construction thread running")
-    except:
-        print("Construction thread creation error!")
-        traceback.print_exc()
-
+    counter = 0
+    threads = []
+    thread_start= [0 for x in range(args.number)]
+    thread_end= [0 for x in range(args.number)]
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -456,13 +477,49 @@ if __name__ == "__main__":
 
         s.listen()
 
-        while True:
+        while counter < args.number:
             conn, addr = s.accept()
             ip, port = str(addr[0]), str(addr[1])
             print('Accepting connection from ' + ip + ':' + port)
             try:
-                Thread(target=device_thread, args=(conn, ip, port, condition)).start()
+                t = Thread(target=device_thread, args=(conn, ip, port, condition, thread_start, thread_end, counter))
+                t.start()
+                threads.append(t)
+                counter+=1
             except:
                 print("Device thread creation error!")
                 traceback.print_exc()
+
+        # all threads expected have joined, so now construct modules if necessary
+        try:
+            #build module thread runs independent of client connections
+            Thread(target=construction_module_thread, args=(condition,timer,construct)).start();
+            print("Module construction thread running")
+        except:
+            print("Construction thread creation error!")
+            traceback.print_exc()
+
+        print("Joining device threads")
+        for x in threads:
+            x.join()
+
+        minimum = 100000000000000000000000
+        for element in thread_start:
+            if element < minimum:
+                minimum = element
+
+        maximum = 0
+        for element in thread_end:
+            if element > maximum:
+                maximum = element
+
+        delta = maximum - minimum
+        file = open(f"/home/dan/software_defined_customization/experiment_scripts/logs/nco_results_{args.number}.txt", 'a+')
+        file.write(f"{delta}\n")
+        file.close()
+        file = open("/home/dan/software_defined_customization/experiment_scripts/logs/nco_finished.txt", 'w+')
+        print("NCO finished file created")
+        file.close()
+
+        print(delta)
         s.close()

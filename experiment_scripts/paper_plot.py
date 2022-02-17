@@ -1,4 +1,4 @@
-# box plots of test scipts
+# box plots of results used in the paper from manual experiments
 
 # Import libraries
 import matplotlib.pyplot as plt
