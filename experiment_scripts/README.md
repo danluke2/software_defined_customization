@@ -168,23 +168,30 @@ generate the graph:
 
     * sudo required to install and remove modules
 
-1) (NCO) make, deploy, and install the experiment module:
+1) (NCO) make, deploy, and install the challenge/response module:
+
+    * NOTE: unlike previous experiment modules, this is in the NCO/core\_modules dir
+    because we are using the full NCO deployment instead of an experiment version
 
     * add 'nco\_challenge\_response' to CIB build table for connected DCA device
 
+    * ![](../assets/build_table.png)
+
 1) (NCO) Verify nco\_challenge\_response is built and deployed to DCA and challenge/response
 window set to 5 seconds
+
+    * ![](../assets/active_table.png)
 
 1) (NCO) Allow NCO to run until 20 challenge/responses have completed
 
     * Verify each check passed via terminal output
 
-    * TODO: add image here
+    * ![](../assets/challenge.png)
 
 1) (DCA) Verify each challenge/response was conducted correctly by reviewing
 tracelog entries
 
-    * TODO: add image here
+    * ![](../assets/challenge_log.png)
 
 
 
