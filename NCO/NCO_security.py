@@ -3,6 +3,7 @@
 import socket
 import os
 import json
+import time
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
@@ -24,25 +25,35 @@ def generate_key():
 
 
 
-def request_challenge_response(conn_socket, db_connection, host_id, active_list, buffer_size):
-    try:
-        active_module = active_list[0]
-        module_id = active_module["ID"]
-    except:
-        print(f"Error with active list: {active_list}")
-        return
+def check_challenge(db_connection, host_id):
+    challenge_list = []
+    now = int(time.time())
+
+    active_list_rows = select_all_active_rows(db_connection, host_id)
+    module_id_list = [x[1] for x in active_list_rows]
+    sec_windows = [x[4] for x in active_list_rows]
+    sec_ts = [x[5] for x in active_list_rows]
+
+    for i in range(len(module_id_list)):
+        if now - sec_ts[i] > sec_windows[i]:
+            challenge_list.append(module_id_list[i])
+    return challenge_list
 
 
+
+
+def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buffer_size):
+    result = cfg.RETIRE_MOD
     iv = os.urandom(cfg.IV_SIZE)
     command = {"cmd": "challenge"}
-    command["id"] = module_id
+    command["id"] = mod_id
     command["iv"] = iv.hex()
 
     data = os.urandom(8)
     temp = data.hex()
     print(f"Challenge before encrypt as hex is {temp}")
 
-    key = select_built_module_key(db_connection, host_id, module_id)
+    key = select_built_module_key(db_connection, host_id, mod_id)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     ct_bytes = cipher.encrypt(pad(data, AES.block_size))
     ct = ct_bytes.hex()
@@ -67,11 +78,13 @@ def request_challenge_response(conn_socket, db_connection, host_id, active_list,
             print("Challenge string matches")
             temp2 = temp2[-6:]
             temp2 = int(temp2, 16)
-        if temp2 == module_id:
-            print("Module_id matches")
-        else:
-            print(f"Module_id string mismatch, was {temp2} and should be {module_id}")
-
+            if temp2 == mod_id:
+                print("Module_id matches")
+                result = 0
+            else:
+                print(f"Module_id string mismatch, was {temp2} and should be {mod_id}")
     except json.decoder.JSONDecodeError as e:
         print(f"Error on process report recv call, {e}")
-        return cfg.CLOSE_SOCK
+        result = cfg.CLOSE_SOCK
+
+    return result

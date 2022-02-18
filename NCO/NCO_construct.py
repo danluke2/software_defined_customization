@@ -84,7 +84,7 @@ def build_ko_module(db_connection, host_id, module, module_id, key):
     try:
         subprocess.run(["./builder.sh", module, str(module_id), str(cfg.INSERT_LINE), str(host_id), key.hex()], check=True)
         result = 0
-    except CalledProcessError as e:
+    except subprocess.CalledProcessError as e:
         print(f"Error occured during module build process, error={e}")
         result = -1
 
@@ -94,17 +94,17 @@ def build_ko_module(db_connection, host_id, module, module_id, key):
 def construction_loop(db_connection):
     #continuosly check if there are modules to build to host symvers
     modules_to_build = select_all_req_build_modules(db_connection)
-    host_id = [x[0] for x in modules_to_build]
-    module = [x[1] for x in modules_to_build]
-    for i in range(len(host_id)):
-        key = generate_key(32)
-        err = build_ko_module(db_connection, host_id[i], module[i], cfg.next_module_id, key)
+    host_id_list = [x[0] for x in modules_to_build]
+    module_list = [x[1] for x in modules_to_build]
+    for i in range(len(host_id_list)):
+        key = generate_key()
+        err = build_ko_module(db_connection, host_id_list[i], module_list[i], cfg.next_module_id, key)
         if err == -1:
             #move on to next module instead of updating the tables
-            print(f"Construction error for host {host}")
+            print(f"Construction error for host {host_id_list[i]}")
             continue
         else:
-            err = insert_and_update_module_tables(db_connection, module[i], cfg.next_module_id, host_id[i], key)
+            err = insert_and_update_module_tables(db_connection, module_list[i], cfg.next_module_id, host_id_list[i], key)
             if err == cfg.DB_ERROR:
                 print(f"Error occured updating module tables")
             cfg.next_module_id += 1

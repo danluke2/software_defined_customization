@@ -22,17 +22,22 @@ from netlink_helper import *
 parser = argparse.ArgumentParser(description='DCA user space program')
 parser.add_argument('--ip', type=str, required=False, help="NCO IP")
 parser.add_argument('--port', type=int, required=False, help="NCO port")
-parser.add_argument('--dir', type=str, required=True, help="KO Module download dir")
+parser.add_argument('--dir', type=str, required=False, help="KO Module download dir")
 parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
 
 args = parser.parse_args()
 
-downloadDir = args.dir
 
-HOST = '10.0.2.15'
+
+HOST = '10.0.0.20'
 PORT = 65432        # The port used by the NCO
-INTERFACE="enp0s8"
+INTERFACE="enp0s3"
+system_name = platform.system()
+system_release = platform.release()
+symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
+download_dir = symver_location + "customizations"
 
+max = 5
 
 if args.ip:
     HOST=args.ip
@@ -43,15 +48,12 @@ if args.port:
 if args.iface:
     INTERFACE=args.iface
 
+if args.dir:
+    download_dir = args.dir
 
 
 
-system_name = platform.system()
-system_release = platform.release()
-symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
 
-
-max = 5
 
 
 def send_periodic_report(conn_socket):
@@ -171,7 +173,7 @@ def recv_ko_files(conn_socket, count):
 
 
 def install_ko_file(conn_socket, filename, filesize):
-    with open(os.path.join(downloadDir, filename), 'wb') as file_to_write:
+    with open(os.path.join(download_dir, filename), 'wb') as file_to_write:
         while True:
             data = conn_socket.recv(filesize)
             if not data:
@@ -185,7 +187,7 @@ def install_ko_file(conn_socket, filename, filesize):
 
     try:
         # now we need to insert the module or launch the loader service or wait for service to run?
-        subprocess.run(["insmod", downloadDir+"/"+filename])
+        subprocess.run(["insmod", download_dir+"/"+filename])
 
     except Exception as e:
         print(f"Exception: {e}")
@@ -201,7 +203,7 @@ def retire_modules(conn_socket, count):
 
         try:
             # now we need to insert the module or launch the loader service or wait for service to run?
-            subprocess.run(["rmmod", downloadDir+"/"+filename])
+            subprocess.run(["rmmod", download_dir+"/"+filename])
 
         except Exception as e:
             print(f"Exception: {e}")

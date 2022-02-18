@@ -137,7 +137,7 @@ def select_all_hosts(con):
 
 
 
-
+# TODO: this is really the Deployed module table
 # ***************** ACTIVE TABLE ***********************
 
 def init_active_table(con):
@@ -145,15 +145,16 @@ def init_active_table(con):
     con.execute('''CREATE TABLE active
                    (host_id integer NOT NULL, module_id integer NOT NULL,
                    sock_count integer, registered_ts integer,
+                   security_window integer, last_security_ts integer,
                    host_error_ts integer,
                    PRIMARY KEY (host_id, module_id))''')
 
 
-def insert_active(con, host_id, module_id, count, registered_ts, host_error_ts):
+def insert_active(con, host_id, module_id, count, registered_ts, sec_window, sec_ts, host_error_ts):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO active VALUES (?, ?, ?, ?, ?)", (host_id, module_id, count, registered_ts, host_error_ts))
+            con.execute("INSERT INTO active VALUES (?, ?, ?, ?, ?, ?, ?)", (host_id, module_id, count, registered_ts, sec_window, sec_ts, host_error_ts))
     except sl.Error as er:
         print(f"Error inserting module into active, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
@@ -171,6 +172,35 @@ def update_active(con, host_id, module_id, count, registered_ts):
             {"count": count, "reg": registered_ts, "host": host_id, "module": module_id})
     except sl.Error as er:
         print(f"Error updating active row, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+def update_active_sec_window(con, host_id, module_id, sec_window):
+    result = 0
+    try:
+        with con:
+            con.execute('''UPDATE active
+            SET security_window = :window
+            WHERE host_id = :host AND module_id =:module;''',
+            {"window": sec_window, "host": host_id, "module": module_id})
+    except sl.Error as er:
+        print(f"Error updating active sec window, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def update_active_sec_ts(con, host_id, module_id, sec_ts):
+    result = 0
+    try:
+        with con:
+            con.execute('''UPDATE active
+            SET last_security_ts = :ts
+            WHERE host_id = :host AND module_id =:module;''',
+            {"ts": sec_ts, "host": host_id, "module": module_id})
+    except sl.Error as er:
+        print(f"Error updating active sec window, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -215,6 +245,19 @@ def select_active_modules(con, host_id):
         result = DB_ERROR
     return result
 
+
+def select_all_active_rows(con, host_id):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM active WHERE host_id =:id;", {"id": host_id})
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error selecting active modules for host_id = {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
 
 
 
@@ -291,7 +334,9 @@ def delete_available_module(con, module):
 
 
 
+
 # ***************** REQUIRE_BUILD_MOD TABLE ***********************
+# TODO: add an error column to prevent building over and over if error exists
 
 def init_require_build_module_table(con):
     con.execute('''CREATE TABLE req_build_modules

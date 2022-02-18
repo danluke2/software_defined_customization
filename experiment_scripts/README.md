@@ -33,9 +33,9 @@ to build remotely and install via DCA connection
     * pip install matplotlib
 
 
-1) (Server/NCO VM) Install ssh server and enable root login:
+1) (Server/NCO VM) Install ssh server, sshpass, and enable root login:
 
-    * sudo apt install openssh-server
+    * sudo apt install openssh-server sshpass
 
     * open /etc/ssh/sshd\_config
 
@@ -43,7 +43,7 @@ to build remotely and install via DCA connection
 
     * restart ssh: sudo systemctl restart ssh
 
-1) (Server/NCO VM) set root password:
+1) (Both VM) set root password:
 
     * sudo passwd root
 
@@ -54,19 +54,31 @@ to build remotely and install via DCA connection
 
     * sudo ssh root@10.0.0.20
 
+    * ssh root@10.0.0.20
+
     * password = 'default'
+
+
+1) (Server/NCO) ssh to Client VM to establish key:
+
+    * sudo ssh root@10.0.0.40
+
+    * ssh root@10.0.0.40
+
+    * password = 'default'
+
+
+1) (NCO) (Optional) install database browser:
+
+    * I used DB Browser for SQLite (https://sqlitebrowser.org/dl/)
+
+    * this is just a way to visualize database and manipulate entries
 
 
 
 
 ## NCO/DCA overhead experiment:
 
-
-1) (NCO) install database browser:
-
-    * I used DB Browser for SQLite (https://sqlitebrowser.org/dl/)
-
-    * this is just a way to visualize database and manipulate entries
 
 1) (NCO) launch experiment script:
 
@@ -75,6 +87,9 @@ to build remotely and install via DCA connection
     * run: nco\_dca\_batch\_experiment 15
 
         * this performs 15 trials for each number of hosts and plots results
+
+1) View generated graph: nco_deploy.png
+
 
 
 ## Bulk file transfer overhead experiment:
@@ -102,7 +117,7 @@ generate the graph:
 
     * performs 15 trials
 
-1) (Client) View generated graph: bulk_overhead.png
+    * View generated graph: bulk_overhead.png
 
 
 
@@ -135,7 +150,9 @@ generate the graph:
 
         * performs 15 trials of 1000 DNS requests with 0 sec between each request
 
-1) (Client) View generated graph: batch_overhead.png
+    * View generated graph: batch_overhead.png
+
+
 
 
 
@@ -143,13 +160,19 @@ generate the graph:
 
 1) (NCO) Start NCO to begin listening for DCA connections
 
+    * python3 software_defined_customization/NCO/NCO.py --challenge --window 5
+
 1) (DCA) Start DCA and verify connected to NCO
 
-1) (NCO) make, deploy, and install the test customization module:
+    * sudo python3 software_defined_customization/DCA\_user/DCA.py
 
-    * add 'nco\_test' to CIB build table for connected DCA device
+    * sudo required to install and remove modules
 
-1) (NCO) Verify nco\_test is built and deployed to DCA and challenge/response
+1) (NCO) make, deploy, and install the experiment module:
+
+    * add 'nco\_challenge\_response' to CIB build table for connected DCA device
+
+1) (NCO) Verify nco\_challenge\_response is built and deployed to DCA and challenge/response
 window set to 5 seconds
 
 1) (NCO) Allow NCO to run until 20 challenge/responses have completed
@@ -162,6 +185,9 @@ window set to 5 seconds
 tracelog entries
 
     * TODO: add image here
+
+
+
 
 ## Middlebox demo:
 

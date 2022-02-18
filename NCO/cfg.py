@@ -1,4 +1,4 @@
-HOST = '10.0.0.40'
+HOST = '10.0.0.20'
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 QUERY_INTERVAL = 30
 INSERT_LINE = 42
@@ -19,3 +19,4 @@ symvers_dir = "device_modules/host_" # + host_id
 REFRESH_INSTALL_LIST = 1
 DB_ERROR = -1
 CLOSE_SOCK = -2
+RETIRE_MOD = -3

@@ -75,7 +75,6 @@ def construction_process(interval):
 
 def device_thread(conn, ip, port, buffer_size, interval):
     try:
-
         db_connection = db_connect('cib.db')
 
         #handle initial device initiated check-in, then device is in a recv state
@@ -116,6 +115,9 @@ def device_thread(conn, ip, port, buffer_size, interval):
         # all messages at this point are server driven
 
         while True:
+            if exit_event.is_set():
+                conn.close()
+                break
             host_id = host["host_id"]
 
             #get symver file and store in host_id dir if necessary
@@ -136,12 +138,6 @@ def device_thread(conn, ip, port, buffer_size, interval):
                 conn.close()
                 break
 
-            #challenge active module testing
-            if len(active_list) > 0:
-                res = input("Active list not empty, press y to start challeng test:")
-                if res == "y":
-                    temp = request_challenge_response(conn, db_connection, host_id, active_list, buffer_size)
-
 
             #need install list to compare with active lists
             modules, module_ids = retrieve_install_list(db_connection, host_id)
@@ -156,6 +152,29 @@ def device_thread(conn, ip, port, buffer_size, interval):
             if len(modules) > 0:
                 #send built modules to host
                 send_install_modules(conn, host_id, modules)
+                # get a full report from host since we installed new modules
+                request_report(conn, host_id)
+                active_list = process_report(conn, db_connection, host_id, buffer_size)
+                if active_list == cfg.CLOSE_SOCK:
+                    conn.close()
+                    break
+
+
+            #challenge deployed modules
+            if args.challenge and len(active_list) > 0:
+                # res = input("Active list not empty, press y to start challeng test:")
+                # if res == "y":
+
+                #get challenge list and send challenges
+                challenge_list = check_challenge(db_connection, host_id)
+                for mod_id in challenge_list:
+                    temp = request_challenge_response(conn, db_connection, host_id, mod_id, buffer_size)
+                    if temp == cfg.CLOSE_SOCK:
+                        conn.close()
+                        break
+                    if temp == 0:
+                        #TODO: send revoke command b/c module failed check
+                        continue
 
             #refresh host value each cycle in case DB updated
             host = select_host(db_connection, device_mac)
@@ -181,7 +200,7 @@ def device_thread(conn, ip, port, buffer_size, interval):
 def signal_handler(signum, frame):
     print("SIGINT handler called")
     exit_event.set()
-    s.close()
+    sys.exit()
 
 
 

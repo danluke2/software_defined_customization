@@ -64,7 +64,7 @@ def handle_active_update(db_connection, host_id, active_list, install_id_list):
             if module["ID"] in install_id_list:
                 req_install = 0
                 update_built_module_install_requirement(db_connection, host_id, module["ID"], req_install, module["ts"])
-                insert_active(db_connection, host_id, module["ID"], module["Count"], module["ts"], 0)
+                insert_active(db_connection, host_id, module["ID"], module["Count"], module["ts"], cfg.SEC_WINDOW, 0, 0)
                 result = cfg.REFRESH_INSTALL_LIST
             else:
                 # TODO: handle this case; maybe trigger retire call
@@ -86,7 +86,8 @@ def setup_host_dirs(host_id):
     os.mkdir(cfg.symvers_dir + host_id + "/modules")
     #put generic makefile in modules dir
     newPath = shutil.copy(cfg.core_mod_dir + "Makefile", cfg.symvers_dir + host_id + "/modules")
-
+    #put a copy of common_structs in host dir for all modules
+    newPath = shutil.copy(cfg.core_mod_dir + "common_structs.h", cfg.symvers_dir + host_id)
 
 
 def handle_host_insert(db_connection, mac, ip, port, kernel_release, interval):

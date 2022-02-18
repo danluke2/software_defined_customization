@@ -15,8 +15,8 @@
 #include <linux/scatterlist.h>
 #include <linux/random.h>
 
-// for the overhead test, a copy of common_structs is in same location as this module
-#include "common_structs.h"
+// NCO copies common_structs to each host directory (one level above modules dir)
+#include "../common_structs.h"
 
 
 extern int register_customization(struct customization_node *cust);
@@ -166,11 +166,12 @@ void challenge_response(char *message, char *iv, char *challenge)
   u8 scratchpad[CHALLENGE_LENGTH] = "";
   u8 ivdata[IV_LENGTH] = "";
   int ret = -EFAULT;
+  char response_id[16] = "";
 
 
   // response will just be module_id as a 6 char hex string added to end of challenge
   sprintf(response_id, "%06x", module_id);
-  memcpy(response_id+6, "0505050505",10);
+  memcpy(response_id+6, "0505050505",10); //required padding
   // print_hex_dump(KERN_DEBUG, "L4.5 response_id: ", DUMP_PREFIX_ADDRESS, 16, 1, response_id, 16, true);
 
   // print_hex_dump(KERN_DEBUG, "L4.5 hex-key: ", DUMP_PREFIX_ADDRESS, 16, 1, hex_key, 64, true);

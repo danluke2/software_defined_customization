@@ -9,6 +9,19 @@
 #arg 6 is config info ...
 
 
+# ----------------------------------------------------------------
+# Function for exit due to fatal program error
+#   Accepts 1 argument:
+#     string containing descriptive error message
+# ----------------------------------------------------------------
+error_exit()
+{
+  echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
+  exit 1
+}
+
+
+
 CURDIR="$( pwd )"
 
 line=$3;
@@ -16,6 +29,7 @@ line=$3;
 core_mod_dir=core_modules
 symvers_dir=$CURDIR/device_modules/host_$4
 mod_dir=$symvers_dir/modules
+
 
 #copy module from core dir to the host module dir before changing it
 cp $core_mod_dir/$1.c  $mod_dir
@@ -33,6 +47,6 @@ symbols="KBUILD_EXTRA_SYMBOLS=$symvers_dir/Module.symvers"
 mod="MODULE_DIR=$mod_dir"
 build="BUILD_MODULE=$1.o"
 
-make $symbols $mod $build
+make $symbols $mod $build || error_exit "Makefile error detected"
 
 cd $CURDIR
