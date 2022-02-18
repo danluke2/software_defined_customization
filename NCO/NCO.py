@@ -17,6 +17,7 @@ from NCO_security import *
 from NCO_construct import *
 from NCO_monitor import *
 from NCO_deploy import *
+from NCO_revoke import *
 
 
 parser = argparse.ArgumentParser(description='NCO program')
@@ -131,6 +132,12 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     break
 
 
+            #get revoke list before getting report
+            revoke_id_list, revoke_name_list = retrieve_revoke_list(db_connection, host_id)
+            if len(revoke_id_list) > 0:
+                for i in range(len(revoke_id_list)):
+                    revoke_module(conn, db_connection, host_id, revoke_id_list[i], revoke_name_list[i])
+
             # get a full report from host and send updated modules
             request_report(conn, host_id)
             active_list = process_report(conn, db_connection, host_id, buffer_size)
@@ -162,9 +169,6 @@ def device_thread(conn, ip, port, buffer_size, interval):
 
             #challenge deployed modules
             if args.challenge and len(active_list) > 0:
-                # res = input("Active list not empty, press y to start challeng test:")
-                # if res == "y":
-
                 #get challenge list and send challenges
                 challenge_list = check_challenge(db_connection, host_id)
                 for mod_id in challenge_list:
@@ -172,9 +176,16 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     if temp == cfg.CLOSE_SOCK:
                         conn.close()
                         break
-                    if temp == 0:
-                        #TODO: send revoke command b/c module failed check
-                        continue
+                    # if temp == cfg.RETIRE_MOD:
+                    if temp == cfg.REVOKE_MOD:
+                        #send revoke command b/c module failed check
+                        err = revoke_module(conn, db_connection, host_id, mod_id)
+                        if err != 0:
+                            print(f"revoke module error")
+                    else:
+                        #update challenge ts
+                        now = int(time.time())
+                        update_active_sec_ts(db_connection, host_id, mod_id, now)
 
             #refresh host value each cycle in case DB updated
             host = select_host(db_connection, device_mac)

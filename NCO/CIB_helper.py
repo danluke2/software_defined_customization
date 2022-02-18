@@ -33,19 +33,15 @@ def init_db_tables(con):
 
     init_active_table(con)
 
-    init_retired_table(con)
+    init_require_revocation_table(con)
 
-    init_available_modules_table(con)
+    init_revoked_table(con)
 
     init_require_build_module_table(con)
 
     init_built_modules_table(con)
 
-    # init_command_table(con)
-    #
-    # init_completed_cmd_table(con)
-
-    # init_install_table(con)
+    # init_available_modules_table(con)
 
     return
 
@@ -261,73 +257,94 @@ def select_all_active_rows(con, host_id):
 
 
 
-# ***************** RETIRED TABLE ***********************
 
-def init_retired_table(con):
-    # retired table can have multiple rows with same id or module
-    con.execute('''CREATE TABLE retired
+# ***************** REQ REVOCATION TABLE ***********************
+
+def init_require_revocation_table(con):
+    # revoked table can have multiple rows with same id or module
+    con.execute('''CREATE TABLE req_revocation
                    (host_id integer NOT NULL, module_id integer NOT NULL,
-                   retired_ts integer NOT NULL)''')
+                   module text NOT NULL)''')
 
 
-def insert_retired(con, host_id, module_id, ts):
+def insert_req_revocation(con, host_id, module_id, mod_name):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO retired VALUES (?, ?, ?)", (host_id, module_id, ts))
+            con.execute("INSERT INTO req_revocation VALUES (?, ?, ?)", (host_id, module_id, mod_name))
     except sl.Error as er:
-        print(f"Error inserting module into retired, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error inserting module into req_revocation, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def delete_retired(con, host_id, module_id):
+def delete_req_revocation_by_id(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM retired WHERE host_id = :id AND module_id =:module;", {"id": host_id, "module": module_id})
+            con.execute("DELETE FROM req_revocation WHERE host_id = :id AND module_id =:module;", {"id": host_id, "module": module_id})
     except sl.Error as er:
-        print(f"Error deleting retired row, module={module_id}, host={host_id}")
+        print(f"Error deleting revocation row, module={module_id}, host={host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-
-
-
-# ***************** AVAIL_MOD TABLE ***********************
-
-def init_available_modules_table(con):
-    # these are core modules available for build and install, thus module name is unique
-    con.execute('''CREATE TABLE available_modules
-                   (module text NOT NULL PRIMARY KEY, application text,
-                   src_ip text, src_port integer,
-                   dest_ip text, dest_port integer,
-                   L4_proto integer, description text)''')
-
-
-def insert_available_module(con, module, app, src_ip, src_port, dest_ip, dest_port, l4, desc):
+def delete_req_revocation_by_name(con, host_id, module_name):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO available_modules VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (module, app, src_ip, src_port, dest_ip, dest_port, l4, desc))
+            con.execute("DELETE FROM req_revocation WHERE host_id = :id AND module =:module;", {"id": host_id, "module": module_name})
     except sl.Error as er:
-        print(f"Error inserting available_modules module = {module}")
+        print(f"Error deleting revocation row, module={module_name}, host={host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def delete_available_module(con, module):
+def select_all_req_revocation(con, host_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM available_modules WHERE module =:module;", {"module": module})
+            cur = con.cursor()
+            cur.execute("SELECT * FROM req_revocation WHERE host_id = :id;", {"id": host_id})
+            result = cur.fetchall()
     except sl.Error as er:
-        print(f"Error deleting module, module = {module}")
+        print(f"Error slecting all required revocations for host {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+# ***************** REVOKED TABLE ***********************
+
+def init_revoked_table(con):
+    # revoked table can have multiple rows with same id or module
+    con.execute('''CREATE TABLE revoked
+                   (host_id integer NOT NULL, module_id integer NOT NULL,
+                   revoked_ts integer NOT NULL)''')
+
+
+def insert_revoked(con, host_id, module_id, ts):
+    result = 0
+    try:
+        with con:
+            con.execute("INSERT INTO revoked VALUES (?, ?, ?)", (host_id, module_id, ts))
+    except sl.Error as er:
+        print(f"Error inserting module into revoked, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def delete_revoked(con, host_id, module_id):
+    result = 0
+    try:
+        with con:
+            con.execute("DELETE FROM revoked WHERE host_id = :id AND module_id =:module;", {"id": host_id, "module": module_id})
+    except sl.Error as er:
+        print(f"Error deleting revoked row, module={module_id}, host={host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -447,6 +464,20 @@ def select_built_module(con, host_id, module):
     return result
 
 
+def select_built_module_by_id(con, host_id, mod_id):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM built_modules WHERE host_id =:id AND module_id = :mod_id;", {"id": host_id, "mod_id": mod_id})
+            result = cur.fetchone()
+    except sl.Error as er:
+        print(f"Error checking built modules for host_id = {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
 def select_modules_to_install(con, host_id, req_install):
     result = 0
     try:
@@ -476,160 +507,39 @@ def select_built_module_key(con, host_id, module_id):
 
 
 
-# Not implemented yet
-# ***************** CMD TABLE ***********************
-#
-# def init_command_table(con):
-#     # table to hold commnads to send to host and timestamps for tracking status
-#     con.execute('''CREATE TABLE cmd_queue
-#                    (host_id integer NOT NULL, cmd text NOT NULL,
-#                    deliver_ts integer NOT NULL,
-#                    PRIMARY KEY (host_id, cmd))''')
-#
-#
-# def insert_command(con, host_id, cmd, deliver_ts):
-#     result = 0
-#     try:
-#         with con:
-#             con.execute("INSERT INTO cmd_queue VALUES (?, ?, ?)", (host_id, cmd, deliver_ts))
-#     except sl.Error as er:
-#         print(f"Error inserting cmd = {cmd}, host_id = {host_id}")
-#         print(f"Error = {er}")
-#         result = DB_ERROR
-#     return result
-#
-#
-# def delete_command(con, host_id, cmd):
-#     result = 0
-#     try:
-#         with con:
-#             con.execute("DELETE FROM cmd_queue WHERE host_id =:id AND cmd = :cmd;", {"id": host_id, "cmd": cmd})
-#     except sl.Error as er:
-#         print(f"Error deleting cmd, cmd = {cmd}, host_id = {host_id}")
-#         print(f"Error = {er}")
-#         result = DB_ERROR
-#     return result
-#
-#
-# def select_commands(con, host_id, deliver_ts):
-#     result = 0
-#     try:
-#         with con:
-#             cur = con.cursor()
-#             result = cur.execute("SELECT * FROM cmd_queue WHERE host_id =:id AND deliver_ts < :ts;", {"id": host_id, "ts": deliver_ts})
-#             result = cur.fetchall()
-#     except sl.Error as er:
-#         print(f"Error selecting commands for host_id = {host_id}")
-#         print(f"Error = {er}")
-#         result = DB_ERROR
-#     return result
 
 
-#  Not implemented yet
-# ***************** COMPLETED_CMD TABLE ***********************
+# # ***************** AVAIL_MOD TABLE ***********************
 #
-# def init_completed_cmd_table(con):
-#     # table to hold commnads to send to host and timestamps for tracking status
-#     con.execute('''CREATE TABLE cmd_completed
-#                    (host_id integer NOT NULL, cmd text NOT NULL,
-#                    delivered_ts integer,
-#                    PRIMARY KEY (host_id, cmd))''')
+# def init_available_modules_table(con):
+#     # these are core modules available for build and install, thus module name is unique
+#     con.execute('''CREATE TABLE available_modules
+#                    (module text NOT NULL PRIMARY KEY, application text,
+#                    src_ip text, src_port integer,
+#                    dest_ip text, dest_port integer,
+#                    L4_proto integer, description text)''')
 #
 #
-# def insert_completed_command(con, host_id, cmd, delivered_ts):
+# def insert_available_module(con, module, app, src_ip, src_port, dest_ip, dest_port, l4, desc):
 #     result = 0
 #     try:
 #         with con:
-#             con.execute("INSERT INTO cmd_completed VALUES (?, ?, ?)", (host_id, cmd, delivered_ts))
+#             con.execute("INSERT INTO available_modules VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+#             (module, app, src_ip, src_port, dest_ip, dest_port, l4, desc))
 #     except sl.Error as er:
-#         print(f"Error inserting cmd = {cmd}, host_id = {host_id}")
+#         print(f"Error inserting available_modules module = {module}")
 #         print(f"Error = {er}")
 #         result = DB_ERROR
 #     return result
 #
 #
-# def delete_completed_command(con, host_id, cmd):
+# def delete_available_module(con, module):
 #     result = 0
 #     try:
 #         with con:
-#             con.execute("DELETE FROM cmd_completed WHERE host_id =:id AND cmd = :cmd;", {"id": host_id, "cmd": cmd})
+#             con.execute("DELETE FROM available_modules WHERE module =:module;", {"module": module})
 #     except sl.Error as er:
-#         print(f"Error deleting cmd, cmd = {cmd}, host_id = {host_id}")
-#         print(f"Error = {er}")
-#         result = DB_ERROR
-#     return result
-
-
-
-# Install table integrated into built module table for ease of management
-# ***************** INSTALL TABLE ***********************
-#
-# def init_install_table(con):
-#     # install table can have multiple rows with same id or module
-#     con.execute('''CREATE TABLE install
-#                    (host_id integer NOT NULL, module text NOT NULL,
-#                    module_id integer, ts_to_install integer)''')
-#
-#
-# def insert_install(con, host_id, module, module_id, ts_to_install):
-#     result = 0
-#     try:
-#         con.execute("INSERT INTO install VALUES (?, ?, ?, ?)", (host_id, module, module_id, ts_to_install))
-#     except sl.Error as er:
-#         print(f"Error inserting module into install, module = {module}, host = {host_id}")
-#         print(f"Error = {er}")
-#         result = DB_ERROR
-#     return result
-#
-#
-# #hosts only report module ID, so we need a column to match against
-# def update_install_module_id(con, host_id, module, module_id):
-#     result = 0
-#     try:
-#         with con:
-#             con.execute('''UPDATE install
-#             SET module_id = :id
-#             WHERE host_id = :host AND module =:module;''',
-#             {"id": module_id, "host": host_id, "module": module})
-#     except sl.Error as er:
-#         print(f"Error updating install row, host = {host_id}, module={module}")
-#         print(f"Error = {er}")
-#         result = DB_ERROR
-#     return result
-
-#
-# def delete_install_by_module(con, host_id, module):
-#     result = 0
-#     try:
-#         con.execute("DELETE FROM install WHERE host_id = :host AND module =:module;", {"host": host_id, "module": module})
-#     except sl.Error as er:
-#         print(f"Error deleting retired row, module={module}, host={host_id}")
-#         print(f"Error = {er}")
-#         result = DB_ERROR
-#     return result
-#
-#
-# def delete_install_by_module_id(con, host_id, module_id):
-#     result = 0
-#     try:
-#         con.execute("DELETE FROM install WHERE host_id = :host AND module_id =:id;", {"host": host_id, "id": module_id})
-#     except sl.Error as er:
-#         print(f"Error deleting retired row, module_id={module_id}, host={host_id}")
-#         print(f"Error = {er}")
-#         result = DB_ERROR
-#     return result
-#
-#
-#
-# def select_install_modules(con, host_id):
-#     result = 0
-#     try:
-#         with con:
-#             cur = con.cursor()
-#             result = cur.execute("SELECT * FROM install WHERE host_id =:id;", {"id": host_id})
-#             result = cur.fetchall()
-#     except sl.Error as er:
-#         print(f"Error selecting install modules for host_id = {host_id}")
+#         print(f"Error deleting module, module = {module}")
 #         print(f"Error = {er}")
 #         result = DB_ERROR
 #     return result

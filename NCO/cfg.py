@@ -19,4 +19,5 @@ symvers_dir = "device_modules/host_" # + host_id
 REFRESH_INSTALL_LIST = 1
 DB_ERROR = -1
 CLOSE_SOCK = -2
-RETIRE_MOD = -3
+REVOKE_MOD = -3
+REVOKE_ERROR = -3

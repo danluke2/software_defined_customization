@@ -43,7 +43,7 @@ def check_challenge(db_connection, host_id):
 
 
 def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buffer_size):
-    result = cfg.RETIRE_MOD
+    result = cfg.REVOKE_MOD
     iv = os.urandom(cfg.IV_SIZE)
     command = {"cmd": "challenge"}
     command["id"] = mod_id

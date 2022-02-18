@@ -16,7 +16,7 @@ from CIB_helper import *
 def send_install_modules(conn_socket, host_id, modules):
     count = len(modules)
     for module in modules:
-        print("sending module")
+        print(f"sending module {module}")
         command = {"cmd": "recv_module", "count": count}
         send_string = json.dumps(command, indent=4)
         conn_socket.sendall(bytes(send_string,encoding="utf-8"))

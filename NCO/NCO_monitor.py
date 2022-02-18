@@ -30,15 +30,15 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
         return cfg.CLOSE_SOCK
     # TODO: check report mac matches host_id and update DB?
     active_list = json_data["Active"]
-    retired_list = json_data["Retired"]
+    revoked_list = json_data["Retired"]
 
-    # update Active table based on retired list, if empty then for loop skips
-    for module in retired_list:
+    # update Active table based on revoked list, if empty then for loop skips
+    for module in revoked_list:
         err = delete_active(db_connection, host_id, module["ID"] )
         if err == cfg.DB_ERROR:
             print(f"Active delete DB error occurred, host_id = {host_id}, module = {module}")
         else:
-            err = insert_retired(db_connection, host_id, module["ID"], module["ts"])
+            err = insert_revoked(db_connection, host_id, module["ID"], module["ts"])
             if err == cfg.DB_ERROR:
                 print(f"Active delete DB error occurred, host_id = {host_id}, module = {module}")
 
@@ -67,7 +67,7 @@ def handle_active_update(db_connection, host_id, active_list, install_id_list):
                 insert_active(db_connection, host_id, module["ID"], module["Count"], module["ts"], cfg.SEC_WINDOW, 0, 0)
                 result = cfg.REFRESH_INSTALL_LIST
             else:
-                # TODO: handle this case; maybe trigger retire call
+                # TODO: handle this case; maybe trigger revocation call
                 print(f"host has active module not in Active or Install DB, module =", module["ID"])
 
     for module_id in active_db:

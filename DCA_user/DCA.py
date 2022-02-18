@@ -59,21 +59,21 @@ if args.dir:
 def send_periodic_report(conn_socket):
     send_dict = query_layer4_5()
     send_string = json.dumps(send_dict, indent=4)
-    s.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 def send_initial_report(conn_socket):
     send_dict = {}
     send_dict['mac'] =  getHwAddr(INTERFACE)
     send_dict['release'] = system_release
     send_string = json.dumps(send_dict, indent=4)
-    s.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 def send_full_report(conn_socket):
     send_dict = query_layer4_5()
     send_dict['mac'] =  getHwAddr(INTERFACE)
     send_dict['release'] = system_release
     send_string = json.dumps(send_dict, indent=4)
-    s.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 def send_challenge_report(conn_socket, cust_id, iv, msg):
     print(f"Challenge message {msg}")
@@ -166,8 +166,8 @@ def recv_ko_files(conn_socket, count):
         print(f"module name = {filename}")
         filesize = ko_dict["size"]
         print(f"module size = {filesize}")
-        s.sendall(b'Clear to send')
-        install_ko_file(s, filename, filesize)
+        conn_socket.sendall(b'Clear to send')
+        install_ko_file(conn_socket, filename, filesize)
         print(f"module name = {filename} completed")
     print("finished all ko modules")
 
@@ -194,31 +194,21 @@ def install_ko_file(conn_socket, filename, filesize):
 
 
 # read in list of modules to remove, then finish
-def retire_modules(conn_socket, count):
-    for x in range(count):
-        data = conn_socket.recv(1024)
-        retire_dict = json.loads(data)
-        filename = retire_dict["name"]
-        print(f"retire module name = {filename}")
+def revoke_module(conn_socket, filename):
+    print(f"revoke module = {download_dir}/{filename}")
+    result = 0
+    try:
+        # now we need to remove the module
+        subprocess.run(["rmmod", filename], check=True)
+        conn_socket.sendall(b'success')
+    except subprocess.CalledProcessError as e:
+        result = -1
+        temp = (f"{e}").encode('utf-8')
+        conn_socket.sendall(temp)
+        print(f"Exception: {e}")
+    return result
 
-        try:
-            # now we need to insert the module or launch the loader service or wait for service to run?
-            subprocess.run(["rmmod", download_dir+"/"+filename])
 
-        except Exception as e:
-            print(f"Exception: {e}")
-
-    # # genereate new report?
-    # query_dict = query_layer4_5()
-    # retired = query_dict['Retired']
-    # if id in retired:
-    #     # success
-    #     #now delete the module after we verify removed?
-    #     return
-    # else:
-    #     # something went wrong
-    #     print("error during retire module= ", filename)
-    #     return
 
 
 sleep_time = 10
@@ -277,10 +267,9 @@ while (input("DCA loop again?") == "y"):
                     recv_ko_files(s, recv_dict["count"])
 
 
-                elif recv_dict["cmd"] == "retire_module":
-                    print(f"prepare to retire modules, count = {recv_dict['count']}")
-                    s.sendall(b'Clear to send')
-                    retire_modules(s, recv_dict["count"])
+                elif recv_dict["cmd"] == "revoke_module":
+                    revoke_module(s, recv_dict["name"])
+
 
 
                 elif recv_dict["cmd"] == "run_report":
