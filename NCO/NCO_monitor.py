@@ -8,6 +8,8 @@ import shutil #for copy files
 
 import cfg
 from CIB_helper import *
+from NCO_revoke import handle_revoke_update
+from NCO_deploy import handle_deployed_update
 
 
 ######################### MONITORING FUNCTIONS #############################
@@ -29,52 +31,45 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
         print(f"Error on process report recv call, {e}")
         return cfg.CLOSE_SOCK
     # TODO: check report mac matches host_id and update DB?
-    active_list = json_data["Active"]
+    deployed_list = json_data["Active"]
     revoked_list = json_data["Retired"]
 
-    # update Active table based on revoked list, if empty then for loop skips
-    for module in revoked_list:
-        err = delete_active(db_connection, host_id, module["ID"] )
-        if err == cfg.DB_ERROR:
-            print(f"Active delete DB error occurred, host_id = {host_id}, module = {module}")
-        else:
-            err = insert_revoked(db_connection, host_id, module["ID"], module["ts"])
-            if err == cfg.DB_ERROR:
-                print(f"Active delete DB error occurred, host_id = {host_id}, module = {module}")
-
-    return active_list
+    # update deployed table based on revoked list
+    handle_revoke_update(db_connection, host_id, revoked_list)
+    # update deployed table based on active list
+    handle_deployed_update(db_connection, host_id, deployed_list)
+    return 0
 
 
-
-# Host reported active_list, which we compare to the active rows in our DB
-# We also compare the active_list to the install rows and update both tables as necessary
-def handle_active_update(db_connection, host_id, active_list, install_id_list):
-    result = 0
-    active_db = select_active_modules(db_connection, host_id)
-    # print(f"Active list {active_list}")
-    # print(f"Install id list {install_id_list}")
-    #compare values to find host/db mismatches, while also updating table
-    for module in active_list:
-        if module["ID"] in active_db:
-            update_active(db_connection, host_id, module["ID"], module["Count"], module["ts"])
-            # we remove here to make list smaller and determine mismatches
-            active_db.remove(module["ID"])
-        else:
-            #check if module was installed last cycle, if so update both tables
-            if module["ID"] in install_id_list:
-                req_install = 0
-                update_built_module_install_requirement(db_connection, host_id, module["ID"], req_install, module["ts"])
-                insert_active(db_connection, host_id, module["ID"], module["Count"], module["ts"], cfg.SEC_WINDOW, 0, 0)
-                result = cfg.REFRESH_INSTALL_LIST
-            else:
-                # TODO: handle this case; maybe trigger revocation call
-                print(f"host has active module not in Active or Install DB, module =", module["ID"])
-
-    for module_id in active_db:
-        print(f"Module_id {module_id} in DB, but not reported by host")
-        update_active_host_error(db_connection, host_id, module_id, int(time.time()))
-
-    return result
+# Host reported deployed_list, which we compare to the deployed rows in our DB
+# We also compare the deployed_list to the install rows and update both tables as necessary
+# def handle_deployed_update(db_connection, host_id, deployed_list, install_id_list):
+#     result = 0
+#     deployed_db = select_deployed_modules(db_connection, host_id)
+#     # print(f"deployed list {deployed_list}")
+#     # print(f"Install id list {install_id_list}")
+#     #compare values to find host/db mismatches, while also updating table
+#     for module in deployed_list:
+#         if module["ID"] in deployed_db:
+#             update_deployed(db_connection, host_id, module["ID"], module["Count"], module["ts"])
+#             # we remove here to make list smaller and determine mismatches
+#             deployed_db.remove(module["ID"])
+#         else:
+#             #check if module was installed last cycle, if so update both tables
+#             if module["ID"] in install_id_list:
+#                 req_install = 0
+#                 update_built_module_install_requirement(db_connection, host_id, module["ID"], req_install, module["ts"])
+#                 insert_deployed(db_connection, host_id, module["ID"], module["Count"], module["ts"], cfg.SEC_WINDOW, 0, 0)
+#                 result = cfg.REFRESH_INSTALL_LIST
+#             else:
+#                 # TODO: handle this case; maybe trigger revocation call
+#                 print(f"host has deployed module not in deployed or Install DB, module =", module["ID"])
+#
+#     for module_id in deployed_db:
+#         print(f"Module_id {module_id} in DB, but not reported by host")
+#         update_deployed_host_error(db_connection, host_id, module_id, int(time.time()))
+#
+#     return result
 
 
 

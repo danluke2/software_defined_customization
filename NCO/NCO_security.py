@@ -29,10 +29,10 @@ def check_challenge(db_connection, host_id):
     challenge_list = []
     now = int(time.time())
 
-    active_list_rows = select_all_active_rows(db_connection, host_id)
-    module_id_list = [x[1] for x in active_list_rows]
-    sec_windows = [x[4] for x in active_list_rows]
-    sec_ts = [x[5] for x in active_list_rows]
+    deployed_list_rows = select_all_deployed_rows(db_connection, host_id)
+    module_id_list = [x[1] for x in deployed_list_rows]
+    sec_windows = [x[4] for x in deployed_list_rows]
+    sec_ts = [x[5] for x in deployed_list_rows]
 
     for i in range(len(module_id_list)):
         if now - sec_ts[i] > sec_windows[i]:

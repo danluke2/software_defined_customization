@@ -9,7 +9,7 @@ l4_5_protocol.fields = { proto_flag, app_id }
 local function heuristic_checker(buffer, pinfo, tree)
     -- guard for length
     length = buffer:len()
-    print("Hello heur entry")
+    print("Hello heuristic entry")
     -- we use a 32 byte tag prior to DNS
     if length < 32 then return false end
     -- flag = XTAG -> 0x58 54 41 47

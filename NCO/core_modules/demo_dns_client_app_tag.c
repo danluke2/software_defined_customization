@@ -5,9 +5,11 @@
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/init.h>
+#include <linux/version.h>
+#include <linux/inet.h>
 #include <linux/uio.h> // For iter structures
 
-#include "common_structs.h"
+#include "../common_structs.h"
 
 static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
@@ -103,7 +105,7 @@ int __init sample_client_start(void)
 	dns_cust->send_function = modify_buffer_send;
 	dns_cust->recv_function = NULL;
 
-	dns_cust->cust_id = 12;
+	dns_cust->cust_id = module_id;
   dns_cust->registration_time_struct.tv_sec = 0;
   dns_cust->registration_time_struct.tv_nsec = 0;
   dns_cust->retired_time_struct.tv_sec = 0;

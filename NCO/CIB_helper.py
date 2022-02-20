@@ -31,7 +31,7 @@ def init_db_tables(con):
 
     init_host_table(con)
 
-    init_active_table(con)
+    init_deployed_table(con)
 
     init_require_revocation_table(con)
 
@@ -40,6 +40,12 @@ def init_db_tables(con):
     init_require_build_module_table(con)
 
     init_built_modules_table(con)
+
+    init_middlebox_table(con)
+
+    init_inverse_module_table(con)
+
+    init_deploy_inverse_table(con)
 
     # init_available_modules_table(con)
 
@@ -133,12 +139,12 @@ def select_all_hosts(con):
 
 
 
-# TODO: this is really the Deployed module table
-# ***************** ACTIVE TABLE ***********************
 
-def init_active_table(con):
+# ***************** DEPLOYED TABLE ***********************
+
+def init_deployed_table(con):
     # each id and module pair must be unique
-    con.execute('''CREATE TABLE active
+    con.execute('''CREATE TABLE deployed
                    (host_id integer NOT NULL, module_id integer NOT NULL,
                    sock_count integer, registered_ts integer,
                    security_window integer, last_security_ts integer,
@@ -146,111 +152,111 @@ def init_active_table(con):
                    PRIMARY KEY (host_id, module_id))''')
 
 
-def insert_active(con, host_id, module_id, count, registered_ts, sec_window, sec_ts, host_error_ts):
+def insert_deployed(con, host_id, module_id, count, registered_ts, sec_window, sec_ts, host_error_ts):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO active VALUES (?, ?, ?, ?, ?, ?, ?)", (host_id, module_id, count, registered_ts, sec_window, sec_ts, host_error_ts))
+            con.execute("INSERT INTO deployed VALUES (?, ?, ?, ?, ?, ?, ?)", (host_id, module_id, count, registered_ts, sec_window, sec_ts, host_error_ts))
     except sl.Error as er:
-        print(f"Error inserting module into active, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error inserting module into deployed, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def update_active(con, host_id, module_id, count, registered_ts):
+def update_deployed(con, host_id, module_id, count, registered_ts):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE active
+            con.execute('''UPDATE deployed
             SET sock_count = :count, registered_ts = :reg
             WHERE host_id = :host AND module_id =:module;''',
             {"count": count, "reg": registered_ts, "host": host_id, "module": module_id})
     except sl.Error as er:
-        print(f"Error updating active row, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error updating deployed row, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
-def update_active_sec_window(con, host_id, module_id, sec_window):
+def update_deployed_sec_window(con, host_id, module_id, sec_window):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE active
+            con.execute('''UPDATE deployed
             SET security_window = :window
             WHERE host_id = :host AND module_id =:module;''',
             {"window": sec_window, "host": host_id, "module": module_id})
     except sl.Error as er:
-        print(f"Error updating active sec window, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error updating deployed sec window, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def update_active_sec_ts(con, host_id, module_id, sec_ts):
+def update_deployed_sec_ts(con, host_id, module_id, sec_ts):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE active
+            con.execute('''UPDATE deployed
             SET last_security_ts = :ts
             WHERE host_id = :host AND module_id =:module;''',
             {"ts": sec_ts, "host": host_id, "module": module_id})
     except sl.Error as er:
-        print(f"Error updating active sec window, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error updating deployed sec window, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def update_active_host_error(con, host_id, module_id, host_error_ts):
+def update_deployed_host_error(con, host_id, module_id, host_error_ts):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE active
+            con.execute('''UPDATE deployed
             SET host_error_ts = :ts
             WHERE host_id = :host AND module_id =:module;''',
             {"ts": host_error_ts, "host": host_id, "module": module_id})
     except sl.Error as er:
-        print(f"Error updating active error, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error updating deployed error, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def delete_active(con, host_id, module_id):
+def delete_deployed(con, host_id, module_id):
     result = 1
     try:
         with con:
-            con.execute("DELETE FROM active WHERE host_id = :host AND module_id =:module;", {"host": host_id, "module": module_id})
+            con.execute("DELETE FROM deployed WHERE host_id = :host AND module_id =:module;", {"host": host_id, "module": module_id})
     except sl.Error as er:
-        print(f"Error deleting active row, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error deleting deployed row, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def select_active_modules(con, host_id):
+def select_deployed_modules(con, host_id):
     result = 0
     try:
         with con:
             cur = con.cursor()
-            result = [mod_id[0] for mod_id in cur.execute("SELECT module_id FROM active WHERE host_id =:id;", {"id": host_id})]
+            result = [mod_id[0] for mod_id in cur.execute("SELECT module_id FROM deployed WHERE host_id =:id;", {"id": host_id})]
     except sl.Error as er:
-        print(f"Error selecting active modules for host_id = {host_id}")
+        print(f"Error selecting deployed modules for host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def select_all_active_rows(con, host_id):
+def select_all_deployed_rows(con, host_id):
     result = 0
     try:
         with con:
             cur = con.cursor()
-            cur.execute("SELECT * FROM active WHERE host_id =:id;", {"id": host_id})
+            cur.execute("SELECT * FROM deployed WHERE host_id =:id;", {"id": host_id})
             result = cur.fetchall()
     except sl.Error as er:
-        print(f"Error selecting active modules for host_id = {host_id}")
+        print(f"Error selecting deployed modules for host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -315,6 +321,8 @@ def select_all_req_revocation(con, host_id):
         print(f"Error = {er}")
         result = DB_ERROR
     return result
+
+
 
 
 # ***************** REVOKED TABLE ***********************
@@ -396,6 +404,7 @@ def select_all_req_build_modules(con):
         print(f"Error = {er}")
         result = DB_ERROR
     return result
+
 
 
 
@@ -506,6 +515,260 @@ def select_built_module_key(con, host_id, module_id):
     return result
 
 
+
+
+# ***************** MIDDLEBOX (NON-L4.5) TABLE ***********************
+# Table to hold middlebox info to allow matching inverse modules for deployment
+
+def init_middlebox_table(con):
+    # host table uses primary mac to associate to host and store host info
+    con.execute('''CREATE TABLE middlebox
+                   (mac text NOT NULL, mid_id integer,
+                   ip text, port text, type text,
+                   linux_version text, interval integer,
+                   PRIMARY KEY (mac, mid_id))''')
+
+
+
+def insert_middlebox(con, mac, mid_id, ip, port, type, version, interval):
+    result = 0
+    try:
+        with con:
+            con.execute("INSERT INTO middlebox VALUES (?, ?, ?, ?, ?, ?, ?)", (mac, mid_id, ip, port, type, version, interval))
+    except sl.Error as er:
+        print(f"Error inserting middlebox mac = {mac}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+# should only update interval values, but could be other updates occasionally
+def update_middlebox(con, mac, col_name, col_value):
+    result = 0
+    try:
+        with con:
+            con.execute("UPDATE middlebox SET {} = :col_value WHERE mac = :mac;".format(col_name), {"col_value": col_value, "mac": mac})
+    except sl.Error as er:
+        print(f"Error updating middlebox column = {col_name}, value = {col_value}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def delete_middlebox(con, mac):
+    result = 0
+    try:
+        with con:
+            con.execute("DELETE FROM middlebox WHERE mac =:mac;", {"mac": mac})
+    except sl.Error as er:
+        print(f"Error deleting middlebox, mac = {mac}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_middlebox(con, mac):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM middlebox WHERE mac =:mac;", {"mac": mac})
+            result = cur.fetchone()
+    except sl.Error as er:
+        print(f"Error selecting middlebox, mac = {mac}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_all_middleboxes(con):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM middlebox;")
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error selecting middlebox, mac = {mac}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_middlebox_by_type(con, type):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM middlebox WHERE type = :type;", {"type": type})
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error selecting middlebox, type = {type}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+# ***************** MODULE-INVERSE TABLE ***********************
+# Table to correlate a Layer 4.5 module with its inverse module and what type
+# of middlebox it needs to be deployed on
+
+def init_inverse_module_table(con):
+    con.execute('''CREATE TABLE inverse_modules
+                   (module text NOT NULL, inverse text NOT NULL,
+                   type text NOT NULL,
+                   PRIMARY KEY (module, inverse))''')
+
+
+def insert_inverse_module(con, module, inverse, type):
+    result = 0
+    try:
+        with con:
+            con.execute("INSERT INTO inverse_modules VALUES (?, ?, ?)", (module, inverse, type))
+    except sl.Error as er:
+        print(f"Error inserting inverse module = {module}, inverse = {inverse}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def delete_inverse_module(con, module, inverse, type):
+    result = 0
+    try:
+        with con:
+            con.execute('''DELETE FROM inverse_modules
+                        WHERE module =:mod AND inverse =:inv AND type=:type;''',
+                        {"mod": module, "inv": inverse, "type": type})
+    except sl.Error as er:
+        print(f"Error deleting inverse, module = {module}, inverse = {inverse}, type = {type}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+
+def select_inverse_by_module(con, module):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM inverse_modules WHERE module = :mod;", {"mod": module})
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error checking inverse modules for module = {module}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_inverse_by_inverse(con, inverse):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM inverse_modules WHERE inverse = :inv;", {"inv": inverse})
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error checking inverse modules for inverse = {inverse}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_inverse_by_type(con, type):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM inverse_modules WHERE type = :type;", {"type": type})
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error checking inverse modules for type = {type}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+
+# ***************** DEPLOY INVERSE TABLE ***********************
+# Table to hold scheduled inverse modules to deploy to indicated middlebox
+
+def init_deploy_inverse_table(con):
+    con.execute('''CREATE TABLE deploy_inverse
+                   (inverse text NOT NULL, middlebox text NOT NULL,
+                   req_install int NOT NULL, installed_ts int,
+                   PRIMARY KEY (inverse, middlebox))''')
+
+
+def insert_deploy_inverse(con, inverse, middlebox, require, ts):
+    result = 0
+    try:
+        with con:
+            con.execute("INSERT INTO deploy_inverse VALUES (?, ?, ?, ?)", (inverse, middlebox, require, ts))
+    except sl.Error as er:
+        print(f"Error inserting deploy inverse module = {inverse}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def delete_deploy_inverse(con, inverse, middlebox):
+    result = 0
+    try:
+        with con:
+            con.execute('''DELETE FROM deploy_inverse
+                        WHERE inverse =:inv AND middlebox=:mid;''',
+                        {"inv": inverse, "mid": middlebox})
+    except sl.Error as er:
+        print(f"Error deleting inverse = {inverse}, middlebox = {middlebox}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+
+def update_inverse_module_installed_status(con, inverse, middlebox, require, ts):
+    result = 0
+    try:
+        with con:
+            con.execute('''UPDATE deploy_inverse
+                        SET req_install = :req, installed_ts = :ts
+                        WHERE inverse =:inv AND middlebox=:mid ;''',
+                        {"inv": inverse, "mid": middlebox, "req":require, "ts":ts})
+    except sl.Error as er:
+        print(f"Error updating inverse row, inverse = {inverse}, middlebox = {middlebox}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+
+def select_deploy_inverse_by_module(con, inverse, require):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM deploy_inverse WHERE inverse = :mod AND req_install = :req;", {"mod": inverse, "req": require})
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error checking inverse modules for module = {inverse}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_deploy_inverse_by_ip(con, middlebox):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM deploy_inverse WHERE middlebox = :mid;", {"mid": middlebox})
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error checking inverse modules for module = {module}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
 
 
 

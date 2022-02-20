@@ -12,6 +12,19 @@ from CIB_helper import *
 
 ######################### REVOKE FUNCTIONS #############################
 
+def handle_revoke_update(db_connection, host_id, revoked_list):
+    # update deployed table based on revoked list, if empty then for loop skips
+    for module in revoked_list:
+        err = delete_deployed(db_connection, host_id, module["ID"] )
+        if err == cfg.DB_ERROR:
+            print(f"deployed delete DB error occurred, host_id = {host_id}, module = {module}")
+        else:
+            err = insert_revoked(db_connection, host_id, module["ID"], module["ts"])
+            if err == cfg.DB_ERROR:
+                print(f"deployed delete DB error occurred, host_id = {host_id}, module = {module}")
+
+
+
 def retrieve_revoke_list(db_connection, host_id):
     revoke_list = select_all_req_revocation(db_connection, host_id)
     if revoke_list == cfg.DB_ERROR:

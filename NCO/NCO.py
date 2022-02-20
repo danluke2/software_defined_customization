@@ -18,11 +18,13 @@ from NCO_construct import *
 from NCO_monitor import *
 from NCO_deploy import *
 from NCO_revoke import *
+from NCO_middlebox import *
 
 
 parser = argparse.ArgumentParser(description='NCO program')
 parser.add_argument('--ip', type=str, required=False, help="NCO IP")
 parser.add_argument('--port', type=int, required=False, help="NCO port")
+parser.add_argument('--middle_port', type=int, required=False, help="NCO middlebox port")
 parser.add_argument('--interval', type=int, required=False, help="Construction interval")
 parser.add_argument('--buffer', type=int, required=False, help="Max socket recv buffer")
 parser.add_argument('--query', type=int, required=False, help="DCA query interval")
@@ -38,6 +40,9 @@ if args.ip:
 
 if args.port:
     cfg.PORT=args.port
+
+if args.middle_port:
+    cfg.MIDDLE_PORT=args.middle_port
 
 if args.interval:
     cfg.BUILD_INTERVAL=args.interval
@@ -59,8 +64,6 @@ if args.challenge:
 
 
 
-
-
 def construction_process(interval):
     print("Construction process running")
     db_connection = db_connect('cib.db')
@@ -71,6 +74,50 @@ def construction_process(interval):
             break
 
     print("Construction process exiting")
+
+
+
+
+def middlebox_process(cv, interval):
+    exit_event_mid = threading.Event()
+    print("Middlebox process running")
+    middle_threads = []
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        try:
+            s.settimeout(5) # timeout for listening to check if shutdown condition reached
+            s.bind((cfg.HOST, cfg.MIDDLE_PORT))
+            print('Socket bind complete')
+        except socket.error as msg:
+            print('Bind failed. Error : ' + str(sys.exc_info()))
+            sys.exit()
+
+        s.listen()
+
+        while True:
+            if exit_event.is_set():
+                exit_event_mid.set()
+                print("Joining middle threads")
+                for x in middle_threads:
+                    x.join()
+                break
+            try:
+                (conn, (ip, port)) = s.accept()
+                print(f"Accepting middlebox connection from {ip}:{port}")
+                middlebox = threading.Thread(target=middlebox_thread, args=(conn, ip, port, cv, cfg.MAX_BUFFER_SIZE, interval, exit_event_mid))
+                middlebox.start()
+                middle_threads.append(middlebox)
+            except socket.timeout:
+                pass
+            except:
+                print("Middlebox thread creation error!")
+                traceback.print_exc()
+
+        s.close()
+
+    print("Middlebox process exiting")
+
 
 
 
@@ -121,7 +168,7 @@ def device_thread(conn, ip, port, buffer_size, interval):
                 break
             host_id = host["host_id"]
 
-            #get symver file and store in host_id dir if necessary
+            #Construction requirement: get symver file and store in host_id dir if necessary
             if host["symvers_ts"] == 0:
                 err = request_symver_file(conn, db_connection, host_id, device_mac)
                 if err == cfg.DB_ERROR:
@@ -132,43 +179,46 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     break
 
 
-            #get revoke list before getting report
+            #Revoke requirement: get revoke list before getting report
             revoke_id_list, revoke_name_list = retrieve_revoke_list(db_connection, host_id)
             if len(revoke_id_list) > 0:
                 for i in range(len(revoke_id_list)):
                     revoke_module(conn, db_connection, host_id, revoke_id_list[i], revoke_name_list[i])
 
-            # get a full report from host and send updated modules
+
+            #Monitor requirement: get a full report from host and update CIB
             request_report(conn, host_id)
-            active_list = process_report(conn, db_connection, host_id, buffer_size)
-            if active_list == cfg.CLOSE_SOCK:
+            err = process_report(conn, db_connection, host_id, buffer_size)
+            if err == cfg.CLOSE_SOCK:
                 conn.close()
                 break
 
 
-            #need install list to compare with active lists
-            modules, module_ids = retrieve_install_list(db_connection, host_id)
+            #Deploy requirement: need install list for host_id
+            modules = retrieve_install_list(db_connection, host_id)
 
-            #update Active list based on active list from host, must compare also
-            err = handle_active_update(db_connection, host_id, active_list, module_ids)
-            if err == cfg.REFRESH_INSTALL_LIST:
-                #need updated install list, but not the id's
-                modules, module_ids = retrieve_install_list(db_connection, host_id)
-                print(f"updated modules to install: {modules}")
+            # #update deployed list based on deployed list from host, must compare also
+            # err = handle_deployed_update(db_connection, host_id, deployed_list, module_ids)
+            # if err == cfg.REFRESH_INSTALL_LIST:
+            #     #need updated install list, but not the id's
+            #     modules, module_ids = retrieve_install_list(db_connection, host_id)
+            #     print(f"updated modules to install: {modules}")
 
             if len(modules) > 0:
                 #send built modules to host
                 send_install_modules(conn, host_id, modules)
                 # get a full report from host since we installed new modules
                 request_report(conn, host_id)
-                active_list = process_report(conn, db_connection, host_id, buffer_size)
-                if active_list == cfg.CLOSE_SOCK:
+                err = process_report(conn, db_connection, host_id, buffer_size)
+                if err == cfg.CLOSE_SOCK:
                     conn.close()
                     break
 
+                #Middlebox requirement: update inverse module table (if necessary)
+                update_inverse_module_requirements(db_connection, modules)
 
-            #challenge deployed modules
-            if args.challenge and len(active_list) > 0:
+            #Security requirement: challenge deployed modules
+            if args.challenge and len(deployed_list) > 0:
                 #get challenge list and send challenges
                 challenge_list = check_challenge(db_connection, host_id)
                 for mod_id in challenge_list:
@@ -185,7 +235,7 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     else:
                         #update challenge ts
                         now = int(time.time())
-                        update_active_sec_ts(db_connection, host_id, mod_id, now)
+                        update_deployed_sec_ts(db_connection, host_id, mod_id, now)
 
             #refresh host value each cycle in case DB updated
             host = select_host(db_connection, device_mac)
@@ -218,6 +268,7 @@ def signal_handler(signum, frame):
 if __name__ == "__main__":
     exit_event = threading.Event()
     signal.signal(signal.SIGINT, signal_handler)
+    condition = threading.Condition()
 
     try:
         #construction process runs independent of device connections
@@ -228,6 +279,14 @@ if __name__ == "__main__":
         print("Construction process creation error!")
         traceback.print_exc()
 
+    try:
+        #middlebox process runs independent of device connections
+        middlebox = multiprocessing.Process(target=middlebox_process, name="middlebox", args=(condition, cfg.BUILD_INTERVAL,))
+        middlebox.start()
+
+    except:
+        print("Middlebox process creation error!")
+        traceback.print_exc()
 
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

@@ -198,41 +198,73 @@ tracelog entries
 
 ## Middlebox demo:
 
+1) NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
-1) Steps assume the prior overhead DNS experiment was done, but also that
-the NCO is running on the Server with DCA on Client and Server
 
-    * ensure no other modules installed on Server/Client before continuing
+1) (CLIENT/SERVER) Ensure Layer 4.5 running on each machine
+
+
+1) (NCO) Start NCO to begin listening for DCA connections
+
+    * python3 software_defined_customization/NCO/NCO.py
+
+
+1) (CLIENT/SERVER) Start DCA on each machine and verify connected to NCO
+
+    * sudo python3 software_defined_customization/DCA\_user/DCA.py
+
+    * sudo required to install and remove modules
+
+
+1) (SERVER) Ensure dnsmasq is running and listening for requests on the
+10.0.0.20:53 address
+
+
+1) Add module dependency to CIB Inverse table:
+
+    * module: demo\_dns\_client\_app\_tag
+
+    * inverse: 'demo_dns_tag.lua'
+
+    * type: Wireshark
+
+    * middlebox: 10.0.0.20
+
+    * installed: 0
+
 
 
 1) (NCO) make, deploy, and install the server customization module:
 
-    * add 'demo\_dns\_server\_app\_tag' to CIB for server
+    * add 'demo\_dns\_server\_app\_tag' to CIB Require Build table for server
 
-    * add 'demo_dns_tag.lua' as module dependency to trigger deployment also
 
 
 1) (NCO) make, deploy, and install the client customization module:
 
-    * add 'demo\_dns\_client\_app\_tag' to CIB for server
-
-    * add 'demo_dns_tag.lua' as module dependency to trigger deployment also
+    * add 'demo\_dns\_client\_app\_tag' to CIB Require Build table for client
 
 
-1) (Client/Server) Collect UDP packets:
 
-    * using Wireshark or tcpdump on client and/or server
+1) (Server) Collect UDP packets:
 
-    * Just need to get the network point of view of the customized request
+    * using Wireshark on server
+
+    * NOTE: Wireshark collection is below Layer 4.5, so packets are displayed
+    from the network point of view
 
 
 1) (Client) Perform several DNS queries
 
     * dig needs to be one of them
 
-    * Others can be done with curl or web browser or ....
+    * Others can be done with curl or web browser
 
 
-1) Open Wireshark at the collection point chosen above
+1) (Server) View translated packets:
+
+    * Open Wireshark PCAP of DNS traffic
+
+        * If Wireshark still open from previous step, reload lua plugins instead
 
     * verify application tag was processed for the dig request, but not others
