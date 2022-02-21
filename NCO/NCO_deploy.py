@@ -91,10 +91,6 @@ def send_ko_module(conn_socket, host_id, module):
 def retrieve_install_list(db_connection, host_id):
     install_list = select_modules_to_install(db_connection, host_id, 1)
     modules = [x[1] for x in install_list]
-    # print(f"modules to install: {modules}")
-    # mod_ids = [x[2] for x in install_list]
-    # print(f"module ids to install: {mod_ids}")
-
     return modules
 
 

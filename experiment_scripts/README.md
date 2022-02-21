@@ -216,33 +216,36 @@ tracelog entries
     * sudo required to install and remove modules
 
 
+1) (SERVER) Start Middlebox DCA and verify connected to NCO
+
+    * sudo python3 software_defined_customization/DCA\_user/DCA\_middlebox.py
+
+    * sudo required to install and remove inverse modules
+
+
 1) (SERVER) Ensure dnsmasq is running and listening for requests on the
 10.0.0.20:53 address
 
 
-1) Add module dependency to CIB Inverse table:
+1) Add module dependency to CIB inverse\_modules table:
 
-    * module: demo\_dns\_client\_app\_tag
+    * module: demo\_dns\_server\_app\_tag
 
     * inverse: 'demo_dns_tag.lua'
 
     * type: Wireshark
 
-    * middlebox: 10.0.0.20
-
-    * installed: 0
-
 
 
 1) (NCO) make, deploy, and install the server customization module:
 
-    * add 'demo\_dns\_server\_app\_tag' to CIB Require Build table for server
+    * add 'demo\_dns\_server\_app\_tag' to CIB req\_build\_modules table for server
 
 
 
 1) (NCO) make, deploy, and install the client customization module:
 
-    * add 'demo\_dns\_client\_app\_tag' to CIB Require Build table for client
+    * add 'demo\_dns\_client\_app\_tag' to CIB req\_build\_modules table for client
 
 
 
@@ -254,6 +257,7 @@ tracelog entries
     from the network point of view
 
 
+
 1) (Client) Perform several DNS queries
 
     * dig needs to be one of them
@@ -261,10 +265,14 @@ tracelog entries
     * Others can be done with curl or web browser
 
 
-1) (Server) View translated packets:
+1) (Server) Wireshark:
 
-    * Open Wireshark PCAP of DNS traffic
+    * click on a DNS packet to see Layer 4.5 processing
 
-        * If Wireshark still open from previous step, reload lua plugins instead
+        * reload lua plugins if not seeing app tags on DNS packets in next step
 
-    * verify application tag was processed for the dig request, but not others
+        * ![](../assets/demo_field.png)
+
+    * right click on Application ID field and add column to see in main view
+
+        * ![](../assets/demo_column.png)

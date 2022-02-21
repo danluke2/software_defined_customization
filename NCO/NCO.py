@@ -13,12 +13,12 @@ import multiprocessing
 
 import cfg
 from CIB_helper import *
-from NCO_security import *
-from NCO_construct import *
-from NCO_monitor import *
-from NCO_deploy import *
-from NCO_revoke import *
-from NCO_middlebox import *
+from NCO_security import check_challenge, request_challenge_response
+from NCO_construct import request_symver_file, construction_loop
+from NCO_monitor import handle_host_insert, process_report, request_report
+from NCO_deploy import send_install_modules, retrieve_install_list, check_install_requirement_or_max_time
+from NCO_revoke import retrieve_revoke_list, revoke_module
+from NCO_middlebox import update_inverse_module_requirements, middlebox_thread
 
 
 parser = argparse.ArgumentParser(description='NCO program')
@@ -165,7 +165,7 @@ def device_thread(conn, ip, port, buffer_size, interval):
         while True:
             if exit_event.is_set():
                 conn.close()
-                break
+                return
             host_id = host["host_id"]
 
             #Construction requirement: get symver file and store in host_id dir if necessary
@@ -269,6 +269,7 @@ if __name__ == "__main__":
     exit_event = threading.Event()
     signal.signal(signal.SIGINT, signal_handler)
     condition = threading.Condition()
+    device_threads = []
 
     try:
         #construction process runs independent of device connections
@@ -293,6 +294,7 @@ if __name__ == "__main__":
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         try:
+            s.settimeout(5) # timeout for listening to check if shutdown condition reached
             s.bind((cfg.HOST, cfg.PORT))
             print('Socket bind complete')
         except socket.error as msg:
@@ -303,15 +305,22 @@ if __name__ == "__main__":
         s.listen()
 
         while True:
-            conn, addr = s.accept()
-            ip, port = str(addr[0]), str(addr[1])
-            print(f"Accepting connection from {ip}:{port}")
+            if exit_event.is_set():
+                break
             try:
+                (conn, (ip, port)) = s.accept()
+                print(f"Accepting connection from {ip}:{port}")
                 device = threading.Thread(target=device_thread, args=(conn, ip, port, cfg.MAX_BUFFER_SIZE, cfg.QUERY_INTERVAL))
                 device.start()
+                device_threads.append(device)
+            except socket.timeout:
+                pass
             except:
                 print("Device thread creation error!")
                 traceback.print_exc()
 
         s.close()
+        print("Joining device threads")
+        for x in device_threads:
+            x.join()
         exit_event.set()
