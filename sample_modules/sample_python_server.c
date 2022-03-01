@@ -121,7 +121,8 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
 int __init sample_server_start(void)
 {
 	//exact application name (i.e., will use strcmp function)
-	char application_name[16] = "python3"; //16 b/c size of kernel char array
+	char thread_name[16] = "python3"; //16 b/c size of kernel char array
+  char application_name[16] = "python3"; //16 b/c size of kernel char array
   int result;
 
 	python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
@@ -134,7 +135,8 @@ int __init sample_server_start(void)
   // python_cust->target_flow.protocol = 17; //UDP
   // python_cust->protocol = 6; //TCP
   python_cust->target_flow.protocol = 256; // TCP and UDP
-	memcpy(python_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
+  memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
+  memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
   // Server: source IP or port set b/c bind is called at setup
 	python_cust->target_flow.dest_port = 0; // set if you know client port

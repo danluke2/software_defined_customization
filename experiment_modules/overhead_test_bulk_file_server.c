@@ -168,6 +168,7 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
 // @post Layer 4.5 customization registered
 int __init sample_client_start(void)
 {
+	char thread_name[16] = "python3";
 	char application_name[16] = "python3";
   int result;
 
@@ -179,7 +180,8 @@ int __init sample_client_start(void)
 	}
 
   server_cust->target_flow.protocol = 6; // TCP
-	memcpy(server_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
+	memcpy(server_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
+	memcpy(server_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
 	server_cust->target_flow.dest_port = 0;
   server_cust->target_flow.source_port = 8080;

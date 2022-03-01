@@ -5,10 +5,19 @@
 
 
 // Compares a customization nodes application/task name to the given socket
+// based on the pid (i.e., thread)
 // @param[I] node Customization node registered on host
 // @param[I] socket Intercepted socket to compare against
 // @return bool for pass/fail of compare check
-bool task_compare(struct customization_node *node, struct customization_socket *socket);
+bool pid_task_compare(struct customization_node *node, struct customization_socket *socket);
+
+
+// Compares a customization nodes application/task name to the given socket
+// based on the thread group (i.e. process)
+// @param[I] node Customization node registered on host
+// @param[I] socket Intercepted socket to compare against
+// @return bool for pass/fail of compare check
+bool tgid_task_compare(struct customization_node *node, struct customization_socket *socket);
 
 
 // Compares a customization nodes protocol value to the given socket

@@ -42,7 +42,10 @@ struct customization_flow
 	__be32 dest_ip;
 	__be32 source_ip;
 	u16 protocol;
-	char task_name[TASK_NAME_LEN];
+	// pid is the thred id and will match thread names like python3, isc-worker, etc.
+	char task_name_pid[TASK_NAME_LEN];
+	// tgid is the thread group ID and will match apps like dig, firefox, etc.
+	char task_name_tgid[TASK_NAME_LEN];
 
 	// these may be used to match subnets at some point
   // u8 dest_mask;
@@ -63,6 +66,7 @@ struct customization_buffer
 struct customization_socket
 {
   pid_t pid;
+	pid_t tgid;
   struct sock *sk;
 
 	// customization can be one way, so allow for send/recv differentiation

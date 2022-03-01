@@ -3,15 +3,12 @@
 
 # TODO:
 
-1) Update NCO/DCA code
-
-1) Verify includes are all necessary or if there are smaller files to include
-that provide same things
-
 1) Further test/improve overhead of using LKM approach
 
 1) how to reset cust module global variables or make socket specific (i.e., one cust mod
   applies to 2 sockets, then both update the same global vars)
+
+    * providing socket flow params can help distinguish different flows
 
 
 1) general module to do lots of functionality (like dialecting module);
@@ -25,6 +22,7 @@ data collection, dialecting, maybe encryption
 
 1) NCO signed modules: https://ubuntu.com/blog/how-to-sign-things-for-secure-boot
 
+
 1) Expand DCA reports to NCO (ex: module 5-tuples)
 
 
@@ -32,7 +30,20 @@ data collection, dialecting, maybe encryption
 
 
 
+1) expand support for TLS traffic:
 
+    * this applies to the recieve side only since that may be breaking
+
+    * could we allow a receive loop between DCA and module to ensure all
+    encrypted traffic needed by app is delivered?
+
+    * could we be seeing problems from multiple iter buff segments?
+
+1) Could I tag encrypted traffic with app/host ID to allow storing data without
+decrypting it?  (searchable encryption to some degree)
+
+
+traffic translation and middlebox traversal (same design framework)
 
 # Questions:
 

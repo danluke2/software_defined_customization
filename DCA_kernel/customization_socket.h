@@ -22,7 +22,7 @@ void init_socket_tables(void);
 // @param[I] name The application name of the intercepted process (e.g., python3)
 // @param[I] dir The direction of the packet (SEND or RECV)
 // @return a pointer to the new customizable socket
-struct customization_socket *create_cust_socket(pid_t pid, struct sock *sk, struct msghdr *msg, char *name, int dir);
+struct customization_socket *create_cust_socket(struct task_struct *task, struct sock *sk, struct msghdr *msg);
 
 
 // Finds a customizable socket in the hash table
@@ -30,7 +30,7 @@ struct customization_socket *create_cust_socket(pid_t pid, struct sock *sk, stru
 // @param[I] pid The desired connection's Process ID.
 // @param[I] sk A pointer to socket struct for the connection.
 // @return The customizable socket
-struct customization_socket *get_cust_socket(pid_t pid, struct sock *sk);
+struct customization_socket *get_cust_socket(struct task_struct *task, struct sock *sk);
 
 
 // Look at each socket and see if the stored customization matches cust_id
@@ -43,7 +43,7 @@ void remove_customization_from_each_socket(struct customization_node *cust);
 // @param[I] pid The desired Process ID.
 // @param[I] sk A pointer to sock struct for the connection.
 // @return 1 if a cust socket was found and deleted, 0 otherwise
-int delete_cust_socket(pid_t pid, struct sock *sk);
+int delete_cust_socket(struct task_struct *task, struct sock *sk);
 
 
 // Deletes all of the connections in the hash table.

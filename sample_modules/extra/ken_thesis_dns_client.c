@@ -125,6 +125,7 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
 int __init sample_client_start(void)
 {
   int result;
+	char thread_name[16] = "systemd-resolve";
 	char application_name[16] = "systemd-resolve";
 
   dns_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
@@ -135,7 +136,8 @@ int __init sample_client_start(void)
 	}
 
 	dns_cust->target_flow.protocol = 17; // UDP
-	memcpy(dns_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
+	memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
+	memcpy(dns_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
 	dns_cust->target_flow.dest_port = 53;
   dns_cust->target_flow.dest_ip = in_aton("10.0.0.10");

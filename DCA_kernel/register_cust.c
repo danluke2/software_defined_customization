@@ -92,7 +92,7 @@ struct customization_node *get_customization(struct customization_socket *cust_s
 
 	list_for_each_entry_safe(cust_temp, cust_next, &active_customization_list, cust_list_member)
  	{
-		if(task_compare(cust_temp, cust_socket))
+		if(pid_task_compare(cust_temp, cust_socket))
 		{
       #ifdef DEBUG3
         trace_printk("Application name check passed, cust_id=%d\n", cust_temp->cust_id);
@@ -161,7 +161,8 @@ int register_customization(struct customization_node *module_cust)
   cust->sock_count = 0; // init value
 
   cust->target_flow.protocol = module_cust->target_flow.protocol;
-  memcpy(cust->target_flow.task_name, module_cust->target_flow.task_name, TASK_NAME_LEN);
+  memcpy(cust->target_flow.task_name_pid, module_cust->target_flow.task_name_pid, TASK_NAME_LEN);
+  memcpy(cust->target_flow.task_name_tgid, module_cust->target_flow.task_name_tgid, TASK_NAME_LEN);
   cust->target_flow.dest_port = module_cust->target_flow.dest_port;
   cust->target_flow.source_port = module_cust->target_flow.source_port;
   cust->target_flow.dest_ip = module_cust->target_flow.dest_ip;

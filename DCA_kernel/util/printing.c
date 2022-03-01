@@ -104,7 +104,8 @@ void trace_print_iov_params(struct iov_iter *src_iter)
 void trace_print_module_params(struct customization_node *cust_node)
 {
     trace_printk("Node protocol = %u\n", cust_node->target_flow.protocol);
-    trace_printk("Node task = %s\n", cust_node->target_flow.task_name);
+    trace_printk("Node pid task = %s\n", cust_node->target_flow.task_name_pid);
+    trace_printk("Node tgid task = %s\n", cust_node->target_flow.task_name_tgid);
     trace_printk("Node id = %u\n", cust_node->cust_id);
     trace_printk("Node dest port = %u\n", cust_node->target_flow.dest_port);
     trace_printk("Node source port = %u\n", cust_node->target_flow.source_port);

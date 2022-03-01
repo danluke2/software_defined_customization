@@ -5,15 +5,31 @@
 #include "compare.h"
 
 
-bool task_compare(struct customization_node *node, struct customization_socket *socket)
+bool pid_task_compare(struct customization_node *node, struct customization_socket *socket)
 {
   bool success = false;
   //if using a wildcard application name, then return true
-  if(strncmp(node->target_flow.task_name, "*", 1) == 0)
+  if(strncmp(node->target_flow.task_name_pid, "*", 1) == 0)
   {
     success = true;
   }
-  else if(strncmp(node->target_flow.task_name, socket->socket_flow.task_name, TASK_NAME_LEN) == 0)
+  else if(strncmp(node->target_flow.task_name_pid, socket->socket_flow.task_name_pid, TASK_NAME_LEN) == 0)
+  {
+    success = true;
+  }
+  return success;
+}
+
+
+bool tgid_task_compare(struct customization_node *node, struct customization_socket *socket)
+{
+  bool success = false;
+  //if using a wildcard application name, then return true
+  if(strncmp(node->target_flow.task_name_tgid, "*", 1) == 0)
+  {
+    success = true;
+  }
+  else if(strncmp(node->target_flow.task_name_tgid, socket->socket_flow.task_name_tgid, TASK_NAME_LEN) == 0)
   {
     success = true;
   }

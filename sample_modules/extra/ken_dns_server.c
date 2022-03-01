@@ -125,7 +125,8 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
 int __init sample_client_start(void)
 {
   int result;
-  char application_name[16] = "dnsmasq";
+  char thread_name[16] = "dnsmasq";
+	char application_name[16] = "dnsmasq";
 
 	dns_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
 	if(dns_cust == NULL)
@@ -135,8 +136,8 @@ int __init sample_client_start(void)
 	}
 
 	dns_cust->target_flow.protocol = 17; // UDP
-	memcpy(dns_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
-
+	memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
+	memcpy(dns_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
 	dns_cust->target_flow.dest_port = 0;
 

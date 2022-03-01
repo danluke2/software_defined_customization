@@ -317,7 +317,8 @@ out:
 // @post Layer 4.5 customization registered
 int __init sample_client_start(void)
 {
-	char application_name[16] = "python3";
+	char thread_name[16] = "python3";
+  char application_name[16] = "python3";
   int result;
 
 
@@ -331,7 +332,8 @@ int __init sample_client_start(void)
 	python_cust->target_flow.protocol = 17; // UDP
   // python_cust->protocol = 6; // TCP
   // python_cust->protocol = 256; // Any since not valid IP field value
-	memcpy(python_cust->target_flow.task_name, application_name, TASK_NAME_LEN);
+	memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
+  memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
   // Client: no source IP or port set unless client called bind first
 	python_cust->target_flow.dest_port = 65432;
