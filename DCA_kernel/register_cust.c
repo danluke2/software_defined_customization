@@ -92,30 +92,12 @@ struct customization_node *get_customization(struct customization_socket *cust_s
 
 	list_for_each_entry_safe(cust_temp, cust_next, &active_customization_list, cust_list_member)
  	{
-		if(pid_task_compare(cust_temp, cust_socket))
+		if(customization_compare(cust_temp, cust_socket))
 		{
-      #ifdef DEBUG3
-        trace_printk("Application name check passed, cust_id=%d\n", cust_temp->cust_id);
-      #endif
-			if(protocol_compare(cust_temp, cust_socket))
-			{
-        #ifdef DEBUG3
-          trace_printk("Protocol check passed, cust_id=%d\n", cust_temp->cust_id);
-				#endif
-        if(dest_compare(cust_temp, cust_socket))
-				{
-          #ifdef DEBUG3
-            trace_printk("Dest check passed, cust_id=%d\n", cust_temp->cust_id);
-					#endif
-          if(src_compare(cust_temp, cust_socket))
-					{
-            #ifdef DEBUG3
-              trace_printk("Src check passed, cust_id=%d\n", cust_temp->cust_id);
-						#endif
-            return cust_temp;
-					}
-				}
-			}
+      #ifdef DEBUG1
+        trace_printk("L4.5: cust socket match to registered module, pid = %d\n", cust_socket->pid);
+	    #endif
+      return cust_temp;
 		}
 	}
 	return NULL;

@@ -40,4 +40,12 @@ bool dest_compare(struct customization_node *node, struct customization_socket *
 // @return bool for pass/fail of compare check
 bool src_compare(struct customization_node *node, struct customization_socket *socket);
 
+
+
+// Compares a customization node parameters to the given socket
+// @param[I] node Customization node registered on host
+// @param[I] socket Intercepted socket to compare against
+// @return bool for pass/fail of compare check
+bool customization_compare(struct customization_node *node, struct customization_socket *socket);
+
 #endif

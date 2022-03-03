@@ -108,5 +108,20 @@ Common items I refer to when trying to understand code and functions in the kern
 
 1) apache2 server with ssl:
 
-    * https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-apache-in-ubuntu-20-04
-    
+   https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-apache-in-ubuntu-20-04
+
+   https://ubuntu.com/server/docs/web-servers-apache
+
+
+1) nginx server with ssl:
+
+    https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-18-04
+
+    https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04
+
+
+
+
+1) get task from tgid:
+
+   https://linux-kernel.vger.kernel.narkive.com/oJRnbfkU/find-task-by-pid-problem

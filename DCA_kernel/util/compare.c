@@ -81,3 +81,44 @@ bool src_compare(struct customization_node *node, struct customization_socket *s
   }
   return success;
 }
+
+
+
+
+bool customization_compare(struct customization_node *node, struct customization_socket *socket)
+{
+  bool success = false;
+
+	if(pid_task_compare(node, socket))
+	{
+    #ifdef DEBUG3
+      trace_printk("Application pid name check passed, cust_id=%d\n", node->cust_id);
+    #endif
+    if(tgid_task_compare(node, socket))
+  	{
+      #ifdef DEBUG3
+        trace_printk("Application tgid name check passed, cust_id=%d\n", node->cust_id);
+      #endif
+  		if(protocol_compare(node, socket))
+  		{
+        #ifdef DEBUG3
+          trace_printk("Protocol check passed, cust_id=%d\n", node->cust_id);
+  			#endif
+        if(dest_compare(node, socket))
+  			{
+          #ifdef DEBUG3
+            trace_printk("Dest check passed, cust_id=%d\n", node->cust_id);
+  				#endif
+          if(src_compare(node, socket))
+  				{
+            #ifdef DEBUG3
+              trace_printk("Src check passed, cust_id=%d\n", node->cust_id);
+  					#endif
+            success = true;
+  				}
+  			}
+  		}
+    }
+	}
+return success;
+}
