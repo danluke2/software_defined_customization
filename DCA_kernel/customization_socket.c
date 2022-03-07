@@ -12,6 +12,7 @@
 #include "customization_socket.h"
 #include "register_cust.h" //for get_customization
 #include "util/printing.h"
+#include <linux/cred.h> //uid testing
 
 
 unsigned int socket_allocsminusfrees;
@@ -56,10 +57,12 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 	}
 	socket_allocsminusfrees++;
 
+
 	new_cust_socket->pid = task->pid; // likely 4 bytes long (depends on system)
 	new_cust_socket->tgid = task->tgid; // this might be same as pid
 	new_cust_socket->sk = sk;
 	new_cust_socket->hash_key = task->pid ^ (unsigned long)sk;
+	new_cust_socket->uid = get_current_user()->uid.val;
 	new_cust_socket->socket_flow.protocol = sk->sk_protocol;
 	memcpy(new_cust_socket->socket_flow.task_name_pid, task->comm, TASK_NAME_LEN);
 	memcpy(new_cust_socket->socket_flow.task_name_tgid, tgid_task->comm, TASK_NAME_LEN);
@@ -81,7 +84,7 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 	if(cust_node == NULL)
 	{
 		#ifdef DEBUG3
-			trace_printk("L4.5: cust request lookup NULL, proto=%u, pid task=%s, tgid task=%s\n", sk->sk_protocol, task->comm, tgid_task->comm);
+			trace_printk("L4.5: cust request lookup NULL, proto=%u, pid task=%s, tgid task=%s, uid = %d\n", sk->sk_protocol, task->comm, tgid_task->comm, new_cust_socket->uid);
 		#endif
 		new_cust_socket->customize_send_or_skip = SKIP;
 		new_cust_socket->customize_recv_or_skip = SKIP;

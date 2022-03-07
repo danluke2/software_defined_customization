@@ -58,6 +58,7 @@ struct customization_buffer
 {
 	void *buf; // malloc only when assigned a customization
 	u32 buf_size;
+	size_t copy_length; // how much of buffer to copy
 	struct iov_iter iter_copy;  // copy of iter buffer values for reference
 };
 
@@ -68,6 +69,7 @@ struct customization_socket
   pid_t pid;
 	pid_t tgid;
   struct sock *sk;
+	uid_t uid; //up to modules to map ID to username if desired
 
 	// customization can be one way, so allow for send/recv differentiation
 	enum customization_state customize_send_or_skip;

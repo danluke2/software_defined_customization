@@ -371,7 +371,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
   {
     // a 0 length or error message has no need for customization removal
     #ifdef DEBUG1
-      trace_printk("L4.5: received %d length message, pid %d\n", recvmsg_ret, task->pid);
+      trace_printk("L4.5: received %d length message, pid %d\n", recvmsg_return, task->pid);
     #endif
     return recvmsg_return;
   }
