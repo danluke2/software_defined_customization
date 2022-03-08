@@ -54,20 +54,19 @@ struct customization_node *dns_cust;
 
 
 // The following functions perform the buffer modifications requested by handler
-void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *send_buf_st, size_t length, size_t *copy_length)
+void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
-  uint8_t *start_of_fqdn = (uint8_t *) ((char *)src_iter->iov->iov_base + sizeof(struct dns_header));
+  uint8_t *start_of_fqdn = (uint8_t *) ((char *)send_buf_st->src_iter->iov->iov_base + sizeof(struct dns_header));
   size_t total = 0;
   uint8_t *field_length = start_of_fqdn;
-  *copy_length = 0;
+  send_buf_st->copy_length = 0;
 
-  trace_printk("L4.5: UDP DNS lengh = %lu\n", length);
+  trace_printk("L4.5: UDP DNS lengh = %lu\n", send_buf_st->length);
   // this dump assumes DNS packet exists entirely in iov_base buffer
-  trace_print_hex_dump("Original DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, length, true);
-  return;
+  trace_print_hex_dump("Original DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, send_buf_st->src_iter->iov->iov_base, send_buf_st->length, true);
 
-  copy_success = copy_from_iter_full(send_buf_st->buf, 2, src_iter); // ID
+  copy_success = copy_from_iter_full(send_buf_st->buf, 2, send_buf_st->src_iter); // ID
   if(copy_success == false)
   {
     //not all bytes were copied, so new_length is wrong?
@@ -88,34 +87,33 @@ void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *
   }
   total += 5; // last 5 bytes finishes name query part, but we can possibly drop
 
-  *copy_length = total + (size_t) 2; // 2 is for the id
-  trace_printk("L4.5 ALERT: DNS fqdn + id copy lengh = %lu\n", *copy_length);
+  send_buf_st->copy_length = total + (size_t) 2; // 2 is for the id
+  trace_printk("L4.5 ALERT: DNS fqdn + id copy lengh = %lu\n", send_buf_st->copy_length);
 
   // advance iter past rest of DNS header
-  iov_iter_advance(src_iter, sizeof(struct dns_header) - 2);
+  iov_iter_advance(send_buf_st->src_iter, sizeof(struct dns_header) - 2);
 
-  copy_success = copy_from_iter_full(send_buf_st->buf + (size_t) 2, length - sizeof(struct dns_header) + 2 , src_iter);
+  copy_success = copy_from_iter_full(send_buf_st->buf + (size_t) 2, send_buf_st->length - sizeof(struct dns_header) + 2 , send_buf_st->src_iter);
   if(copy_success == false)
   {
     trace_printk("L4.5 ALERT: Failed to copy FQDN to cust buffer\n");
-    src_iter->iov_offset -= (size_t) 2; //undo other copy success
+    send_buf_st->src_iter->iov_offset -= (size_t) 2; //undo other copy success
 
     //Scenario 1: keep cust loaded and allow normal msg to be sent
-    *copy_length = 0;
+    send_buf_st->copy_length = 0;
   }
 
 
-  trace_print_hex_dump("Cust DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, send_buf_st->buf, *copy_length, true);
+  trace_print_hex_dump("Cust DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, send_buf_st->buf, send_buf_st->copy_length, true);
 
   return;
 }
 
 
 //length = max buffer length -> copy_length must be <= length
-void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *recv_buf_st, int length, size_t recvmsg_ret,
-                       size_t *copy_length)
+void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-  copy_length = 0;
+  recv_buf_st->copy_length = 0;
  	return;
 }
 

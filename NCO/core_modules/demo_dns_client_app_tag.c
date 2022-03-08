@@ -47,32 +47,31 @@ struct customization_node *dns_cust;
 
 
 // The following functions perform the buffer modifications requested by handler
-void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *send_buf_st, size_t length, size_t *copy_length)
+void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
-  *copy_length = 0;
+  send_buf_st->copy_length = 0;
 
   // trace_print_hex_dump("Original DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, length, true);
 
   memcpy(send_buf_st->buf, cust_tag_test, cust_tag_test_size);
-  *copy_length += cust_tag_test_size;
+  send_buf_st->copy_length += cust_tag_test_size;
 
-  copy_success = copy_from_iter_full(send_buf_st->buf+cust_tag_test_size, length, src_iter);
+  copy_success = copy_from_iter_full(send_buf_st->buf+cust_tag_test_size, send_buf_st->length, send_buf_st->src_iter);
   if(copy_success == false)
   {
     trace_printk("L4.5 ALERT: Failed to copy DNS packet into buffer\n");
     return;
   }
 
-  *copy_length += length;
+  send_buf_st->copy_length += length;
   return;
 }
 
 
-void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *recv_buf_st, int length, size_t recvmsg_ret,
-                       size_t *copy_length)
+void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-  copy_length = 0;
+  recv_buf_st->copy_length = 0;
  	return;
 }
 

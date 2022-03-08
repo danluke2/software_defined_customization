@@ -25,21 +25,21 @@ struct customization_node *curl_cust;
 
 
 // this just does a straight copy operation
-void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *send_buf_st, size_t length, size_t *copy_length)
+void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
   //
-	*copy_length = length;
-  trace_printk("L4.5: TLS send buffer size %lu\n", length);
+	send_buf_st->copy_length = send_buf_st->length;
+  trace_printk("L4.5: TLS send buffer size %lu\n", send_buf_st->length);
 
   //copy from full will revert iter back to normal if failure occurs
-	copy_success = copy_from_iter_full(send_buf_st->buf, length, src_iter);
+	copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
   if(copy_success == false)
   {
     // not all bytes were copied, so pick scenario 1 or 2 below
     trace_printk("L4.5 ALERT: Failed to copy all bytes to cust buffer\n");
     // Scenario 1: keep cust loaded and allow normal msg to be sent
-    copy_length = 0;
+    send_buf_st->copy_length = 0;
 
     // Scenario 2: stop trying to customize this socket
     // kfree(send_buf_st->buf);
@@ -50,21 +50,21 @@ void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *
 }
 
 
-void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *recv_buf_st, int length, size_t recvmsg_ret, size_t *copy_length)
+void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
 
-  trace_printk("L4.5: TLS recv ret %lu, buffer limit %d\n", recvmsg_ret, length);
+  trace_printk("L4.5: TLS recv ret %lu, buffer limit %d\n", recv_buf_st->recv_return, recv_buf_st->length);
 
- 	*copy_length = recvmsg_ret;
+ 	recv_buf_st->copy_length = recv_buf_st->recv_return;
 
-  copy_success = copy_from_iter_full(recv_buf_st->buf, *copy_length, src_iter);
+  copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->copy_length, recv_buf_st->src_iter);
   if(copy_success == false)
   {
     // not all bytes were copied, so pick scenario 1 or 2 below
     trace_printk("L4.5 ALERT: Failed to copy all bytes to cust buffer\n");
     // Scenario 1: keep cust loaded and allow normal msg to be sent
-    *copy_length = 0;
+    recv_buf_st->copy_length = 0;
 
     // Scenario 2: stop trying to customize this socket
     // kfree(recv_buf_st->buf);

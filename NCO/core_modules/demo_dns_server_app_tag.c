@@ -44,44 +44,42 @@ struct customization_node *dns_cust;
 // followed by any other variables we determine NCO should declare when building
 
 
-void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *send_buf_st, size_t length, size_t *copy_length)
+void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-  copy_length = 0;
+  send_buf_st->copy_length = 0;
   return;
 }
 
-//recvmsg_ret is the amount of data in src_buf put there by layer 4
-//copy_length is amount of data in recv_buf to copy to msg
-//length = max buffer length -> copy_length must be <= length
-void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *recv_buf_st, int length, size_t recvmsg_ret,
-                       size_t *copy_length)
+
+
+void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
   char tag[5] = "XTAG";
-  *copy_length = 0;
+  recv_buf_st->copy_length = 0;
 
-  // trace_print_hex_dump("Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, recvmsg_ret, true);
+  // trace_print_hex_dump("Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, recv_buf_st->recv_return, true);
 
-  if(strncmp((char *)src_iter->iov->iov_base, tag, 4) == 0)
+  if(strncmp((char *)recv_buf_st->src_iter->iov->iov_base, tag, 4) == 0)
   {
-    iov_iter_advance(src_iter, cust_tag_test_size);
-    copy_success = copy_from_iter_full(recv_buf_st->buf, recvmsg_ret - cust_tag_test_size, src_iter);
+    iov_iter_advance(recv_buf_st->src_iter, cust_tag_test_size);
+    copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->recv_return - cust_tag_test_size, recv_buf_st->src_iter);
     if(copy_success == false)
     {
       trace_printk("L4.5 ALERT: Failed to copy DNS to cust buffer\n");
       //Scenario 1: keep cust loaded and allow normal msg to be sent
-      *copy_length = 0;
+      recv_buf_st->copy_length = 0;
       return;
     }
-    *copy_length = recvmsg_ret - cust_tag_test_size;
+    recv_buf_st->copy_length = recv_buf_st->recv_return - cust_tag_test_size;
 
-    // trace_print_hex_dump("DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, *copy_length, true);
+    // trace_print_hex_dump("DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, recv_buf_st->copy_length, true);
   }
 
   else
   {
     //something strange came in
-    trace_printk("L4.5: DNS packet length makes no sense, size = %lu\n", recvmsg_ret);
+    trace_printk("L4.5: DNS packet length makes no sense, size = %lu\n", recv_buf_st->recv_return);
   }
 
   return;

@@ -53,28 +53,27 @@ struct customization_node *dns_cust;
 
 // The following functions perform the buffer modifications requested by handler
 // send_buf could be realloc and change, thus update buf ptr and size if necessary
-void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *send_buf_st, size_t length, size_t *copy_length)
+void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
   // TODO: fix send back to client to also be customized
-  copy_length = 0;
+  send_buf_st->copy_length = 0;
   return;
 }
 
 
 //reconstruct DNS packet from client side: ID+full query section->fill in header
-//recvmsg_ret is the amount of data in src_buf put there by layer 4
+//recv_return is the amount of data in src_buf put there by layer 4
 //copy_length is amount of data in recv_buf to copy to msg
 //length = max buffer length -> copy_length must be <= length
-void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *recv_buf_st, int length, size_t recvmsg_ret,
-                       size_t *copy_length)
+void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
   char *dns_buf[17]; //just adding some extra room here, only need 10 bytes, 12 with ID
   struct dns_header *dns = (struct dns_header *)dns_buf;
 
-  trace_print_hex_dump("Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, recvmsg_ret, true);
+  trace_print_hex_dump("Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, recv_buf_st->recv_return, true);
 
-  *copy_length = recvmsg_ret + (size_t) 10;
+  recv_buf_st->copy_length = recv_buf_st->recv_return + (size_t) 10;
 
   dns->qr = 0; //This is a query
   dns->opcode = 0; //This is a standard query
@@ -91,12 +90,12 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
   dns->arcount = 0;
 
   //copy first 2 bytes which is the DNS ID
-  copy_success = copy_from_iter_full(recv_buf_st->buf, 2, src_iter);
+  copy_success = copy_from_iter_full(recv_buf_st->buf, 2, recv_buf_st->src_iter);
   if(copy_success == false)
   {
     trace_printk("L4.5 ALERT: Failed to copy DNS ID to cust buffer\n");
     //Scenario 1: keep cust loaded and allow normal msg to be sent
-    *copy_length = 0;
+    recv_buf_st->copy_length = 0;
     return;
   }
   trace_print_hex_dump("DNS packet recv ID: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, 2, true);
@@ -105,16 +104,16 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
 
   trace_print_hex_dump("DNS packet recv header: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, 12, true);
   //copy query portion
-  copy_success = copy_from_iter_full(recv_buf_st->buf + 12, recvmsg_ret-2, src_iter);
+  copy_success = copy_from_iter_full(recv_buf_st->buf + 12, recv_buf_st->recv_return-2, recv_buf_st->src_iter);
   if(copy_success == false)
   {
     trace_printk("L4.5 ALERT: Failed to copy FQDN to cust buffer\n");
-    src_iter->iov_offset -= (size_t) 2; //undo other copy success
+    recv_buf_st->src_iter->iov_offset -= (size_t) 2; //undo other copy success
     //Scenario 1: keep cust loaded and allow normal msg to be sent
-    *copy_length = 0;
+    recv_buf_st->copy_length = 0;
   }
 
-  trace_print_hex_dump("DNS packet recv full: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, *copy_length, true);
+  trace_print_hex_dump("DNS packet recv full: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, recv_buf_st->copy_length, true);
 
   return;
 }

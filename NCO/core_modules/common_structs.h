@@ -42,7 +42,10 @@ struct customization_flow
 	__be32 dest_ip;
 	__be32 source_ip;
 	u16 protocol;
-	char task_name[TASK_NAME_LEN];
+	// pid is the thred id and will match thread names like python3, isc-worker, etc.
+	char task_name_pid[TASK_NAME_LEN];
+	// tgid is the thread group ID and will match apps like dig, firefox, etc.
+	char task_name_tgid[TASK_NAME_LEN];
 
 	// these may be used to match subnets at some point
   // u8 dest_mask;
@@ -55,15 +58,20 @@ struct customization_buffer
 {
 	void *buf; // malloc only when assigned a customization
 	u32 buf_size;
-	struct iov_iter iter_copy;  // copy of iter buffer values for reference
+	size_t copy_length; // how much of buffer to copy
+	struct iov_iter *src_iter;  // source buffer to work from
+	size_t length; // send=amount of data in src_iter, recv=max amount to return
+	size_t recv_return; // amount of data L4 returned from recvmsg call
 };
 
 
 // primary structure for application sockets to hold customization information
 struct customization_socket
 {
-  pid_t pid; // this can change if multiple threads being used, but we track the first one
+  pid_t pid;
+	pid_t tgid;
   struct sock *sk;
+	uid_t uid; //up to modules to map ID to username if desired
 
 	// customization can be one way, so allow for send/recv differentiation
 	enum customization_state customize_send_or_skip;
@@ -91,6 +99,7 @@ struct customization_node
 {
 	struct customization_flow target_flow;
 
+	// mod_id
   u16 cust_id;
 	// counter to track number of sockets cust is applied to
 	u16 sock_count;
@@ -102,10 +111,9 @@ struct customization_node
 	struct timespec64 registration_time_struct;
 	struct timespec64 retired_time_struct;
 
-  void (*send_function)(struct iov_iter *src_iter, struct customization_buffer *send_buf_st, size_t length, size_t *copy_length);
+  void (*send_function)(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow);
 
-	void (*recv_function)(struct iov_iter *src_iter, struct customization_buffer *recv_buf_st, int length, size_t recvmsg_ret,
-												 size_t *copy_length);
+	void (*recv_function)(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow);
 
 	// challenge function called when DCA issues a module challenge-response request
   void (*challenge_function)(char *response_buffer, char *iv, char *challenge_message);
