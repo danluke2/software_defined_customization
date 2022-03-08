@@ -61,7 +61,7 @@ struct customization_buffer
 	size_t copy_length; // how much of buffer to copy
 	struct iov_iter *src_iter;  // source buffer to work from
 	size_t length; // send=amount of data in src_iter, recv=max amount to return
-	int recv_return; // amount of data L4 returned from recvmsg call
+	size_t recv_return; // amount of data L4 returned from recvmsg call
 };
 
 
@@ -114,7 +114,7 @@ struct customization_node
   void (*send_function)(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow);
 
 	void (*recv_function)(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow);
-	
+
 	// challenge function called when DCA issues a module challenge-response request
   void (*challenge_function)(char *response_buffer, char *iv, char *challenge_message);
 

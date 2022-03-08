@@ -146,7 +146,7 @@ generate the graph:
 
         * GIT_DIR=directory holding the software_defined_customization git repo
 
-    * test\_scripts/batch_experiment.sh 15 1000 0
+    * sudo experiment\_scripts/batch_experiment.sh 15 1000 0
 
         * performs 15 trials of 1000 DNS requests with 0 sec between each request
 
