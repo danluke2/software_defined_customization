@@ -50,61 +50,59 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 
 
 // Function to customize the msg sent from the application to layer 4
-// @param[I] src_iter Application message structure to copy from
 // @param[I] send_buf_st Pointer to the send buffer structure
-// @param[I] length Total size of the application message
-// @param[X] copy_length Number of bytes PCM needs to send to layer 4
-// @pre src_iter holds app message destined for Layer 4
+// @param[I] socket_flow Pointer to the socket flow parameters
+// @pre send_buf_st->src_iter holds app message destined for Layer 4
 // @post src_buf holds customized message for PCM to send to Layer 4
-void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *send_buf_st, size_t length, size_t *copy_length)
+void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
   size_t i = 0;
-  size_t remaining_length = length;
-  size_t loop_length = length;
+  size_t remaining_length = send_buf_st->length;
+  size_t loop_length = send_buf_st->length;
   u32 number_of_tags_added = 0;
-  *copy_length = 0;
+  send_buf_st->copy_length = 0;
 
-  total_bytes_from_app += length;
+  total_bytes_from_app += send_buf_st->length;
   // trace_printk("L4.5: Total bytes from app to cust mod = %lu\n", total_bytes_from_app);
 
   if (extra_bytes_copied_from_last_send > 0)
   {
     // we had bytes counting towards BYTE_POSIT from last send call
-    if (BYTE_POSIT - extra_bytes_copied_from_last_send > length)
+    if (BYTE_POSIT - extra_bytes_copied_from_last_send > send_buf_st->length)
     {
       //copy entire buffer because still under BYTE_POSIT value
-      copy_success = copy_from_iter_full(send_buf_st->buf, length, src_iter);
+      copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
       if(copy_success == false)
       {
         trace_printk("L4.5 ALERT: Length not big enough, Failed to copy all bytes to cust buffer\n");
-        trace_print_cust_iov_params(src_iter);
+        trace_print_cust_iov_params(send_buf_st->src_iter);
         return;
       }
-      *copy_length += length;
-      extra_bytes_copied_from_last_send += length;
-      remaining_length -= length;
+      send_buf_st->copy_length += send_buf_st->length;
+      extra_bytes_copied_from_last_send += send_buf_st->length;
+      remaining_length -= send_buf_st->length;
     }
     else
     {
       // first copy remaining bytes to reach BYTE_POSIT
-      copy_success = copy_from_iter_full(send_buf_st->buf, BYTE_POSIT - extra_bytes_copied_from_last_send, src_iter);
+      copy_success = copy_from_iter_full(send_buf_st->buf, BYTE_POSIT - extra_bytes_copied_from_last_send, send_buf_st->src_iter);
       if(copy_success == false)
       {
         // not all bytes were copied, so pick scenario 1 or 2 below
         trace_printk("L4.5 ALERT: Length check good, Failed to copy bytes to cust buffer\n");
         // Scenario 1: keep cust loaded and allow normal msg to be sent
-        *copy_length = 0;
-        trace_print_cust_iov_params(src_iter);
+        send_buf_st->copy_length = 0;
+        trace_print_cust_iov_params(send_buf_st->src_iter);
         return;
       }
-      *copy_length += BYTE_POSIT - extra_bytes_copied_from_last_send;
-      remaining_length -= *copy_length;
+      send_buf_st->copy_length += BYTE_POSIT - extra_bytes_copied_from_last_send;
+      remaining_length -= send_buf_st->copy_length;
       extra_bytes_copied_from_last_send = 0;
 
       // reached tag posit, so put in our generic tag
-      memcpy(send_buf_st->buf + *copy_length, cust_tag_test, cust_tag_test_size);
-      *copy_length += cust_tag_test_size;
+      memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
+      send_buf_st->copy_length += cust_tag_test_size;
       number_of_tags_added +=1;
     }
   }
@@ -113,22 +111,22 @@ void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *
   // at this point we have 0 bytes inserted toward BYTE_POSIT tag positiion
   for (i = 0; i + BYTE_POSIT <= loop_length; i+=BYTE_POSIT)
   {
-  	copy_success = copy_from_iter_full(send_buf_st->buf + *copy_length, BYTE_POSIT, src_iter);
+  	copy_success = copy_from_iter_full(send_buf_st->buf + send_buf_st->copy_length, BYTE_POSIT, send_buf_st->src_iter);
     if(copy_success == false)
     {
       // not all bytes were copied, so pick scenario 1 or 2 below
       trace_printk("L4.5 ALERT: For loop, Failed to copy bytes to cust buffer\n");
       // Scenario 1: keep cust loaded and allow normal msg to be sent
-      *copy_length = 0;
-      trace_print_cust_iov_params(src_iter);
+      send_buf_st->copy_length = 0;
+      trace_print_cust_iov_params(send_buf_st->src_iter);
       return;
     }
-    *copy_length += BYTE_POSIT;
+    send_buf_st->copy_length += BYTE_POSIT;
     remaining_length -= BYTE_POSIT;
 
     // now insert tag
-    memcpy(send_buf_st->buf + *copy_length, cust_tag_test, cust_tag_test_size);
-    *copy_length += cust_tag_test_size;
+    memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
+    send_buf_st->copy_length += cust_tag_test_size;
     number_of_tags_added +=1;
   }
 
@@ -136,16 +134,16 @@ void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *
   if (remaining_length > 0)
   {
     //copy over leftover bytes from loop
-    copy_success = copy_from_iter_full(send_buf_st->buf + *copy_length, remaining_length, src_iter);
+    copy_success = copy_from_iter_full(send_buf_st->buf + send_buf_st->copy_length, remaining_length, send_buf_st->src_iter);
     if(copy_success == false)
     {
       trace_printk("L4.5 ALERT: Failed to copy remaining bytes to cust buffer\n");
-      *copy_length = 0;
-      trace_print_cust_iov_params(src_iter);
+      send_buf_st->copy_length = 0;
+      trace_print_cust_iov_params(send_buf_st->src_iter);
       return;
     }
     extra_bytes_copied_from_last_send += remaining_length;
-    *copy_length += remaining_length;
+    send_buf_st->copy_length += remaining_length;
   }
   total_tags += number_of_tags_added;
 
@@ -155,10 +153,9 @@ void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *
 
 
 // Function to customize the msg recieved from L4 prior to delivery to application
-void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *recv_buf_st, int length, size_t recvmsg_ret,
-                       size_t *copy_length)
+void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-  *copy_length = 0;
+  recv_buf_st->copy_length = 0;
  	return;
 }
 

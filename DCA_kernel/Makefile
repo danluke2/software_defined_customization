@@ -18,7 +18,7 @@ KCFLAGS = -Wall -O3 -g
 # DEBUG2 has very situational comments that can just clog up the file
 # DEBUG3 most amount of comments
 # DEBUG_FLAGS = -DDEBUG -DDEBUG1 -DDEBUG2 -DDEBUG3
-DEBUG_FLAGS = -DDEBUG
+DEBUG_FLAGS = -DDEBUG 
 
 all: layer4_5
 

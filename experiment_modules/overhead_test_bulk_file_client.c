@@ -48,39 +48,34 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 
 
 // Function to customize the msg sent from the application to layer 4
-void modify_buffer_send(struct iov_iter *src_iter, struct customization_buffer *send_buf_st, size_t length, size_t *copy_length)
+void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-  *copy_length = 0;
+  send_buf_st->copy_length = 0;
 
 	return;
 }
 
 
 // Function to customize the msg recieved from L4 prior to delivery to application
-// @param[I] src_iter Application message structure to copy from
 // @param[I] recv_buf_st Pointer to the recv buffer structure
-// @param[I] length Max bytes application can receive;
-// @param[I] recvmsg_ret Total size of message in src_iter
-// @param[X] copy_length Number of bytes DCA needs to send to application
-// @pre src_iter holds app message destined for application
+// @param[I] socket_flow Pointer to the socket flow parameters
+// @pre recv_buf_st->src_iter holds app message destined for application
 // @post recv_buf holds customized message for DCA to send to app instead
-// NOTE: copy_length must be <= length
-void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *recv_buf_st, int length, size_t recvmsg_ret,
-                       size_t *copy_length)
+void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
   size_t i = 0;
-  size_t remaining_length = recvmsg_ret;
-  size_t loop_length = recvmsg_ret;
+  size_t remaining_length =  recv_buf_st->recv_return;
+  size_t loop_length = recv_buf_st->recv_return;
   u32 number_of_tags_removed = 0;
   u32 number_of_partial_tags_removed = 0;
-  *copy_length = 0;
+  recv_buf_st->copy_length = 0;
 
-  total_bytes_from_server += recvmsg_ret;
+  total_bytes_from_server += recv_buf_st->recv_return;
   // trace_printk("L4.5: Total bytes from server to cust mod = %lu\n", total_bytes_from_server);
 
-  // trace_printk("L4.5 Start Params: recvmsg=%lu, tag_bytes=%lu, extra_bytes=%lu, total_bytes=%lu\n", recvmsg_ret, tag_bytes_removed_last_round, extra_bytes_copied_from_last_send, total_bytes_from_server);
-  // trace_print_hex_dump("Overkill: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, recvmsg_ret, true);
+  // trace_printk("L4.5 Start Params: recvmsg=%lu, tag_bytes=%lu, extra_bytes=%lu, total_bytes=%lu\n", recv_buf_st->recv_return, tag_bytes_removed_last_round, extra_bytes_copied_from_last_send, total_bytes_from_server);
+  // trace_print_hex_dump("Overkill: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, recv_buf_st->recv_return, true);
 
 
   if (tag_bytes_removed_last_round > 0)
@@ -88,8 +83,8 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
     // we might have more tag bytes to strip before reaching for loop
     if (remaining_length >= (cust_tag_test_size - tag_bytes_removed_last_round))
     {
-      // trace_print_hex_dump("Tag Removal Leftover: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base + src_iter->iov_offset, cust_tag_test_size - tag_bytes_removed_last_round, true);
-      iov_iter_advance(src_iter, cust_tag_test_size - tag_bytes_removed_last_round);
+      // trace_print_hex_dump("Tag Removal Leftover: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base + recv_buf_st->src_iter->iov_offset, cust_tag_test_size - tag_bytes_removed_last_round, true);
+      iov_iter_advance(recv_buf_st->src_iter, cust_tag_test_size - tag_bytes_removed_last_round);
 
       remaining_length -= (cust_tag_test_size - tag_bytes_removed_last_round);
       number_of_partial_tags_removed +=1;
@@ -106,50 +101,50 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
 
   if (extra_bytes_copied_from_last_send > 0)
   {
-    // trace_printk("L4.5: extra = %lu, recvmsg_ret = %lu\n", extra_bytes_copied_from_last_send, recvmsg_ret);
+    // trace_printk("L4.5: extra = %lu, recv_buf_st->recv_return = %lu\n", extra_bytes_copied_from_last_send, recv_buf_st->recv_return);
     // we had bytes counting towards BYTE_POSIT from last send call
-    if (BYTE_POSIT - extra_bytes_copied_from_last_send > recvmsg_ret)
+    if (BYTE_POSIT - extra_bytes_copied_from_last_send > recv_buf_st->recv_return)
     {
-      // trace_printk("L4.5: not enough bytes to copy, bytes = %lu\n", recvmsg_ret);
+      // trace_printk("L4.5: not enough bytes to copy, bytes = %lu\n", recv_buf_st->recv_return);
       //copy entire buffer because still under BYTE_POSIT value
-      copy_success = copy_from_iter_full(recv_buf_st->buf, recvmsg_ret, src_iter);
+      copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->recv_return, recv_buf_st->src_iter);
       if(copy_success == false)
       {
         trace_printk("L4.5 ALERT: Length not big enough, Failed to copy all bytes to cust buffer\n");
-        // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, 32, true);
-        trace_print_cust_iov_params(src_iter);
+        // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, 32, true);
+        trace_print_cust_iov_params(recv_buf_st->src_iter);
         return;
       }
-      // trace_printk("L4.5: Copied %lu bytes to cust buffer\n", recvmsg_ret);
-      *copy_length += recvmsg_ret;
-      extra_bytes_copied_from_last_send += recvmsg_ret;
+      // trace_printk("L4.5: Copied %lu bytes to cust buffer\n", recv_buf_st->recv_return);
+      recv_buf_st->copy_length += recv_buf_st->recv_return;
+      extra_bytes_copied_from_last_send += recv_buf_st->recv_return;
       remaining_length = 0; // basically causes return call
     }
     else
     {
       // trace_printk("L4.5: enough bytes to copy, bytes = %lu\n", BYTE_POSIT - extra_bytes_copied_from_last_send);
       // first copy remaining bytes to reach BYTE_POSIT
-      copy_success = copy_from_iter_full(recv_buf_st->buf, BYTE_POSIT - extra_bytes_copied_from_last_send, src_iter);
+      copy_success = copy_from_iter_full(recv_buf_st->buf, BYTE_POSIT - extra_bytes_copied_from_last_send, recv_buf_st->src_iter);
       if(copy_success == false)
       {
         // not all bytes were copied, so pick scenario 1 or 2 below
         trace_printk("L4.5 ALERT: Length check good, Failed to copy bytes to cust buffer\n");
-        // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, 32, true);
-        trace_print_cust_iov_params(src_iter);
+        // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, 32, true);
+        trace_print_cust_iov_params(recv_buf_st->src_iter);
         // Scenario 1: keep cust loaded and allow normal msg to be sent
-        *copy_length = 0;
+        recv_buf_st->copy_length = 0;
         return;
       }
       // trace_printk("Copied %lu bytes to cust buffer\n", BYTE_POSIT - extra_bytes_copied_from_last_send);
-      *copy_length += BYTE_POSIT - extra_bytes_copied_from_last_send;
-      remaining_length -= *copy_length;
+      recv_buf_st->copy_length += BYTE_POSIT-extra_bytes_copied_from_last_send;
+      remaining_length -= recv_buf_st->copy_length;
       extra_bytes_copied_from_last_send = 0;
 
       //now check if enough tag bytes to remove
       if (remaining_length >= cust_tag_test_size)
       {
-        // trace_print_hex_dump("Tag Removal Extra: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base + src_iter->iov_offset, cust_tag_test_size, true);
-        iov_iter_advance(src_iter, cust_tag_test_size);
+        // trace_print_hex_dump("Tag Removal Extra: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base + recv_buf_st->src_iter->iov_offset, cust_tag_test_size, true);
+        iov_iter_advance(recv_buf_st->src_iter, cust_tag_test_size);
 
         remaining_length -= cust_tag_test_size;
         number_of_tags_removed +=1;
@@ -169,24 +164,24 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
   // at this point we have 0 bytes inserted toward BYTE_POSIT tag positiion
   for (i = 0; i + BYTE_POSIT + cust_tag_test_size <= loop_length; i+=BYTE_POSIT + cust_tag_test_size)
   {
-  	copy_success = copy_from_iter_full(recv_buf_st->buf + *copy_length, BYTE_POSIT, src_iter);
+  	copy_success = copy_from_iter_full(recv_buf_st->buf + recv_buf_st->copy_length, BYTE_POSIT, recv_buf_st->src_iter);
     if(copy_success == false)
     {
       // not all bytes were copied, so pick scenario 1 or 2 below
       trace_printk("L4.5 ALERT: For loop, Failed to copy bytes to cust buffer\n");
-      // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, 32, true);
-      trace_print_cust_iov_params(src_iter);
+      // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, 32, true);
+      trace_print_cust_iov_params(recv_buf_st->src_iter);
       // Scenario 1: keep cust loaded and allow normal msg to be sent
-      *copy_length = 0;
+      recv_buf_st->copy_length = 0;
       return;
     }
     // trace_printk("L4.5: Copied %lu bytes to cust buffer\n", BYTE_POSIT);
-    *copy_length += BYTE_POSIT;
+    recv_buf_st->copy_length += BYTE_POSIT;
     remaining_length -= BYTE_POSIT;
 
-    // trace_print_hex_dump("Tag Removal Loop: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base + src_iter->iov_offset, cust_tag_test_size, true);
+    // trace_print_hex_dump("Tag Removal Loop: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base + recv_buf_st->src_iter->iov_offset, cust_tag_test_size, true);
     // now advance past tag
-    iov_iter_advance(src_iter, cust_tag_test_size);
+    iov_iter_advance(recv_buf_st->src_iter, cust_tag_test_size);
     remaining_length -= cust_tag_test_size;
     number_of_tags_removed +=1;
     total_tags+=1;
@@ -199,38 +194,38 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
     // if remaining length > BYTE_POSIT but less than BYTE_POSIT + cust_tag_test_size, then have a partial tag to deal with
     if (remaining_length > BYTE_POSIT)
     {
-      copy_success = copy_from_iter_full(recv_buf_st->buf + *copy_length, BYTE_POSIT, src_iter);
+      copy_success = copy_from_iter_full(recv_buf_st->buf + recv_buf_st->copy_length, BYTE_POSIT, recv_buf_st->src_iter);
       if(copy_success == false)
       {
         trace_printk("L4.5 ALERT: Failed to copy remaining bytes to cust buffer\n");
-        // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, 32, true);
-        trace_print_cust_iov_params(src_iter);
-        *copy_length = 0;
+        // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, 32, true);
+        trace_print_cust_iov_params(recv_buf_st->src_iter);
+        recv_buf_st->copy_length = 0;
         return;
       }
       // trace_printk("L4.5: Copied %lu bytes to cust buffer\n", BYTE_POSIT);
-      // trace_print_hex_dump("Tag Removal Remaining: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base + src_iter->iov_offset, remaining_length - BYTE_POSIT, true);
+      // trace_print_hex_dump("Tag Removal Remaining: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base + recv_buf_st->src_iter->iov_offset, remaining_length - BYTE_POSIT, true);
       tag_bytes_removed_last_round = remaining_length - BYTE_POSIT;
       extra_bytes_copied_from_last_send = 0;
       // no need to advance iter since we are done with this buffer
-      *copy_length += BYTE_POSIT;
+      recv_buf_st->copy_length += BYTE_POSIT;
     }
     else
     {
       //copy over leftover bytes from loop
-      copy_success = copy_from_iter_full(recv_buf_st->buf + *copy_length, remaining_length, src_iter);
+      copy_success = copy_from_iter_full(recv_buf_st->buf + recv_buf_st->copy_length, remaining_length, recv_buf_st->src_iter);
       if(copy_success == false)
       {
         trace_printk("L4.5 ALERT: Failed to copy remaining bytes to cust buffer\n");
-        // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, 32, true);
-        trace_print_cust_iov_params(src_iter);
-        *copy_length = 0;
+        // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, 32, true);
+        trace_print_cust_iov_params(recv_buf_st->src_iter);
+        recv_buf_st->copy_length = 0;
         return;
       }
       // trace_printk("L4.5: Copied %lu bytes to cust buffer\n", remaining_length);
-      // trace_print_cust_iov_params(src_iter);
+      // trace_print_cust_iov_params(recv_buf_st->src_iter);
       extra_bytes_copied_from_last_send += remaining_length;
-      *copy_length += remaining_length;
+      recv_buf_st->copy_length += remaining_length;
       tag_bytes_removed_last_round = 0;
     }
   }
@@ -239,7 +234,7 @@ void modify_buffer_recv(struct iov_iter *src_iter, struct customization_buffer *
   // trace_printk("L4.5: Number of partial tags removed = %u\n", number_of_partial_tags_removed);
   // trace_printk("L4.5: Total tags fully removed = %lu\n", total_tags);
 
-  app_bytes_from_server += *copy_length;
+  app_bytes_from_server += recv_buf_st->copy_length;
   // trace_printk("L4.5: Total app bytes from server to cust mod = %lu\n", app_bytes_from_server);
   // trace_printk("L4.5 End Params: tag_bytes=%lu, extra_bytes=%lu\n", tag_bytes_removed_last_round, extra_bytes_copied_from_last_send);
 	return;

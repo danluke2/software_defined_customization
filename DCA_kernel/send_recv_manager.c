@@ -8,14 +8,14 @@
 #include "util/printing.h"
 
 
-int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct msghdr *msg, size_t size,
-								int (*sendmsg)(struct sock*, struct msghdr*, size_t))
+int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct msghdr *msg, size_t size, int (*sendmsg)(struct sock*, struct msghdr*, size_t))
 {
-  size_t copy_length = 0;
   struct msghdr kmsg = *msg;
   struct kvec iov;
   struct customization_node *cust_node;
+	struct iov_iter iter_temp = msg->msg_iter;
   int sendmsg_return;
+
 
 	#ifdef DEBUG1
 		trace_printk("L4.5: Start of DCA sendmsg, given size = %lu\n", size);
@@ -43,19 +43,19 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 	}
 
 	// store msg_iter values before cust modules does its thing
-	cust_sock->send_buf_st.iter_copy.iov_offset = msg->msg_iter.iov_offset;
-	cust_sock->send_buf_st.iter_copy.count = msg->msg_iter.count;
-	cust_sock->send_buf_st.iter_copy.nr_segs = msg->msg_iter.nr_segs;
-	cust_sock->send_buf_st.iter_copy.iov = msg->msg_iter.iov;
-
+	// cust_sock->send_buf_st.iter_copy.iov_offset = msg->msg_iter.iov_offset;
+	// cust_sock->send_buf_st.iter_copy.count = msg->msg_iter.count;
+	// cust_sock->send_buf_st.iter_copy.nr_segs = msg->msg_iter.nr_segs;
+	// cust_sock->send_buf_st.iter_copy.iov = msg->msg_iter.iov;
+	cust_sock->send_buf_st.src_iter = &msg->msg_iter;
+	cust_sock->send_buf_st.copy_length = 0; //default value
+	cust_sock->send_buf_st.length = size;
   // passes msg iter to customization send function
-  cust_node->send_function(&msg->msg_iter, &cust_sock->send_buf_st, size, &copy_length);
+  cust_node->send_function(&cust_sock->send_buf_st, &cust_sock->socket_flow);
 
 	// restore msg_iter values after cust module likely changed them
-	msg->msg_iter.iov_offset = cust_sock->send_buf_st.iter_copy.iov_offset;
-	msg->msg_iter.count = cust_sock->send_buf_st.iter_copy.count;
-	msg->msg_iter.nr_segs = cust_sock->send_buf_st.iter_copy.nr_segs;
-	msg->msg_iter.iov = cust_sock->send_buf_st.iter_copy.iov;
+	msg->msg_iter = iter_temp;
+
 
 	#ifdef DEBUG2
 		// this is for troubleshooting; iter should be at state given to send
@@ -77,10 +77,10 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 
   // cust module not required to always mod data, so prevent an unneccesary copy
   // also make sure copy can succeed
-  if(copy_length==0 || copy_length > cust_sock->send_buf_st.buf_size)
+  if(cust_sock->send_buf_st.copy_length==0 || cust_sock->send_buf_st.copy_length > cust_sock->send_buf_st.buf_size)
   {
 		#ifdef DEBUG
-			trace_printk("L4.5 ALERT Copy length problem: copy_length=%lu, buf_size=%u\n", copy_length, cust_sock->send_buf_st.buf_size);
+			trace_printk("L4.5 ALERT Copy length problem: copy_length=%lu, buf_size=%u\n", cust_sock->send_buf_st.copy_length, cust_sock->send_buf_st.buf_size);
 		#endif
 		// pretend that we never did anything to the message
 		spin_unlock(&cust_sock->active_customization_lock);
@@ -94,16 +94,16 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
   }
 
 	#ifdef DEBUG2
-		trace_printk("L4.5: Module adjusted send size = %lu\n", copy_length);
+		trace_printk("L4.5: Module adjusted send size = %lu\n", cust_sock->send_buf_st.copy_length);
 	#endif
 
 	//create new iter based on cust send buffer to give to L4
 	iov.iov_base = cust_sock->send_buf_st.buf;
-  iov.iov_len = copy_length;
+  iov.iov_len = cust_sock->send_buf_st.copy_length;
 	// this needs to be kvec since we are in kernel space; 1 = number of segments
-	iov_iter_kvec(&kmsg.msg_iter, READ, &iov, 1, copy_length);
+	iov_iter_kvec(&kmsg.msg_iter, READ, &iov, 1, cust_sock->send_buf_st.copy_length);
 
-	sendmsg_return = sendmsg(sk, &kmsg, copy_length);
+	sendmsg_return = sendmsg(sk, &kmsg, cust_sock->send_buf_st.copy_length);
 	spin_unlock(&cust_sock->active_customization_lock);
 
 	if(sendmsg_return<0)
@@ -143,7 +143,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
 								struct msghdr *msg, size_t len, size_t recvmsg_ret)
 {
 	struct customization_node *cust_node;
-	size_t copy_length = len; // just to ensure it is defined
+	struct iov_iter iter_temp;
   size_t copy_success;
 
 	#ifdef DEBUG1
@@ -154,6 +154,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
 	// this resets the msg iter buffer back to point at positions before L4 recvmsg
 	// put data into the buffer; NOTE: recvmsg_ret is > 0
 	iov_iter_revert(&msg->msg_iter, recvmsg_ret);
+	iter_temp = msg->msg_iter;
 
 	#ifdef DEBUG2
 		trace_printk("L4.5: Iter after reverting %lu bytes\n", recvmsg_ret);
@@ -183,20 +184,16 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
 		goto skip_and_recv;
 	}
 
-	// store msg_iter values before cust modules does its thing
-	cust_sock->recv_buf_st.iter_copy.iov_offset = msg->msg_iter.iov_offset;
-	cust_sock->recv_buf_st.iter_copy.count = msg->msg_iter.count;
-	cust_sock->recv_buf_st.iter_copy.nr_segs = msg->msg_iter.nr_segs;
-	cust_sock->recv_buf_st.iter_copy.iov = msg->msg_iter.iov;
-
-	// passes msg iter to customization recv function
-  cust_node->recv_function(&msg->msg_iter, &cust_sock->recv_buf_st, len, recvmsg_ret, &copy_length);
+	cust_sock->recv_buf_st.src_iter = &msg->msg_iter;
+	cust_sock->recv_buf_st.copy_length = 0; // just to ensure it is defined
+	cust_sock->recv_buf_st.length = len;
+	cust_sock->recv_buf_st.recv_return = recvmsg_ret;
+	// passes required data to cust_recv function
+  cust_node->recv_function(&cust_sock->recv_buf_st, &cust_sock->socket_flow);
 
 	// restore msg_iter values after cust module likely changed them
-	msg->msg_iter.iov_offset = cust_sock->recv_buf_st.iter_copy.iov_offset;
-	msg->msg_iter.count = cust_sock->recv_buf_st.iter_copy.count;
-	msg->msg_iter.nr_segs = cust_sock->recv_buf_st.iter_copy.nr_segs;
-	msg->msg_iter.iov = cust_sock->recv_buf_st.iter_copy.iov;
+	msg->msg_iter = iter_temp;
+
 
 	#ifdef DEBUG2
 		trace_printk("L4.5: After cust module return\n");
@@ -215,15 +212,15 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
 
 	//TODO: handle case when cust mod wants to trigger recv failure?
 
-	// TODO: copy_length = 0 should mean that we deliver a 0 length message to app
+	// TODO: cust_sock->recv_buf_st.copy_length = 0 should mean that we deliver a 0 length message to app
 	// which basically allows cust to remove all data L4 received
 
   // cust module not required to always mod data, so prevent an unneccesary copy
   // also make sure copy can succeed
-  if(copy_length == 0 || copy_length > cust_sock->recv_buf_st.buf_size || copy_length > len)
+  if(cust_sock->recv_buf_st.copy_length == 0 || cust_sock->recv_buf_st.copy_length > cust_sock->recv_buf_st.buf_size || cust_sock->recv_buf_st.copy_length > len)
   {
 		#ifdef DEBUG
-    	trace_printk("L4.5 ALERT Copy length problem: copy_length=%lu, buf_size=%u, app_len=%lu\n", copy_length, cust_sock->recv_buf_st.buf_size, len);
+    	trace_printk("L4.5 ALERT Copy length problem: copy_length=%lu, buf_size=%u, app_len=%lu\n", cust_sock->recv_buf_st.copy_length, cust_sock->recv_buf_st.buf_size, len);
 		#endif
 		// pretend that we never did anything to the message
 		iov_iter_advance(&msg->msg_iter, recvmsg_ret);
@@ -237,19 +234,19 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
   }
 
   #ifdef DEBUG2
-		trace_printk("L4.5 just before copy_to_iter, desired bytes = %lu\n", copy_length);
+		trace_printk("L4.5 just before copy_to_iter, desired bytes = %lu\n", cust_sock->recv_buf_st.copy_length);
 		trace_print_iov_params(&msg->msg_iter);
 	#endif
 
-  copy_success = copy_to_iter(cust_sock->recv_buf_st.buf, copy_length, &msg->msg_iter);
+  copy_success = copy_to_iter(cust_sock->recv_buf_st.buf, cust_sock->recv_buf_st.copy_length, &msg->msg_iter);
 
 	spin_unlock(&cust_sock->active_customization_lock);
 
 	//I don't think this is likely, but need to check
-  if(copy_success != copy_length)
+  if(copy_success != cust_sock->recv_buf_st.copy_length)
   {
 		#ifdef DEBUG
-    	trace_printk("L4.5 ALERT Copied bytes not same as desired value, copied = %lu, desired = %lu\n", copy_success, copy_length);
+    	trace_printk("L4.5 ALERT Copied bytes not same as desired value, copied = %lu, desired = %lu\n", copy_success, cust_sock->recv_buf_st.copy_length);
 			#ifdef DEBUG2
 				trace_print_iov_params(&msg->msg_iter);
 			#endif
@@ -275,7 +272,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
     trace_printk("L4.5: Last recv time: %llu\n", cust_sock->last_cust_recv_time_struct.tv_sec);
   #endif
 
-  return copy_length;
+  return cust_sock->recv_buf_st.copy_length;
 
 
 skip_and_recv:

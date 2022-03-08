@@ -113,7 +113,7 @@ generate the graph:
 
         * SIMPLE_SERVER_DIR=$GIT_DIR/experiment_scripts/client_server
 
-    * test\_scripts/buk_experiment.sh 15
+    * sudo experiment\_scripts/buk_experiment.sh 15
 
     * performs 15 trials
 
