@@ -64,7 +64,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     return;
   }
 
-  send_buf_st->copy_length += length;
+  send_buf_st->copy_length += send_buf_st->length;
   return;
 }
 

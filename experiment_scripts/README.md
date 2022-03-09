@@ -209,6 +209,8 @@ tracelog entries
 
 1) (CLIENT/SERVER) Ensure Layer 4.5 running on each machine
 
+    * lsmod | grep layer
+
 
 1) (NCO) Start NCO to begin listening for DCA connections
 
@@ -231,6 +233,8 @@ tracelog entries
 
 1) (SERVER) Ensure dnsmasq is running and listening for requests on the
 10.0.0.20:53 address
+
+    * sudo dnsmasq --no-daemon -c 0
 
 
 1) Add module dependency to CIB inverse\_modules table:
