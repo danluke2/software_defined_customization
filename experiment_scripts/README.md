@@ -221,7 +221,7 @@ tracelog entries
 
     * NOTE: server DCA id will always be 1; client DCA id is 2
 
-    * ![](../assets/demo_column.png)
+    * ![](../assets/terminals.png)
 
     * Top-left to Bottom-right:
 
