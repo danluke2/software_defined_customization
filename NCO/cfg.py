@@ -12,6 +12,7 @@ KEY_SIZE = 32
 IV_SIZE = 16
 
 next_module_id = 1
+git_dir = "/home/dan/software_defined_customization/NCO/"
 core_mod_dir = "core_modules/"
 symvers_dir = "device_modules/host_" # + host_id
 

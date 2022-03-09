@@ -23,11 +23,11 @@ error_exit()
 
 
 CURDIR="$( pwd )"
-
+GITDIR=/home/dan/software_defined_customization/NCO/
 line=$3;
 
-core_mod_dir=core_modules
-symvers_dir=$CURDIR/device_modules/host_$4
+core_mod_dir=$GITDIR/core_modules
+symvers_dir=$GITDIR/device_modules/host_$4
 mod_dir=$symvers_dir/modules
 
 

@@ -58,7 +58,7 @@ def handle_middlebox_insert(db_connection, mac, ip, port, kernel_release, type, 
 def send_inverse_module(conn_socket, module):
     result = cfg.MIDDLEBOX_ERROR
     print(f"sending inverse module {module}")
-    filesize = os.path.getsize(cfg.inverse_dir + module)
+    filesize = os.path.getsize(cfg.git_dir + cfg.inverse_dir + module)
     command = {"cmd": "recv_inverse", "name": module, "size": filesize}
     send_string = json.dumps(command, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
@@ -67,7 +67,7 @@ def send_inverse_module(conn_socket, module):
     if data != 'Clear to send':
         print(f"Middlebox can't accept, data={data}")
     else:
-        with open(cfg.inverse_dir + module, 'rb') as file_to_send:
+        with open(cfg.git_dir + cfg.inverse_dir + module, 'rb') as file_to_send:
             print(f"{module} file open")
             for data in file_to_send:
                 # print("sending module")

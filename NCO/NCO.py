@@ -197,13 +197,6 @@ def device_thread(conn, ip, port, buffer_size, interval):
             #Deploy requirement: need install list for host_id
             modules = retrieve_install_list(db_connection, host_id)
 
-            # #update deployed list based on deployed list from host, must compare also
-            # err = handle_deployed_update(db_connection, host_id, deployed_list, module_ids)
-            # if err == cfg.REFRESH_INSTALL_LIST:
-            #     #need updated install list, but not the id's
-            #     modules, module_ids = retrieve_install_list(db_connection, host_id)
-            #     print(f"updated modules to install: {modules}")
-
             if len(modules) > 0:
                 #send built modules to host
                 send_install_modules(conn, host_id, modules)
@@ -218,7 +211,7 @@ def device_thread(conn, ip, port, buffer_size, interval):
                 update_inverse_module_requirements(db_connection, modules)
 
             #Security requirement: challenge deployed modules
-            if args.challenge and len(deployed_list) > 0:
+            if args.challenge:
                 #get challenge list and send challenges
                 challenge_list = check_challenge(db_connection, host_id)
                 for mod_id in challenge_list:

@@ -158,6 +158,14 @@ generate the graph:
 
 ## Challenge/Response prototype:
 
+1) (NCO) Update config file to match directory path for your machine:
+
+    * git\_dir, symvers\_dir, etc.
+
+1) Ensure Layer 4.5 module is loaded on NCO machine prior to starting
+
+    * lsmod | grep layer
+
 1) (NCO) Start NCO to begin listening for DCA connections
 
     * python3 software_defined_customization/NCO/NCO.py --challenge --window 5
@@ -170,15 +178,13 @@ generate the graph:
 
 1) (NCO) make, deploy, and install the challenge/response module:
 
-    * NOTE: unlike previous experiment modules, this is in the NCO/core\_modules dir
-    because we are using the full NCO deployment instead of an experiment version
+    * NOTE: unlike previous experiment modules, this is in the NCO/core\_modules dir because we are using the full NCO deployment instead of an experiment version
 
-    * add 'nco\_challenge\_response' to CIB build table for connected DCA device
+    * add 'nco\_challenge\_response' to CIB req\_build\_modules table for connected DCA device
 
     * ![](../assets/build_table.png)
 
-1) (NCO) Verify nco\_challenge\_response is built and deployed to DCA and challenge/response
-window set to 5 seconds
+1) (NCO) Verify nco\_challenge\_response is built and deployed to DCA and challenge/response window set to 5 seconds
 
     * ![](../assets/active_table.png)
 
