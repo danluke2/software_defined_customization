@@ -205,82 +205,54 @@ tracelog entries
 
 1) NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
+1) Update NCO config file (cfg.py) to match directory path for your machine:
 
-1) (CLIENT/SERVER) Ensure Layer 4.5 running on each machine
-
-    * lsmod | grep layer
-
-
-1) (NCO) Start NCO to begin listening for DCA connections
-
-    * python3 software_defined_customization/NCO/NCO.py
+    * git\_dir, symvers\_dir, etc.
 
 
-1) (CLIENT/SERVER) Start DCA on each machine and verify connected to NCO
+1) Execute the shell script to conduct demo:
 
-    * sudo python3 software_defined_customization/DCA\_user/DCA.py
+    * sudo ./software_defined_customization/experiment_scripts/middle\_demo.sh 10
 
-    * sudo required to install and remove modules
-
-
-1) (SERVER) Start Middlebox DCA and verify connected to NCO
-
-    * sudo python3 software_defined_customization/DCA\_user/DCA\_middlebox.py
-
-    * sudo required to install and remove inverse modules
+    * arg21 = query interval
 
 
-1) (SERVER) Ensure dnsmasq is running and listening for requests on the
-10.0.0.20:53 address
+1) Verify server NCO, DCA, and middlebox DCA are running in separate terminal windows.  DNSMASQ and tcpdump will also be running in terminal windows.
 
-    * sudo dnsmasq --no-daemon -c 0
+    * NOTE: server DCA id will always be 1; client DCA id is 2
+
+    * ![](../assets/demo_column.png)
+
+    * Top-left to Bottom-right:
+
+        * shell script window
+
+        * NCO
+
+        * dnsmasq
+
+        * server DCA
+
+        * middlebox DCA
+
+        * tcpdump
+
+1) Verify all DCA's connected to NCO. Client DCA is host_id 2 and should show connected in NCO terminal also.
+
+1) Verify demo modules deployed to server/client DCA and invervse module sent to middlebox DCA
 
 
-1) Add module dependency to CIB inverse\_modules table:
+1) Allow script to run until completed, signaled by Wireshark opening collected traffic packet.
 
-    * module: demo\_dns\_server\_app\_tag
-
-    * inverse: 'demo_dns_tag.lua'
-
-    * type: Wireshark
-
-
-
-1) (NCO) make, deploy, and install the server customization module:
-
-    * add 'demo\_dns\_server\_app\_tag' to CIB req\_build\_modules table for server
+  * dnsmasq terminal will stay open for verification that dns queries were made
 
 
 
-1) (NCO) make, deploy, and install the client customization module:
-
-    * add 'demo\_dns\_client\_app\_tag' to CIB req\_build\_modules table for client
-
-
-
-1) (Server) Collect UDP packets:
-
-    * using Wireshark on server
-
-    * NOTE: Wireshark collection is below Layer 4.5, so packets are displayed
-    from the network point of view
-
-
-
-1) (Client) Perform several DNS queries
-
-    * dig needs to be one of them
-
-    * Others can be done with curl or web browser
-
-
-1) (Server) Wireshark:
+1) Wireshark:
 
     * click on a DNS packet to see Layer 4.5 processing
 
         * reload lua plugins if not seeing app tags on DNS packets in next step
-
-        * ![](../assets/demo_field.png)
 
     * right click on Application ID field and add column to see in main view
 

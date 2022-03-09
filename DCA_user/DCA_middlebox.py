@@ -126,7 +126,8 @@ def revoke_inverse_module(conn_socket, filename):
 sleep_time = 10
 #connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again
-while (input("DCA middlebox loop again?") == "y"):
+# while (input("DCA middlebox loop again?") == "y"):
+while True:
     connected = False
     stop_recv = False
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -137,6 +138,7 @@ while (input("DCA middlebox loop again?") == "y"):
                 connected=True
                 send_initial_report(s)
                 count = 0
+                print(f"Connected to NCO at {HOST}:{PORT}")
             except ConnectionRefusedError:
                 print("FAILED to reach server. Sleep briefly & try again")
                 time.sleep(sleep_time)

@@ -90,7 +90,7 @@ def get_inverse_list(db_connection, ip):
 
 
 def middlebox_thread(conn_socket, ip, port, cv, buffer_size, interval, exit_event_mid):
-    db_connection = db_connect('cib.db')
+    db_connection = db_connect(cfg.git_dir + 'cib.db')
     # process initial report
     try:
         #Device immediately sends a customization report upon connection
