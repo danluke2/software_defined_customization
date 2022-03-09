@@ -158,7 +158,7 @@ generate the graph:
 
 ## Challenge/Response prototype:
 
-1) NOTE: The script assumes NCO and DCA are on same machine, but this is not
+NOTE: The script assumes NCO and DCA are on same machine, but this is not
 a requirement and can be adapted to have them be different machines
 
 1) Update NCO config file (cfg.py) to match directory path for your machine:
@@ -203,7 +203,7 @@ tracelog entries
 
 ## Middlebox demo:
 
-1) NOTE: this demo will assume the middlebox is on same machine as the DNS server
+NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
 1) Update NCO config file (cfg.py) to match directory path for your machine:
 
@@ -221,7 +221,7 @@ tracelog entries
 
     * NOTE: server DCA id will always be 1; client DCA id is 2
 
-    * ![](../assets/terminals.png)
+    ![](../assets/terminals.png)
 
     * Top-left to Bottom-right:
 
@@ -244,8 +244,7 @@ tracelog entries
 
 1) Allow script to run until completed, signaled by Wireshark opening collected traffic packet.
 
-  * dnsmasq terminal will stay open for verification that dns queries were made
-
+    * dnsmasq terminal will stay open for verification that dns queries were made
 
 
 1) Wireshark:
@@ -256,4 +255,4 @@ tracelog entries
 
     * right click on Application ID field and add column to see in main view
 
-        * ![](../assets/demo_column.png)
+        ![](../assets/demo_column.png)
