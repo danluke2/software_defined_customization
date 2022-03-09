@@ -25,12 +25,13 @@ parser = argparse.ArgumentParser(description='NCO program')
 parser.add_argument('--ip', type=str, required=False, help="NCO IP")
 parser.add_argument('--port', type=int, required=False, help="NCO port")
 parser.add_argument('--middle_port', type=int, required=False, help="NCO middlebox port")
-parser.add_argument('--interval', type=int, required=False, help="Construction interval")
+parser.add_argument('--build_interval', type=int, required=False, help="Construction interval")
+parser.add_argument('--query_interval', type=int, required=False, help="DCA query interval")
 parser.add_argument('--buffer', type=int, required=False, help="Max socket recv buffer")
-parser.add_argument('--query', type=int, required=False, help="DCA query interval")
 parser.add_argument('--line', type=int, required=False, help="Construction module insert line")
 parser.add_argument('--challenge', help="Perform module challenge/response", action="store_true")
 parser.add_argument('--window', type=int, required=False, help="Security check window")
+parser.add_argument('--linear', help="Assign host names in predictable fashion", action="store_true")
 
 args = parser.parse_args()
 
@@ -44,14 +45,14 @@ if args.port:
 if args.middle_port:
     cfg.MIDDLE_PORT=args.middle_port
 
-if args.interval:
-    cfg.BUILD_INTERVAL=args.interval
+if args.build_interval:
+    cfg.BUILD_INTERVAL=args.build_interval
 
 if args.buffer:
     cfg.MAX_BUFFER_SIZE=args.buffer
 
-if args.query:
-    cfg.QUERY_INTERVAL=args.query
+if args.query_interval:
+    cfg.QUERY_INTERVAL=args.query_interval
 
 if args.line:
     cfg.INSERT_LINE=args.line
@@ -61,12 +62,14 @@ if args.challenge:
     if args.window:
         cfg.SEC_WINDOW = args.window
 
+if args.linear:
+    cfg.random_hosts = False
 
 
 
 def construction_process(interval):
     print("Construction process running")
-    db_connection = db_connect('cib.db')
+    db_connection = db_connect(cfg.git_dir + 'cib.db')
     while(True):
         construction_loop(db_connection)
         time.sleep(interval)
@@ -123,7 +126,7 @@ def middlebox_process(cv, interval):
 
 def device_thread(conn, ip, port, buffer_size, interval):
     try:
-        db_connection = db_connect('cib.db')
+        db_connection = db_connect(cfg.git_dir + 'cib.db')
 
         #handle initial device initiated check-in, then device is in a recv state
         try:

@@ -59,7 +59,12 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release, interval):
     counter = 0
     #repeatedly generate host ID and insert into db until successful
     while counter <= max_tries:
-        generated_id = random.randint(1,65535)
+        if cfg.random_hosts:
+            generated_id = random.randint(1,65535)
+        else:
+            generated_id = cfg.next_module_id
+            cfg.next_module_id +=1
+
         print(f"Inserting host {mac}, ID = {generated_id}")
         # if host_id already exists, then DB error occurs and we try again
         err = insert_host(db_connection, mac, generated_id, ip, port, 0, 0, kernel_release, interval)

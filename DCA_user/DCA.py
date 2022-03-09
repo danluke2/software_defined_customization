@@ -24,6 +24,7 @@ parser.add_argument('--ip', type=str, required=False, help="NCO IP")
 parser.add_argument('--port', type=int, required=False, help="NCO port")
 parser.add_argument('--dir', type=str, required=False, help="KO Module download dir")
 parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
+parser.add_argument('--controlled', help="Require user input to start checkin process", action="store_true" )
 
 args = parser.parse_args()
 
@@ -214,7 +215,8 @@ def revoke_module(conn_socket, filename):
 sleep_time = 10
 #connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again
-while (input("DCA loop again?") == "y"):
+# while (input("DCA loop again?") == "y"):
+while True:
     connected = False
     stop_recv = False
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

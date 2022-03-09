@@ -158,43 +158,42 @@ generate the graph:
 
 ## Challenge/Response prototype:
 
-1) (NCO) Update config file to match directory path for your machine:
+1) NOTE: The script assumes NCO and DCA are on same machine, but this is not
+a requirement and can be adapted to have them be different machines
+
+1) Update NCO config file (cfg.py) to match directory path for your machine:
 
     * git\_dir, symvers\_dir, etc.
 
-1) Ensure Layer 4.5 module is loaded on NCO machine prior to starting
 
-    * lsmod | grep layer
+1) Execute the shell script to conduct test:
 
-1) (NCO) Start NCO to begin listening for DCA connections
+    * sudo ./software_defined_customization/experiment_scripts/challenge\_response.sh 5 5 65
 
-    * python3 software_defined_customization/NCO/NCO.py --challenge --window 5
+    * arg1 = security window
 
-1) (DCA) Start DCA and verify connected to NCO
+    * arg2 = query interval
 
-    * sudo python3 software_defined_customization/DCA\_user/DCA.py
+    * arg3 = test runtime
 
-    * sudo required to install and remove modules
 
-1) (NCO) make, deploy, and install the challenge/response module:
+1) Verify NCO and DCA are running in separate terminal windows
 
-    * NOTE: unlike previous experiment modules, this is in the NCO/core\_modules dir because we are using the full NCO deployment instead of an experiment version
+1) Verify DCA connected to NCO
 
-    * add 'nco\_challenge\_response' to CIB req\_build\_modules table for connected DCA device
+1) Verify challenge module deployed to DCA and challenge/response window set to 5 seconds
 
-    * ![](../assets/build_table.png)
-
-1) (NCO) Verify nco\_challenge\_response is built and deployed to DCA and challenge/response window set to 5 seconds
+    * NOTE: scripted experiment DCA id will always be 1
 
     * ![](../assets/active_table.png)
 
-1) (NCO) Allow NCO to run until 20 challenge/responses have completed
+1) Allow script to run until completed
 
     * Verify each check passed via terminal output
 
     * ![](../assets/challenge.png)
 
-1) (DCA) Verify each challenge/response was conducted correctly by reviewing
+1) Verify each challenge/response was conducted correctly by reviewing
 tracelog entries
 
     * ![](../assets/challenge_log.png)

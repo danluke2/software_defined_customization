@@ -11,6 +11,7 @@ SEC_WINDOW = 0
 KEY_SIZE = 32
 IV_SIZE = 16
 
+random_hosts = True
 next_module_id = 1
 git_dir = "/home/dan/software_defined_customization/NCO/"
 core_mod_dir = "core_modules/"
