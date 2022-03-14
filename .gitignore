@@ -14,3 +14,4 @@ layer4_5.box
 *.png
 *.pcap
 *.txt
+*vagrant/.vagrant
