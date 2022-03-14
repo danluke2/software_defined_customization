@@ -1,6 +1,6 @@
 
 #set this location to where your software_defined_customization folder is located
-GIT_LOCATION = /home/dan/software_defined_customization
+GIT_LOCATION = /home/vagrant/software_defined_customization
 
 
 KBUILD_EXTRA_SYMBOLS := /lib/modules/$(shell uname -r)/layer4_5/Module.symvers

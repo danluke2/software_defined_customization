@@ -514,10 +514,10 @@ if __name__ == "__main__":
                 maximum = element
 
         delta = maximum - minimum
-        file = open(f"/home/dan/software_defined_customization/experiment_scripts/logs/nco_results_{args.number}.txt", 'a+')
+        file = open(f"/home/vagrant/software_defined_customization/experiment_scripts/logs/nco_results_{args.number}.txt", 'a+')
         file.write(f"{delta}\n")
         file.close()
-        file = open("/home/dan/software_defined_customization/experiment_scripts/logs/nco_finished.txt", 'w+')
+        file = open("/home/vagrant/software_defined_customization/experiment_scripts/logs/nco_finished.txt", 'w+')
         print("NCO finished file created")
         file.close()
 

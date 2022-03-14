@@ -2,6 +2,7 @@
 
 import socket
 import argparse
+import os
 
 
 parser = argparse.ArgumentParser(description='Echo client')
@@ -25,11 +26,14 @@ if args.sport:
     SERVER_PORT=args.sport
 
 
+pid = os.getpid()
+
+
 if args.tcp:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((SERVER_IP, SERVER_PORT))
         s.listen()
-        print('\nTCP server waiting to receive connection')
+        print(f"\nTCP server waiting to receive connection, PID={pid}")
         conn, addr = s.accept()
         with conn:
             print(f"Connected by {addr}")
@@ -45,11 +49,11 @@ if args.udp:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         s.bind((SERVER_IP, SERVER_PORT))
         while True:
-            print('\nUDP server waiting to receive message')
+            print(f"\nUDP server waiting to receive message, PID={pid}")
             data, address = s.recvfrom(1024)
             if not data:
                 break
             print(f"received {data} from {address}")
             sent = s.sendto(data, address)
-            if data == 'quit':
+            if data == b'quit':
                 break

@@ -1,10 +1,14 @@
 #!/bin/bash
+
+# $1 = Makefile dir
+
 set -e
 
 # Init
 PM="/bin/apt" # Package Manager
 CURDIR="$( pwd )"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" #directory of make file
+
 
 # Force root
 if [[ "$(id -u)" != "0" ]];
@@ -29,10 +33,7 @@ error_exit()
 echo "***************************"
 echo "Installing dependencies"
 # Required build libraries
-$PM install python3 python3-pip linux-headers-$(uname -r)
-
-#for python encryption support in NCA
-# pip install pycryptodome
+$PM -y install python3 python3-pip linux-headers-$(uname -r)
 
 
 INSTALL_LOCATION=/usr/lib/modules/$(uname -r)/layer4_5
@@ -41,8 +42,7 @@ echo "***************************"
 echo "Making Layer 4.5 modules"
 
 # Make the files
-cd $DIR
-echo $DIR
+cd $1
 make && make install || error_exit "Makefile error detected"
 
 

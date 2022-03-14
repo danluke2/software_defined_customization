@@ -1,5 +1,8 @@
 # Sample Customization Modules
 
+NOTE: This README only uses one of the Vagrant VM's created.  It does not matter which one you use (client or server)
+
+
 Here we include sample modules to use with the Layer 4.5 installation.
 
 
@@ -47,52 +50,52 @@ the client.
 
       * Application: python3    
 
+
 ## Video walkthrough
 
-* Provided in: sample_walkthough.mp4
+* sample_walkthough.mp4
 
 
 ## Steps to run a sample client only customization:
 
+1) All steps run on a single VM, either client or server VM will work
+
+1) `cd software_defined_customization/sample_modules`
+
 1) Make the sample python client kernel module:
 
-    * Modify Makefile in this folder to adjust path variables
+    * BUILD\_MODULE is command line arg to direct building a specific module
 
-        * GIT_LOCATION must be updated to reflect your folder path
-
-        * BUILD\_MODULE is command line arg to direct building a specific module
-
-    * run 'make BUILD\_MODULE=sample\_python\_client.o'
+    * `make BUILD\_MODULE=sample\_python\_client.o`
 
         * verify no errors during module build
 
 
 1) Insert the client module:
 
-    * sudo insmod sample\_python\_client.ko
+    * `sudo insmod sample\_python\_client.ko`
 
-    * Verify client module loaded messages are present in trace log
+    * Verify client module loaded messages are present in trace log (/sys/kernel/tracing/trace)
 
-        * /sys/kernel/tracing/trace
+        * `tracelog`
 
-        * ![](../assets/client_load.png)
-
-
-1) Launch the python echo client and server in two separate terminals:
-
-    * /test\_scripts/client\_server
-
-    * python3 echo\_server.py --tcp (--udp)
-
-    * python3 echo\_client.py --tcp (--udp)
+       ![](../assets/client_load.png)
 
 
-1) If desired to help read trace log file, in another terminal, grep for process id's
- of target customization: pgrep python3
+1) Launch the python echo client and server in two separate terminals and note the PID of each (printed in terminal):
+
+    * Python code location: experiment_scripts/client\_server
+
+    * `server_echo --tcp` (--udp)
+
+    * `client_echo --tcp` (--udp)
+
 
 
 1) Type some messages into the echo client and verify the echo server receives
 a modified message and replies with this modified message
+
+    * Ex: Client - Hello; Server - testCustModHello
 
 
 1) In the client terminal, type 'quit' to close the connection
@@ -102,34 +105,40 @@ a modified message and replies with this modified message
 
 1) dump the kernel trace file to find corresponding messages for layer 4.5 messages:
 
-    * sudo gedit /sys/kernel/tracing/trace
+    * `tracelog`
 
-    * ![](../assets/client_assign.png)
+    * cust\_send=1 means send customization will be applied on the client
 
-        * cust\_send=1 means send customization will be applied on the client
+    ![](../assets/client_assign.png)
 
-1) reset the trace file between runs if desired (as root, sudo su): > /sys/kernel/tracing/trace
+
+
+
+1) reset the trace file between runs if desired
+
+    * `cyclelog`
 
 
 1) remove the client module:
 
     * Skip if moving on to next section
 
-    * sudo rmmod sample\_python\_client
+    * `sudo rmmod sample\_python\_client`
 
 
 
 ## Steps to run sample client and server customizations:
 
-1) In the test\_modules folder, make and install sample python kernel modules:
+1) All steps run on a single VM, either client or server VM will work
 
-    * Modify Makefile in this folder to adjust path variables
 
-        * GIT_LOCATION must be updated to reflect your folder path
+1) In the experiment\_modules folder, make and install sample python kernel modules:
 
-        * BUILD\_MODULE is command line arg to direct building a specific module
+    * BUILD\_MODULE is command line arg to direct building a specific module
 
-    * run 'make BUILD\_MODULE=sample\_python\_client.o' and 'make BUILD\_MODULE=sample\_python\_server.o'
+    * `make BUILD\_MODULE=sample_python_client.o`
+
+    *  `make BUILD\_MODULE=sample_python_server.o`
 
         * verify no errors during module build
 
@@ -138,43 +147,42 @@ a modified message and replies with this modified message
 
 1) (Skip if client module still loaded) Insert client module:
 
-    * sudo insmod sample\_python\_client.ko
+    * `sudo insmod sample_python_client.ko`
 
     * Verify client module loaded messages are present in trace log
 
-        * /sys/kernel/tracing/trace
+        * `tracelog`
 
-        * ![](../assets/client_load.png)
+        ![](../assets/client_load.png)
 
 
 1) insert server modules:
 
-    * sudo insmod sample\_python\_server.ko
+    * `sudo insmod sample_python_server.ko`
 
     * Verify client and server module loaded messages are present in trace log
 
-        * /sys/kernel/tracing/trace
+        * `tracelog`
 
-        * ![](../assets/server_load.png)
+        ![](../assets/server_load.png)
 
 
 
-1) Launch the python echo client and server in two separate terminals:
+1) Launch the python echo client and server in two separate terminals and note the PID of each (printed in terminal):
 
-    * /test\_scripts/client\_server
+    * Python code location: experiment_scripts/client\_server
 
-    * python3 echo\_server.py --proto tcp (udp)
+    * `server_echo --tcp` (--udp)
 
-    * python3 echo\_client.py --proto tcp (udp)
+    * `client_echo --tcp` (--udp)
 
 
 1) In a new terminal window, launch tcpdump to verify changes are applied to messages:
 
-    * sudo tcpdump tcp port 65432 -i any -X
+    * `sudo tcpdump tcp port 65432 -i any -X`
 
-    * alternatively, launch Wireshark  
+    * alternatively, launch Wireshark and choose loopback interface
 
-    * TODO: add image here  
 
 
 1) type some messages into the echo client and verify tcpdump shows modified messages
@@ -187,19 +195,29 @@ a modified message and replies with this modified message
 
 1) dump the kernel trace file to find corresponding messages for layer 4.5 messages:
 
-    * sudo gedit /sys/kernel/tracing/trace
+    * `tracelog`
 
-    * ![](../assets/both_assign.png)
+    * cust\_send=1 means send customization will be applied on the client
 
-        * cust\_send=1 means send customization will be applied on the client
+    * cust\_recv=1 means recv customization will be applied on the server
 
-        * cust\_recv=1 means recv customization will be applied on the server
-
-1) reset the trace file between runs if desired (as root, sudo su): > /sys/kernel/tracing/trace
+    ![](../assets/both_assign.png)
 
 
-1) remove the client/server module:
+1) reset the trace file between runs if desired
 
-    * sudo rmmod sample\_python\_client
+    * `cyclelog`
 
-    * sudo rmmod sample\_python\_server
+
+
+1) Cleanup Steps:
+
+    * `cd /home/vagrant/software_defined_customization/sample_modules`
+
+    * `make clean`
+
+    * `sudo rmmod sample_python_client`
+
+    * `sudo rmmod sample_python_server`
+
+    * `cyclelog` (if desired)

@@ -6,7 +6,7 @@
 # $3 = wait X seconds before cleaning up (ex: 60)
 
 #directory holding the software_defined_customization git repo
-GIT_DIR=/home/dan/software_defined_customization
+GIT_DIR=/home/vagrant/software_defined_customization
 
 
 #install Layer 4.5 on device
@@ -16,7 +16,7 @@ echo "*************** Install L4.5  ***************"
 rmmod layer4_5
 rm $GIT_DIR/NCO/cib.db
 
-$GIT_DIR/DCA_kernel/bash/installer.sh
+$GIT_DIR/DCA_kernel/bash/installer.sh $GIT_DIR/DCA_kernel
 
 sleep 2
 

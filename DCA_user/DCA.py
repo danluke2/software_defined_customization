@@ -32,7 +32,7 @@ args = parser.parse_args()
 
 HOST = '10.0.0.20'
 PORT = 65432        # The port used by the NCO
-INTERFACE="enp0s3"
+INTERFACE="enp0s8"
 system_name = platform.system()
 system_release = platform.release()
 symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'

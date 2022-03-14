@@ -1,8 +1,7 @@
 # Software Defined Network Customization at Layer 4.5
 
 
-Prototype of Layer 4.5 customization framework to match NetSoft 2022 submission paper (under review).  Contains a Network-wide Customization Orchestrator (NCO)
-to distribute Layer 4.5 customization modules to devices.  NCO communicates with Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
+Prototype of Layer 4.5 customization framework to match NetSoft 2022 submission paper (under review).  Contains a Network-wide Customization Orchestrator (NCO) to distribute Layer 4.5 customization modules to devices.  NCO communicates with Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
 
 
 Acronyms:
@@ -12,7 +11,6 @@ Acronyms:
 1) DCA: Device Customization Agent
 
 1) CIB: Customization Information Base
-
 
 
 ## Overview:
@@ -73,55 +71,76 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 
 
-## Layer 4.5 VM Location:
+## Vagrant VM settings:
 
-1) Download the pre-configured Layer 4.5 Ubuntu Focal Fossa VM: TBD
+  * username/password: vagrant/vagrant
+
+  * username/password: root/vagrant
+
+  * VBOX specific:
+
+      * base memory: 4096
+
+      * 2 CPU
+
+      * video: 32MB
+
+      * Network 1: NAT, Paravirtualized adapter
+
+  * various aliases inserted by setup.sh script
 
 
 
-## Steps to manually install Layer 4.5:
-
-1) Install Ubuntu 20.04.3 LTS (Focal Fossa) VM (tested on kernel 5.13.0-28)
-
-    * default install includes python3
-
-1) Install Wireshark (Optional):
-
-    * sudo add-apt-repository ppa:wireshark-dev/stable
-
-        * if that fails, try running 'sudo apt upgrade' first
-
-    * sudo apt update
-
-    * sudo apt install wireshark
-
-        * select 'yes' to allow non-root users to capture packets
-
-    * sudo adduser $USER wireshark
-
-    * restart VM
-
-1) Install git on VM: sudo apt install git
+## Steps to install Layer 4.5 using Vagrant and VirtualBox:
 
 1) Git clone this repo
 
-    * create your own branch after cloning to avoid accidental changes to master: git checkout -b someName
+    * create your own branch after cloning to avoid accidental changes to master:
 
-1) Run install.sh script with sudo privileges: sudo software\_defined\_customization/DCA\_kernel/bash/installer
+        * `git checkout -b someName`
 
-    * this should install all required dependencies (otherwise submit issue)
+1) (Optional) Update Makefile to reflect desired debug level:
+
+    * software_defined_customization/DCA\_kernel/Makefile
 
     * Makefile is set with DEBUG defined by default to print messages to a trace file
 
+1) Navigate to the vagrant folder and install base machine:
 
-1) Verify no errors during install and that layer4_5 kernel module is inserted: lsmod \| grep layer
+    * `cd software_defined_customization/vagrant`
+
+    * (Optional) Edit the included Vagrantfile with desired parameters
+
+        * a different vagrant box can be used, but must be configured with dependencies manually
+
+        * If desired, turn off the virtualbox GUI by commenting out vg.gui = true
+
+        * setup.sh: shell script to run on first install (provisioning)
+
+    * `vagrant up`  
+
+
+1) Wait for machine to download and install Layer 4.5 and dependencies
 
     * NOTE: BTF error is not an issue at the moment and will be remedied later
 
-    * location of layer4_5 modules: /usr/lib/modules/$(uname -r)/layer4_5
 
-    * Layer 4.5 will auto load at startup and any modules present in the new module
-    customizations folder will load after checking if Layer 4.5 is running
+1) Use the GUI or SSH into VM and check install:
+
+    * `vagrant ssh server` (client)
+
+    * `lsmod | grep layer`
+
+    * NOTE: location of layer4_5 module: /usr/lib/modules/$(uname -r)/layer4_5
+
+    * NOTE: Layer 4.5 will auto load at startup and any modules present in the new module customizations folder will load after checking if Layer 4.5 is running
+
+
+
+
+## Youtube Videos:
+
+  * NetVerify 21 presentation (15 min): https://youtu.be/s9vwJLDMSlI?start=17737&end=18730
 
 
 
@@ -129,5 +148,4 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 1) To run sample modules, see README in sample\_modules
 
-1) To run experiments from paper, see README in experiment\_scripts and modules
- in experiment\_modules
+1) To run experiments from paper, see README in experiment\_scripts and modules in experiment\_modules

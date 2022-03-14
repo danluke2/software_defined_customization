@@ -5,7 +5,7 @@
 # $2 = number of hosts
 
 
-GIT_DIR=/home/dan/software_defined_customization
+GIT_DIR=/home/vagrant/software_defined_customization
 EXP_DIR=$GIT_DIR/experiment_scripts
 
 # NOTE: reverse this order to speed up tests
@@ -14,7 +14,7 @@ EXP_DIR=$GIT_DIR/experiment_scripts
 for hosts in 10 50 100 175 250
 do
   echo "*************** Performing Experiment with $hosts Hosts ***************"
-  $EXP_DIR/nco_dca_experiment.sh $1 $hosts
+  $EXP_DIR/nco_dca_experiment.sh $1 $hosts $GIT_DIR $EXP_DIR
 done
 
 

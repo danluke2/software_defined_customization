@@ -4,13 +4,13 @@
 # $1 = standard report interval (ex: 5)
 
 #directory holding the software_defined_customization git repo
-GIT_DIR=/home/dan/software_defined_customization
+GIT_DIR=/home/vagrant/software_defined_customization
 SLEEP_INT=5
 
 #install Layer 4.5 on each device
 echo "*************** Install L4.5 on Client  ***************"
 
-sshpass -p "default" ssh -p 22 root@10.0.0.40 "rmmod layer4_5; $GIT_DIR/DCA_kernel/bash/installer.sh;"
+sshpass -p "vagrant" ssh -p 22 -o StrictHostKeyChecking=no root@10.0.0.40 "rmmod layer4_5; ifconfig enp0s3 down; $GIT_DIR/DCA_kernel/bash/installer.sh $GIT_DIR/DCA_kernel;"
 
 sleep $SLEEP_INT
 
@@ -22,7 +22,7 @@ rmmod layer4_5
 rm $GIT_DIR/NCO/cib.db
 pkill dnsmasq
 
-$GIT_DIR/DCA_kernel/bash/installer.sh
+$GIT_DIR/DCA_kernel/bash/installer.sh $GIT_DIR/DCA_kernel
 
 sleep $SLEEP_INT
 
@@ -30,13 +30,6 @@ sleep $SLEEP_INT
 # start NCO process with command line params
 echo "*************** Starting NCO  ***************"
 gnome-terminal -- python3 $GIT_DIR/NCO/NCO.py --query_interval $1 --linear
-
-sleep $SLEEP_INT
-
-
-# start dnsmasq process on server
-echo "*************** Starting DNSMASQ on Server  ***************"
-gnome-terminal -- dnsmasq --no-daemon -c 0
 
 sleep $SLEEP_INT
 
@@ -57,7 +50,7 @@ sleep $SLEEP_INT
 
 # start DCA process on client, which will have host_id = 2
 echo "*************** Starting DCA on Client  ***************"
-sshpass -p "default" ssh -p 22 root@10.0.0.40 "python3 $GIT_DIR/DCA\_user/DCA.py >/dev/null 2>&1 &"
+sshpass -p "vagrant" ssh -p 22 root@10.0.0.40 "python3 $GIT_DIR/DCA\_user/DCA.py >/dev/null 2>&1 &"
 
 sleep $SLEEP_INT
 
@@ -78,14 +71,21 @@ sleep $SLEEP_INT
 
 # start middlebox collection process
 echo "*************** Starting Middlebox DCA on Server  ***************"
-gnome-terminal -- tcpdump udp port 53 -w $GIT_DIR/middle_demo.pcap
+gnome-terminal -- tcpdump udp port 53 -i any -w $GIT_DIR/middle_demo.pcap
+
+sleep $SLEEP_INT
+
+
+# start dnsmasq process on server
+echo "*************** Starting DNSMASQ on Server  ***************"
+gnome-terminal -- dnsmasq --no-daemon -c 0
 
 sleep $SLEEP_INT
 
 
 # perform DNS requests from client
 echo "*************** Conducting DNS Queries from Client  ***************"
-sshpass -p "default" ssh -p 22 root@10.0.0.40 "dig @10.0.0.20 -p 53 www.dig_test.com; curl www.curl_test.com;"
+sshpass -p "vagrant" ssh -p 22 root@10.0.0.40 "dig @10.0.0.20 -p 53 www.dig_test.com; curl www.curl_test.com;"
 
 sleep $SLEEP_INT
 
@@ -94,7 +94,7 @@ echo "*************** finished  ***************"
 
 
 echo "removing dns modules and layer 4.5"
-sshpass -p "default" ssh -p 22 root@10.0.0.40 "pkill python; rmmod demo_dns_client_app_tag; rmmod layer4_5;"
+sshpass -p "vagrant" ssh -p 22 root@10.0.0.40 "pkill python; rmmod demo_dns_client_app_tag; rmmod layer4_5; ifconfig enp0s3 up"
 
 sleep $SLEEP_INT
 

@@ -2,7 +2,7 @@
 
 import socket
 import argparse
-
+import os
 
 parser = argparse.ArgumentParser(description='Echo client')
 parser.add_argument('--tcp', help="TCP connection", action="store_true")
@@ -34,9 +34,12 @@ if args.sport:
 # if args.cport:
 #     CLIENT_PORT=args.cport
 
+pid = os.getpid()
+
 
 if args.tcp:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        print(f"\nTCP client connecting to server, PID={pid}")
         # s.bind((CLIENT_IP, CLIENT_PORT))
         s.connect((SERVER_IP, SERVER_PORT))
         s.settimeout(10)
@@ -60,6 +63,7 @@ if args.tcp:
 
 elif args.udp:
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        print(f"\nUDP client connecting to server, PID={pid}")
         # s.bind((CLIENT_IP, CLIENT_PORT))
         s.settimeout(10)
         s.sendto(b'Hello', (SERVER_IP, SERVER_PORT))

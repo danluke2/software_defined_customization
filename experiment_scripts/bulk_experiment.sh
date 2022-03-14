@@ -2,12 +2,15 @@
 
 #Purpose: perform $1 downloads of test file for each config (number of trials to perform)
 
-#directory with overhead.iso
-SERVER_DIR=/home/dan/Desktop
+
 #directory holding the software_defined_customization git repo
-GIT_DIR=/home/dan/software_defined_customization
+GIT_DIR=/home/vagrant/software_defined_customization
+
+#directory with overhead.iso
+SERVER_DIR=$GIT_DIR/NCO
 SIMPLE_SERVER_DIR=$GIT_DIR/experiment_scripts/client_server
 
+MD5="d14cb9b6f48feda0563cda7b5335e4c0"
 
 # client connect to server over ssh, launch web server, then on client run experiment, save data to file
 
@@ -15,11 +18,14 @@ SIMPLE_SERVER_DIR=$GIT_DIR/experiment_scripts/client_server
 OUTPUT=logs/bulk_base.txt
 touch $OUTPUT
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python ; cd $SERVER_DIR ; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+sshpass -p "vagrant" ssh -p 22 -o StrictHostKeyChecking=no root@10.0.0.20 "rmmod layer4_5; pkill python; cd $SERVER_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
 sleep 2
+
+rmmod layer4_5
+
 # store md5 sum at start of file for comparison
-echo "d14cb9b6f48feda0563cda7b5335e4c0" >> $OUTPUT
+echo $MD5 >> $OUTPUT
 
 echo "*************** starting baseline downloads ***************"
 
@@ -47,12 +53,12 @@ touch $OUTPUT
 
 echo Installing Layer 4.5 on server and client
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; $GIT_DIR/DCA_kernel/bash/installer.sh; cd $SERVER_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+sshpass -p "vagrant" ssh -p 22 root@10.0.0.20 "pkill python; $GIT_DIR/DCA_kernel/bash/installer.sh $GIT_DIR/DCA_kernel; cd $SERVER_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
 sleep 2
-echo "d14cb9b6f48feda0563cda7b5335e4c0" >> $OUTPUT
+echo $MD5 >> $OUTPUT
 
-/home/dan/software_defined_customization/DCA_kernel/bash/installer.sh;
+$GIT_DIR/DCA_kernel/bash/installer.sh $GIT_DIR/DCA_kernel/;
 
 sleep 2
 
@@ -79,11 +85,11 @@ echo "*************** finished tap test ***************"
 OUTPUT=logs/bulk_cust.txt
 touch $OUTPUT
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; cd $GIT_DIR/experiment_modules; make BUILD_MODULE=overhead_test_bulk_file_server.o; insmod overhead_test_bulk_file_server.ko;  cd $SERVER_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+sshpass -p "vagrant" ssh -p 22 root@10.0.0.20 "pkill python; cd $GIT_DIR/experiment_modules; make BUILD_MODULE=overhead_test_bulk_file_server.o; insmod overhead_test_bulk_file_server.ko;  cd $SERVER_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
 
 sleep 2
-echo "d14cb9b6f48feda0563cda7b5335e4c0" >> $OUTPUT
+echo $MD5 >> $OUTPUT
 
 cd ../experiment_modules;
 make BUILD_MODULE=overhead_test_bulk_file_client.o;
@@ -110,10 +116,10 @@ echo "*************** finished cust test ***************"
 
 echo cleaning up
 
-sudo rmmod overhead_test_bulk_file_client
-sudo rmmod layer4_5
+rmmod overhead_test_bulk_file_client
+rmmod layer4_5
 
-sshpass -p "default" ssh -p 22 root@10.0.0.20 "pkill python; rmmod overhead_test_bulk_file_server; rmmod layer4_5; exit"
+sshpass -p "vagrant" ssh -p 22 root@10.0.0.20 "pkill python; rmmod overhead_test_bulk_file_server; rmmod layer4_5; exit"
 
 
 echo generating plot

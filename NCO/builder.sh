@@ -23,7 +23,7 @@ error_exit()
 
 
 CURDIR="$( pwd )"
-GITDIR=/home/dan/software_defined_customization/NCO/
+GITDIR=/home/vagrant/software_defined_customization/NCO/
 line=$3;
 
 core_mod_dir=$GITDIR/core_modules

@@ -29,7 +29,7 @@ args = parser.parse_args()
 
 HOST = '10.0.0.20'
 PORT = 65433        # The middlebox port used by the NCO
-INTERFACE="enp0s3"
+INTERFACE="enp0s8"
 type="Wireshark"
 system_name = platform.system()
 system_release = platform.release()

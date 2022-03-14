@@ -1,1 +1,16 @@
 .DS_Store
+*.o
+*.ko
+Module.symvers
+modules.order
+layer4_5.box
+*.cmd
+*.o.d
+*.mod
+*.mod.c
+*.db
+*pycache*
+*.iso
+*.png
+*.pcap
+*.txt
