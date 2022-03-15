@@ -15,6 +15,27 @@ extern int register_customization(struct customization_node *cust);
 
 extern int unregister_customization(struct customization_node *cust);
 
+// Kernel module parameters with default values
+static char* destination_ip = "127.0.0.1";
+module_param(destination_ip, charp, 0600);  //root only access to change
+MODULE_PARM_DESC(destination_ip, "Dest IP to match");
+
+static char* source_ip = "0.0.0.0";
+module_param(source_ip, charp, 0600);
+MODULE_PARM_DESC(source_ip, "Dest IP to match");
+
+static unsigned int destination_port = 64532;
+module_param(destination_port, uint, 0600);
+MODULE_PARM_DESC(destination_port, "DPORT to match");
+
+static unsigned int source_port = 0;
+module_param(source_port, uint, 0600);
+MODULE_PARM_DESC(source_port, "SPORT to match");
+
+static unsigned int protocol = 256; // TCP or UDP
+module_param(protocol, uint, 0600);
+MODULE_PARM_DESC(protocol, "L4 protocol to match");
+
 
 //test message for this plugin
 char cust_test[12] = "testCustMod";
@@ -132,17 +153,17 @@ int __init sample_client_start(void)
 
 	// python_cust->target_flow.protocol = 17; // UDP
   // python_cust->protocol = 6; // TCP
-  python_cust->target_flow.protocol = 256; // TCP and UDP
+  python_cust->target_flow.protocol = (u16) protocol; // TCP and UDP
 	memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
   memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
   // Client: no source IP or port set unless client called bind first
-	python_cust->target_flow.dest_port = 65432;
-  python_cust->target_flow.source_port = 0;
+	python_cust->target_flow.dest_port = (u16) destination_port;
+  python_cust->target_flow.source_port = (u16) source_port;
 
   //IP is a __be32 value
-  python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
-  python_cust->target_flow.source_ip = 0;
+  python_cust->target_flow.dest_ip = in_aton(destination_ip);
+  python_cust->target_flow.source_ip = in_aton(source_ip);
 
   // These functions must be defined and will be used to modify the
   // buffer on a send/receive call
