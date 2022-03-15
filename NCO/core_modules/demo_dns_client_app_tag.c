@@ -14,14 +14,32 @@
 static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
 
-
 extern int register_customization(struct customization_node *cust);
 
 extern int unregister_customization(struct customization_node *cust);
 
-extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize,
-		                                  const void *buf, size_t len, bool ascii);
+extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf, size_t len, bool ascii);
 
+// Kernel module parameters with default values
+static char* destination_ip = "10.0.0.20";
+module_param(destination_ip, charp, 0600);  //root only access to change
+MODULE_PARM_DESC(destination_ip, "Dest IP to match");
+
+static char* source_ip = "0.0.0.0";
+module_param(source_ip, charp, 0600);
+MODULE_PARM_DESC(source_ip, "Dest IP to match");
+
+static unsigned int destination_port = 53;
+module_param(destination_port, uint, 0600);
+MODULE_PARM_DESC(destination_port, "DPORT to match");
+
+static unsigned int source_port = 0;
+module_param(source_port, uint, 0600);
+MODULE_PARM_DESC(source_port, "SPORT to match");
+
+static unsigned int protocol = 17; // UDP
+module_param(protocol, uint, 0600);
+MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
 char cust_tag_test[21] = "XTAGdig";
 size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test)-1; // i.e., 20 bytes
@@ -29,21 +47,8 @@ size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test)-1; // i.e., 20 bytes
 struct customization_node *dns_cust;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-// Line 42 should be blank b/c NCO will write the module_id variable to that line
+// Line 52 should be blank b/c NCO will write the module_id variable to that line
 // followed by any other variables we determine NCO should declare when building
-
 
 
 // The following functions perform the buffer modifications requested by handler
@@ -93,15 +98,15 @@ int __init sample_client_start(void)
 	}
 
 
-	dns_cust->target_flow.protocol = 17; // UDP
+	dns_cust->target_flow.protocol = protocol;
 	memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
 	memcpy(dns_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
-	dns_cust->target_flow.dest_port = 53;
-  dns_cust->target_flow.dest_ip = in_aton("10.0.0.20");
+	dns_cust->target_flow.dest_port = (u16) destination_port;
+  dns_cust->target_flow.dest_ip = in_aton(destination_ip);
 
-  dns_cust->target_flow.source_ip = 0;
-  dns_cust->target_flow.source_port = 0;
+  dns_cust->target_flow.source_ip = in_aton(source_ip);
+  dns_cust->target_flow.source_port = (u16) source_port;
 
 	dns_cust->send_function = modify_buffer_send;
 	dns_cust->recv_function = NULL;
