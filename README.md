@@ -72,16 +72,16 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 ## Prerequisites:
 
-    * Vagrant: https://www.vagrantup.com
+1) Vagrant: https://www.vagrantup.com
 
-    * VirtualBox: https://www.virtualbox.org
+1) VirtualBox: https://www.virtualbox.org
 
-    * Approximately 20GB of hard drive space
+1) Approximately 20GB of hard drive space
 
-        * 5GB Vagrant box
+    * 5GB Vagrant box
 
-        * 10GB VMDK for VirtualBox
-        
+    * 10GB VMDK for VirtualBox
+
 
 
 ## Vagrant VM settings:
