@@ -37,19 +37,8 @@ NOTE: This experiment takes a long time to complete, mostly due to making a modu
 
     * `cd software_defined_customization/experiment_scripts`
 
-    * `rm nco_deploy.png` (if desired)
+    * `./cleanup.sh NCO`
 
-    * `rm cib.db`
-
-    * `cd logs`
-
-    * `rm n*`
-
-    * `cd && cd software_defined_customization/experiment_modules/device_modules`
-
-    * `rm -rf h*`
-
-    * `cyclelog` (if desired)
 
 
 
@@ -86,17 +75,7 @@ generate the graph:
 
     * `cd software_defined_customization/experiment_scripts`
 
-    * `rm bulk_overhead.png` (if desired)
-
-    * `cd logs`
-
-    * `rm b* n*`
-
-    * `cd && cd software_defined_customization/experiment_modules`
-
-    * `make clean`
-
-    * `cyclelog` (if desired)
+    * `./cleanup.sh BULK`
 
 
 
@@ -121,17 +100,7 @@ generate the graph:
 
     * `cd software_defined_customization/experiment_scripts`
 
-    * `rm batch_overhead.png` (if desired)
-
-    * `cd logs`
-
-    * `rm b*`
-
-    * `cd && cd software_defined_customization/experiment_modules`
-
-    * `make clean`
-
-    * `cyclelog` (if desired)
+    * `./cleanup.sh BATCH`
 
 
 ## Challenge/Response prototype:
@@ -178,15 +147,9 @@ tracelog entries
 
 1) (SERVER) Cleanup steps:
 
-    * `cd software_defined_customization/NCO`
+    * `cd software_defined_customization/experiment_scripts`
 
-    * `rm cib.db`
-
-    * `cd device_modules`
-
-    * `rm -rf h*`
-
-    * `cyclelog` (if desired)
+    * `./cleanup.sh CHALLENGE`
 
 
 
@@ -249,16 +212,6 @@ NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
 1) (SERVER) Cleanup steps:
 
-    * `cd software_defined_customization/NCO`
+    * `cd software_defined_customization/experiment_scripts`
 
-    * `rm cib.db`
-
-    * `cd device_modules`
-
-    * `rm -rf h*`
-
-    * `cd && cd software_defined_customization`
-
-    * `rm middle_demo.pcap` (if desired)
-
-    * `cyclelog` (if desired)
+    * `./cleanup.sh MIDDLEBOX`
