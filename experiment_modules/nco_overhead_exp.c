@@ -24,20 +24,30 @@ size_t cust_test_size = (size_t)sizeof(cust_test)-1;
 struct customization_node *python_cust;
 
 
+// Kernel module parameters with default values
+static char* destination_ip = "10.0.0.40";
+module_param(destination_ip, charp, 0600);  //root only access to change
+MODULE_PARM_DESC(destination_ip, "Dest IP to match");
+
+static char* source_ip = "10.0.0.20";
+module_param(source_ip, charp, 0600);
+MODULE_PARM_DESC(source_ip, "Dest IP to match");
+
+static unsigned int destination_port = 0;
+module_param(destination_port, uint, 0600);
+MODULE_PARM_DESC(destination_port, "DPORT to match");
+
+static unsigned int source_port = 53;
+module_param(source_port, uint, 0600);
+MODULE_PARM_DESC(source_port, "SPORT to match");
+
+static unsigned int protocol = 17; // UDP
+module_param(protocol, uint, 0600);
+MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
 
 
-
-
-
-
-
-
-
-
-
-
-// Line 42 should be blank b/c NCO will write the module_id variable to that line
+// Line 52 should be blank b/c NCO will write the module_id variable to that line
 // followed by any other variables we determine NCO should declare when building
 
 

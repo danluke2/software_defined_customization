@@ -22,7 +22,7 @@ sleep 2
 
 # start NCO process with command line params
 echo "*************** Starting NCO  ***************"
-gnome-terminal -- python3 $GIT_DIR/NCO/NCO.py --challenge --window $1 --query_interval $2 --linear > $GIT_DIR/NCO/challenge\_NCO\_output.txt
+gnome-terminal -- python3 $GIT_DIR/NCO/NCO.py --challenge --window $1 --query_interval $2 --linear
 
 sleep 2
 

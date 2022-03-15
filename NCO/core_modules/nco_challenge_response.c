@@ -39,7 +39,15 @@ struct skcipher_def {
 
 
 
-// Line 42 should be blank b/c NCO will write the module_id variable to that line
+
+
+
+
+
+
+
+
+// Line 52 should be blank b/c NCO will write the module_id variable to that line
 // followed by any other variables we determine NCO should declare when building
 
 
