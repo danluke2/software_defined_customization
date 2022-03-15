@@ -70,6 +70,19 @@ turn will report the number of bytes sent to the app, as if modifications did no
     * after all sockets have customization removed, then allow customization module to be unloaded
 
 
+## Prerequisites:
+
+    * Vagrant: https://www.vagrantup.com
+
+    * VirtualBox: https://www.virtualbox.org
+
+    * Approximately 20GB of hard drive space
+
+        * 5GB Vagrant box
+
+        * 10GB VMDK for VirtualBox
+        
+
 
 ## Vagrant VM settings:
 
@@ -88,6 +101,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
       * Network 1: NAT, Paravirtualized adapter
 
   * various aliases inserted by setup.sh script
+
 
 
 
