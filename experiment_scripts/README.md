@@ -112,7 +112,7 @@ NOTE: The script assumes NCO and DCA are on same machine, but this is not a stri
 
 1) (SERVER) Execute the shell script to conduct test:
 
-    * `sudo ./challenge\_response.sh 5 5 65`
+    * `sudo ./challenge_response.sh 5 5 65`
 
     * arg1 = security window
 
@@ -164,7 +164,7 @@ NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
 1) (SERVER) Execute the shell script to conduct demo:
 
-    * `sudo ./middle\_demo.sh 10`
+    * `sudo ./middle_demo.sh 10`
 
     * arg1 = query interval
 
