@@ -123,7 +123,7 @@ a modified message and replies with this modified message
 
     * Skip if moving on to next section
 
-    * `sudo rmmod sample\_python\_client`
+    * `sudo rmmod sample_python_client`
 
 
 
