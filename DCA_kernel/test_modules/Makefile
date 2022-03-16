@@ -1,11 +1,12 @@
+# ************** STANDARD PARAMS MUST GO HERE ****************
+KBUILD_EXTRA_SYMBOLS=/lib/modules/5.13.0-35-generic/layer4_5/Module.symvers
+MODULE_DIR=/home/vagrant/software_defined_customization/DCA_kernel/test_modules
+DISTRO_DIR=/lib/modules/5.13.0-35-generic
 
-#set this location to where your software_defined_customization folder is located
-GIT_LOCATION = /home/vagrant/software_defined_customization
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
 
 
-KBUILD_EXTRA_SYMBOLS := /lib/modules/$(shell uname -r)/layer4_5/Module.symvers
-#this is the directory of the makefile
-MODULE_DIR = $(GIT_LOCATION)/DCA_kernel/test_modules
 #this is the module you want to create (ex: sample_python_client.o)
 BUILD_MODULE = must_pass_command_arg
 
@@ -13,7 +14,7 @@ obj-m += $(BUILD_MODULE)
 
 
 all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(MODULE_DIR) modules
+	make -C $(DISTRO_DIR)/build M=$(MODULE_DIR) modules
 
 clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(MODULE_DIR) clean
+	make -C $(DISTRO_DIR)/build M=$(MODULE_DIR) clean

@@ -17,7 +17,7 @@ parser.add_argument('--type', type=str, required=False, help="type of middlebox 
 args = parser.parse_args()
 
 
-db_connection = db_connect(cfg.git_dir + 'cib.db')
+db_connection = db_connect(cfg.nco_dir + 'cib.db')
 
 if args.inverse:
     if args.type:

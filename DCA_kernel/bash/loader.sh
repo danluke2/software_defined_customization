@@ -6,16 +6,20 @@
 
 MODULE="layer4_5"
 
-# location where customization modules must exist to be loaded at runtime
-INSTALL_LOCATION=/usr/lib/modules/$(uname -r)/layer4_5/customizations
+# ************** STANDARD PARAMS MUST GO HERE ****************
+INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
 
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
 
 # use nullglob in case there are no matching files
 shopt -s nullglob
 
-cd $INSTALL_LOCATION
+cd $CUST_LOCATION
 # create an array with all the filer/dir inside ~/myDir
-arr=($INSTALL_LOCATION/*.ko)
+arr=($CUST_LOCATION/*.ko)
 
 
 ## check is layer 4.5 loaded but only wait 120 seconds ##

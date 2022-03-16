@@ -1,4 +1,10 @@
-HOST = '10.0.0.20'
+# ************** STANDARD PARAMS MUST GO HERE ****************
+HOST='10.0.0.20'
+nco_dir='/home/vagrant/software_defined_customization/NCO/'
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
+
+
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 MIDDLE_PORT = 65433
 QUERY_INTERVAL = 30
@@ -13,10 +19,9 @@ IV_SIZE = 16
 
 random_hosts = True
 next_module_id = 1
-git_dir = "/home/vagrant/software_defined_customization/NCO/"
+
 core_mod_dir = "core_modules/"
 symvers_dir = "device_modules/host_" # + host_id
-
 inverse_dir = "inverse_modules/"
 
 #signal codes

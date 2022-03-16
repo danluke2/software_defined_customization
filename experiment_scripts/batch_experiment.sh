@@ -1,8 +1,8 @@
 #!/bin/bash
 
-
-#Purpose: perform $2 dns requests to test overhead of tagging for each config
+#Purpose: perform dns requests to test overhead of tagging for each config
 # $1 = number of trials
+# $2 = number of DNS requests per batch
 # $3 = sleep time between each DNS request
 
 
@@ -18,6 +18,7 @@ DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
+CLIENT_PASSWD=vagrant
 CLIENT_PASSWD=vagrant
 
 
@@ -42,6 +43,7 @@ touch $OUTPUT
 sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; systemctl stop dnsmasq.service; systemctl stop systemd-resolved.service; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 sleep 2
+
 rmmod layer4_5
 
 echo "*************** starting baseline batch ***************"

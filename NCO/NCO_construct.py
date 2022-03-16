@@ -43,7 +43,7 @@ def recv_symvers_file(conn_socket, host_id):
 
     conn_socket.sendall(b'Clear to send')
 
-    with open(os.path.join(cfg.git_dir + cfg.symvers_dir + str(host_id) + "/", "Module.symvers"), 'wb') as file_to_write:
+    with open(os.path.join(cfg.nco_dir + cfg.symvers_dir + str(host_id) + "/", "Module.symvers"), 'wb') as file_to_write:
         while True:
             data = conn_socket.recv(file_size)
             if not data:
@@ -82,7 +82,7 @@ def insert_and_update_module_tables(db_connection, module, module_id, host_id, k
 # ASSUMPTION: symver file and directory exists
 def build_ko_module(db_connection, host_id, module, module_id, key):
     try:
-        subprocess.run([cfg.git_dir + "builder.sh", module, str(module_id), str(cfg.INSERT_LINE), str(host_id), key.hex()], check=True)
+        subprocess.run([cfg.nco_dir + "builder.sh", module, str(module_id), str(cfg.INSERT_LINE), str(host_id), key.hex()], check=True)
         result = 0
     except subprocess.CalledProcessError as e:
         print(f"Error occured during module build process, error={e}")

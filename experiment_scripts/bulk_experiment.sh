@@ -1,24 +1,24 @@
 #!/bin/bash
 
-#Purpose: perform $1 downloads of test file for each config (number of trials to perform)
-
+#Purpose: perform downloads of test file for each config
+# $1 = number of downloads (number of trials to perform)
 
 
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
-NCO_DIR=$GIT_DIR/NCO
-EXP_SCRIPT_DIR=$GIT_DIR/experiment_scripts
-EXP_MOD_DIR=$GIT_DIR/experiment_modules
-SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
-DCA_KERNEL_DIR=$GIT_DIR/DCA_kernel
-DCA_USER_DIR=$GIT_DIR/DCA_user
+NCO_DIR=/home/vagrant/software_defined_customization/NCO
+EXP_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts
+EXP_MOD_DIR=/home/vagrant/software_defined_customization/experiment_modules
+SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
+DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 
 SERVER_IP=10.0.0.20
-SERVER_PASSWD="vagrant"
+SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
-CLIENT_PASSWD="vagrant"
+CLIENT_PASSWD=vagrant
 
 
 

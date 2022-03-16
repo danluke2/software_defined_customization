@@ -1,3 +1,12 @@
+# ************** STANDARD PARAMS MUST GO HERE ****************
+INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
+DISTRO_DIR=/lib/modules/5.13.0-35-generic
+
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
+
+
 layer4_5-objs := init.o \
 		       tap.o \
 		       customization_socket.o \
@@ -18,35 +27,36 @@ KCFLAGS = -Wall -O3 -g
 # DEBUG2 has very situational comments that can just clog up the file
 # DEBUG3 most amount of comments
 # DEBUG_FLAGS = -DDEBUG -DDEBUG1 -DDEBUG2 -DDEBUG3
-DEBUG_FLAGS = -DDEBUG 
+DEBUG_FLAGS = -DDEBUG
 
 all: layer4_5
 
 
 layer4_5:
-	make "KCFLAGS=$(KCFLAGS) $(DEBUG_FLAGS)" -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	make "KCFLAGS=$(KCFLAGS) $(DEBUG_FLAGS)" -C $(DISTRO_DIR)/build M=$(INSTALLER_MAKEFILE_DIR) modules
+	# make "KCFLAGS=$(KCFLAGS) $(DEBUG_FLAGS)" -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 
 clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	make -C $(DISTRO_DIR)/build M=$(INSTALLER_MAKEFILE_DIR) clean
 	rm -rf *.o *.so
 
-PREFIX = /usr/lib/modules/$(shell uname -r)/layer4_5
+# PREFIX = /usr/lib/modules/$(shell uname -r)/layer4_5
 
-.PHONY: install-addons
-install-addons: addons
-	mkdir -p $(PREFIX)
-	for FILE in $(INSTALL_FILES); do \
-		mkdir -p "`dirname "$(PREFIX)/$$FILE"`"; \
-		cp $$FILE $(PREFIX)/$$FILE; \
-	done
+# .PHONY: install-addons
+# install-addons: addons
+# 	mkdir -p $(INSTALL_LOCATION)
+# 	for FILE in $(INSTALL_FILES); do \
+# 		mkdir -p "`dirname "$(INSTALL_LOCATION)/$$FILE"`"; \
+# 		cp $$FILE $(INSTALL_LOCATION)/$$FILE; \
+# 	done
 
 .PHONY: install-layer4_5
 install-layer4_5: layer4_5
-	mkdir -p $(PREFIX)
-	cp layer4_5.ko $(PREFIX)/
-	cp Module.symvers $(PREFIX)/
-	cp modules.order $(PREFIX)/
+	mkdir -p $(INSTALL_LOCATION)
+	cp layer4_5.ko $(INSTALL_LOCATION)/
+	cp Module.symvers $(INSTALL_LOCATION)/
+	cp modules.order $(INSTALL_LOCATION)/
 
 
 

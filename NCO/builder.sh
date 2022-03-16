@@ -1,12 +1,18 @@
 #!/bin/bash
 
-
 #arg 1 is the module to build (without extension)
 #arg2 is the module ID to assign
 #arg3 is the line number to start inserting at
 #arg4 is the host id
 #arg5 is hex encoded key
 #arg 6 is config info ...
+
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
+NCO_DIR=/home/vagrant/software_defined_customization/NCO
+
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
 
 
 # ----------------------------------------------------------------
@@ -23,11 +29,11 @@ error_exit()
 
 
 CURDIR="$( pwd )"
-GITDIR=/home/vagrant/software_defined_customization/NCO/
+
 line=$3;
 
-core_mod_dir=$GITDIR/core_modules
-symvers_dir=$GITDIR/device_modules/host_$4
+core_mod_dir=$NCO_DIR/core_modules
+symvers_dir=$NCO_DIR/device_modules/host_$4
 mod_dir=$symvers_dir/modules
 
 

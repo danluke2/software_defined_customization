@@ -6,12 +6,18 @@ apt -y upgrade
 timedatectl set-ntp on
 timedatectl
 
-# install Layer 4.5 and auto load on boot
+# ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
+DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 
-cd $GIT_DIR
 
-DCA_kernel/bash/installer.sh $GIT_DIR/DCA_kernel
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
+
+
+
+$DCA_KERNEL_DIR/bash/installer.sh
 
 depmod
 
@@ -29,12 +35,10 @@ alias modules='cd /usr/lib/modules/$(uname -r)/'
 alias tracelog='sudo gedit /sys/kernel/tracing/trace'
 alias cyclelog="sudo bash -c '> /sys/kernel/tracing/trace'"
 
-alias installer='clear && sudo /home/vagrant/software_defined_customization/DCA_kernel/bash/installer.sh'
+alias installer='clear && sudo $DCA_KERNEL_DIR/bash/installer.sh'
 
-alias server_echo='python3 /home/vagrant/software_defined_customization/experiment_scripts/client_server/echo_server.py'
-alias client_echo='python3 /home/vagrant/software_defined_customization/experiment_scripts/client_server/echo_client.py'
-
-alias cleanup='cd /home/vagrant/software_defined_customization/sample_modules && make clean && cd ../experiment_modules && make clean && cd device_modules && rm -rf h* && cd /home/vagrant/software_defined_customization/DCA_kernel && make clean && cd test_modules && make clean && cd /home/vagrant/software_defined_customization/NCO/device_modules && rm -rf h* && cd /home/vagrant/software_defined_customization/experiment_scripts/logs && rm b* && rm n* && cd .. && rm *.png'
+alias server_echo='python3 $SIMPLE_SERVER_DIR/echo_server.py'
+alias client_echo='python3 $SIMPLE_SERVER_DIR/echo_client.py'
 
 alias clean_layer='sudo rm -rf /usr/lib/modules/$(uname -r)/layer4_5'
 EOT

@@ -1,14 +1,17 @@
 #!/bin/bash
 
-# $1 = Makefile dir
-
 set -e
 
 # Init
 PM="/bin/apt" # Package Manager
 CURDIR="$( pwd )"
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )" #directory of make file
 
+# ************** STANDARD PARAMS MUST GO HERE ****************
+INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
 
 # Force root
 if [[ "$(id -u)" != "0" ]];
@@ -36,13 +39,12 @@ echo "Installing dependencies"
 $PM -y install python3 python3-pip linux-headers-$(uname -r)
 
 
-INSTALL_LOCATION=/usr/lib/modules/$(uname -r)/layer4_5
 
 echo "***************************"
 echo "Making Layer 4.5 modules"
 
 # Make the files
-cd $1
+cd $INSTALLER_MAKEFILE_DIR
 make && make install || error_exit "Makefile error detected"
 
 
@@ -68,7 +70,7 @@ echo "layer4_5" >> $MODULE_FILE
 echo "***************************"
 echo "Installing loader service"
 cp bash/loader.sh $INSTALL_LOCATION/
-mkdir -p $INSTALL_LOCATION/customizations
+mkdir -p $CUST_LOCATION
 
 cd $CURDIR
 

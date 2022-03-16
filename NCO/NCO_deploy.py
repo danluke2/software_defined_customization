@@ -64,7 +64,7 @@ def send_install_modules(conn_socket, host_id, modules):
 
 
 def send_ko_module(conn_socket, host_id, module):
-    mod_dir = cfg.git_dir + cfg.symvers_dir + str(host_id) + "/modules/"
+    mod_dir = cfg.nco_dir + cfg.symvers_dir + str(host_id) + "/modules/"
 
     filesize = os.path.getsize(mod_dir + module + ".ko")
 

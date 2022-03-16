@@ -69,7 +69,7 @@ if args.linear:
 
 def construction_process(interval):
     print("Construction process running")
-    db_connection = db_connect(cfg.git_dir + 'cib.db')
+    db_connection = db_connect(cfg.nco_dir + 'cib.db')
     while(True):
         construction_loop(db_connection)
         time.sleep(interval)
@@ -126,7 +126,7 @@ def middlebox_process(cv, interval):
 
 def device_thread(conn, ip, port, buffer_size, interval):
     try:
-        db_connection = db_connect(cfg.git_dir + 'cib.db')
+        db_connection = db_connect(cfg.nco_dir + 'cib.db')
 
         #handle initial device initiated check-in, then device is in a recv state
         try:

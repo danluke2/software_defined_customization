@@ -45,13 +45,13 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
 # Build directory structure for storing host files
 def setup_host_dirs(host_id):
     #create the host dir based on assigned host_id
-    os.mkdir(cfg.git_dir + cfg.symvers_dir + host_id)
+    os.mkdir(cfg.nco_dir + cfg.symvers_dir + host_id)
     #create the modules dir based on assigned host_id
-    os.mkdir(cfg.git_dir + cfg.symvers_dir + host_id + "/modules")
+    os.mkdir(cfg.nco_dir + cfg.symvers_dir + host_id + "/modules")
     #put generic makefile in modules dir
-    newPath = shutil.copy(cfg.git_dir + cfg.core_mod_dir + "Makefile", cfg.git_dir + cfg.symvers_dir + host_id + "/modules")
+    newPath = shutil.copy(cfg.nco_dir + cfg.core_mod_dir + "Makefile", cfg.nco_dir + cfg.symvers_dir + host_id + "/modules")
     #put a copy of common_structs in host dir for all modules
-    newPath = shutil.copy(cfg.git_dir + cfg.core_mod_dir + "common_structs.h", cfg.git_dir + cfg.symvers_dir + host_id)
+    newPath = shutil.copy(cfg.nco_dir + cfg.core_mod_dir + "common_structs.h", cfg.nco_dir + cfg.symvers_dir + host_id)
 
 
 def handle_host_insert(db_connection, mac, ip, port, kernel_release, interval):
