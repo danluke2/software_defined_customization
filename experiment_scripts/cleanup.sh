@@ -25,7 +25,7 @@ CLIENT_PASSWD=vagrant
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
-#NCO/DCA
+# NCO/DCA
 if [ "$1" = "NCO" ]; then
   cd $EXP_SCRIPT_DIR
   rm nco_deploy.png
@@ -38,7 +38,7 @@ fi
 
 
 
-#Bulk
+# Bulk
 if [ "$1" = "BULK" ]; then
   cd $EXP_SCRIPT_DIR
   rm bulk_overhead.png
@@ -49,7 +49,7 @@ if [ "$1" = "BULK" ]; then
 fi
 
 
-#Batch
+# Batch
 if [ "$1" = "BATCH" ]; then
   cd $EXP_SCRIPT_DIR
   rm batch_overhead.png
@@ -60,7 +60,7 @@ if [ "$1" = "BATCH" ]; then
 fi
 
 
-#Challenge
+# Challenge
 if [ "$1" = "CHALLENGE" ]; then
   cd $NCO_DIR
   rm cib.db
@@ -69,7 +69,7 @@ if [ "$1" = "CHALLENGE" ]; then
 fi
 
 
-#Middlebox
+# Middlebox
 if [ "$1" = "MIDDLEBOX" ]; then
   cd $NCO_DIR
   rm cib.db

@@ -77,12 +77,12 @@ touch $OUTPUT
 
 echo Installing Layer 4.5 on server and client
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; $DCA_KERNEL_DIR/bash/installer.sh $DCA_KERNEL_DIR; cd $NCO_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; $DCA_KERNEL_DIR/bash/installer.sh; cd $NCO_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
 sleep 2
 echo $MD5 >> $OUTPUT
 
-$DCA_KERNEL_DIR/bash/installer.sh $DCA_KERNEL_DIR;
+$DCA_KERNEL_DIR/bash/installer.sh;
 
 sleep 2
 

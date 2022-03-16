@@ -18,17 +18,21 @@ NOTE: Paper will be uploaded to arxiv soon
 
 ## NCO/DCA overhead experiment:
 
-NOTE: This experiment takes a long time to complete, mostly due to making a module to match each emulated host for each trial.  I will eventually make a faster version to bypass repeated make operations as an option.
+NOTE: This first trial of 250 hosts takes a long time to complete (~9 min), mostly due to making a module to match each emulated host.
 
 1) (SERVER) `cd ~/software_defined_customization/experiment_scripts`
 
 1) (SERVER) launch experiment script:
 
-    * `./nco_dca_batch_experiment.sh 15`
+    * `./nco_dca_batch_experiment.sh 15 no` (yes)
 
         * this performs 15 trials for each number of hosts and plots results
 
-        * modules are built for each host on first trial
+        * Arg2:
+
+            * y=modules are built for each host on first trial.  This greatly increases the experiment time.
+
+            * n=modules only built for first trial of 250 hosts and reused for all other trials to save time.
 
 1) View generated graph: nco_deploy.png
 
@@ -91,7 +95,11 @@ generate the graph:
 
     * `sudo ./batch_experiment.sh 15 1000 0`
 
-        * performs 15 trials of 1000 DNS requests with 0 sec between each request
+        * arg1 = Number of trials
+
+        * arg2 = Number of DNS requests in each trial
+
+        * arg3 = Time between DNS requests
 
     * View generated graph: batch_overhead.png
 

@@ -3,7 +3,7 @@
 #Purpose: perform the NCO/DCA module deployment experiment
 # $1 = number of trials
 # $2 = number of hosts
-
+# $3 = clear built table each round of hosts: yes/no
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
@@ -45,7 +45,15 @@ sleep 1
 echo "*************** starting first trial ***************"
 
 #first test is different than remainder b/c we need to build modules and deploy them
-python3 $EXP_SCRIPT_DIR/overhead_exp_NCO.py --construct --sleep 5 --number $2 &
+if [ "$3" = "no" ]; then
+  if [ $2 -eq 250 ]; then
+    python3 $EXP_SCRIPT_DIR/overhead_exp_NCO.py --construct --sleep 5 --number $2 &
+  else
+    python3 $EXP_SCRIPT_DIR/overhead_exp_NCO.py --sleep 5 --number $2 &
+  fi
+else
+  python3 $EXP_SCRIPT_DIR/overhead_exp_NCO.py --construct --sleep 5 --number $2 &
+fi
 
 sleep 2
 

@@ -91,6 +91,12 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
     * View notes in Vagrantfile and setup.sh on how to configure VM for experiments
 
+1) If changes to common variables are desired:
+
+    * Update config.sh with new value to existing variable
+
+    * Execute config.sh to update all necessary files to relect the new value
+
 
 ## Vagrant VM settings:
 

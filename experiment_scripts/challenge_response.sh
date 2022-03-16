@@ -40,7 +40,7 @@ echo "*************** Install L4.5  ***************"
 rmmod layer4_5
 rm $NCO_DIR/cib.db
 
-$DCA_KERNEL_DIR/bash/installer.sh $DCA_KERNEL_DIR
+$DCA_KERNEL_DIR/bash/installer.sh
 
 sleep 2
 

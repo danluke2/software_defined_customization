@@ -84,7 +84,7 @@ the client.
 
 1) Launch the python echo client and server in two separate terminals and note the PID of each (printed in terminal):
 
-    * Python code location: experiment_scripts/client\_server
+    * Python code location (for reference): experiment_scripts/client\_server
 
     * `server_echo --tcp` (--udp)
 
@@ -113,18 +113,16 @@ a modified message and replies with this modified message
 
 
 
-
-1) reset the trace file between runs if desired
-
-    * `cyclelog`
-
-
 1) remove the client module:
 
     * Skip if moving on to next section
 
     * `sudo rmmod sample_python_client`
 
+
+1) reset the trace file between runs if desired
+
+    * `cyclelog`
 
 
 ## Steps to run sample client and server customizations:
@@ -180,7 +178,7 @@ a modified message and replies with this modified message
 
 1) In a new terminal window, launch tcpdump to verify changes are applied to messages:
 
-    * `sudo tcpdump tcp port 65432 -i lo -X`
+    * `sudo tcpdump port 65432 -i lo -X`
 
     * alternatively, launch Wireshark and choose loopback interface
 

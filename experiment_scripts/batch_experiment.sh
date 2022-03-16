@@ -76,11 +76,11 @@ touch $OUTPUT
 
 echo Installing Layer 4.5 on server and client
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; $DCA_KERNEL_DIR/bash/installer.sh $DCA_KERNEL_DIR; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; $DCA_KERNEL_DIR/bash/installer.sh; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 sleep 2
 
-$DCA_KERNEL_DIR/bash/installer.sh $DCA_KERNEL_DIR;
+$DCA_KERNEL_DIR/bash/installer.sh;
 
 sleep 2
 

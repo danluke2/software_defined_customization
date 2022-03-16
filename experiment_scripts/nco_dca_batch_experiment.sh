@@ -2,7 +2,7 @@
 
 #Purpose: perform the NCO/DCA module deployment experiment
 # $1 = number of trials
-# $2 = number of hosts
+# $2 = clear built table each round of hosts: yes/no
 
 
 
@@ -26,13 +26,10 @@ CLIENT_PASSWD=vagrant
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
 
-# NOTE: reverse this order to speed up tests
-# NOTE2: if reversing, can also remove --construct flag after the 250 test is
-# completed to avoid re-making each module
-for hosts in 10 50 100 175 250
+for hosts in 250 175 100 50 10
 do
   echo "*************** Performing Experiment with $hosts Hosts ***************"
-  $EXP_SCRIPT_DIR/nco_dca_experiment.sh $1 $hosts $GIT_DIR $EXP_SCRIPT_DIR
+  $EXP_SCRIPT_DIR/nco_dca_experiment.sh $1 $hosts $2
 done
 
 
