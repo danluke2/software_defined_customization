@@ -66,14 +66,14 @@ the client.
 
     * BUILD\_MODULE is command line arg to direct building a specific module
 
-    * `make BUILD\_MODULE=sample\_python\_client.o`
+    * `make BUILD_MODULE=sample_python_client.o`
 
         * verify no errors during module build
 
 
 1) Insert the client module:
 
-    * `sudo insmod sample\_python\_client.ko`
+    * `sudo insmod sample_python_client.ko`
 
     * Verify client module loaded messages are present in trace log (/sys/kernel/tracing/trace)
 
