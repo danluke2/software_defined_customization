@@ -20,7 +20,7 @@ NOTE: Paper will be uploaded to arxiv soon
 
 NOTE: This experiment takes a long time to complete, mostly due to making a module to match each emulated host for each trial.  I will eventually make a faster version to bypass repeated make operations as an option.
 
-1) (SERVER) `cd software_defined_customization/experiment_scripts`
+1) (SERVER) `cd ~/software_defined_customization/experiment_scripts`
 
 1) (SERVER) launch experiment script:
 
@@ -35,7 +35,7 @@ NOTE: This experiment takes a long time to complete, mostly due to making a modu
 
 1) (SERVER) Cleanup steps:
 
-    * `cd software_defined_customization/experiment_scripts`
+    * `cd ~/software_defined_customization/experiment_scripts`
 
     * `./cleanup.sh NCO`
 
@@ -53,7 +53,7 @@ NOTE: This experiment takes a long time to complete, mostly due to making a modu
     * store the file as 'overhead.iso'
 
 
-1) (CLIENT) `cd software_defined_customization/experiment_scripts`
+1) (CLIENT) `cd ~/software_defined_customization/experiment_scripts`
 
 1) (CLIENT) Execute the bulk transfer script to perform all experiments and
 generate the graph:
@@ -73,7 +73,7 @@ generate the graph:
 
 1) (CLIENT) Cleanup steps:
 
-    * `cd software_defined_customization/experiment_scripts`
+    * `cd ~/software_defined_customization/experiment_scripts`
 
     * `./cleanup.sh BULK`
 
@@ -83,7 +83,7 @@ generate the graph:
 
 NOTE: during this experiment all DNS queries will result in the same IP address resolution, which makes normal internet usage not possible within the VM until experiment finishes.
 
-1) (CLIENT) `cd software_defined_customization/experiment_scripts`
+1) (CLIENT) `cd ~/software_defined_customization/experiment_scripts`
 
 
 1) (CLIENT) Execute the batch dns script to perform all experiments and
@@ -98,7 +98,7 @@ generate the graph:
 
 1) (CLIENT) Cleanup steps:
 
-    * `cd software_defined_customization/experiment_scripts`
+    * `cd ~/software_defined_customization/experiment_scripts`
 
     * `./cleanup.sh BATCH`
 
@@ -107,7 +107,7 @@ generate the graph:
 
 NOTE: The script assumes NCO and DCA are on same machine, but this is not a strict requirement and can be adapted to have them be different machines
 
-1) (SERVER) `cd software_defined_customization/experiment_scripts`
+1) (SERVER) `cd ~/software_defined_customization/experiment_scripts`
 
 
 1) (SERVER) Execute the shell script to conduct test:
@@ -147,7 +147,7 @@ tracelog entries
 
 1) (SERVER) Cleanup steps:
 
-    * `cd software_defined_customization/experiment_scripts`
+    * `cd ~/software_defined_customization/experiment_scripts`
 
     * `./cleanup.sh CHALLENGE`
 
@@ -159,7 +159,7 @@ tracelog entries
 NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
 
-1) (SERVER) `cd software_defined_customization/experiment_scripts`
+1) (SERVER) `cd ~/software_defined_customization/experiment_scripts`
 
 
 1) (SERVER) Execute the shell script to conduct demo:
@@ -212,6 +212,6 @@ NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
 1) (SERVER) Cleanup steps:
 
-    * `cd software_defined_customization/experiment_scripts`
+    * `cd ~/software_defined_customization/experiment_scripts`
 
     * `./cleanup.sh MIDDLEBOX`

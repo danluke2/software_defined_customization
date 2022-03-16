@@ -60,7 +60,7 @@ the client.
 
 1) All steps run on a single VM, either client or server VM will work
 
-1) `cd software_defined_customization/sample_modules`
+1) `cd ~/software_defined_customization/sample_modules`
 
 1) Make the sample python client kernel module:
 
@@ -131,7 +131,7 @@ a modified message and replies with this modified message
 
 1) All steps run on a single VM, either client or server VM will work
 
-1) `cd software_defined_customization/sample_modules`
+1) `cd ~/software_defined_customization/sample_modules`
 
 1) Make the sample python client and server kernel module:
 
@@ -213,7 +213,7 @@ a modified message and replies with this modified message
 
 1) Cleanup Steps:
 
-    * `cd /home/vagrant/software_defined_customization/sample_modules`
+    * `cd ~/software_defined_customization/sample_modules`
 
     * `make clean`
 
