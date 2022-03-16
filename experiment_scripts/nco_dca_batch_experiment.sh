@@ -5,8 +5,26 @@
 # $2 = number of hosts
 
 
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
-EXP_DIR=$GIT_DIR/experiment_scripts
+NCO_DIR=$GIT_DIR/NCO
+EXP_SCRIPT_DIR=$GIT_DIR/experiment_scripts
+EXP_MOD_DIR=$GIT_DIR/experiment_modules
+SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
+DCA_KERNEL_DIR=$GIT_DIR/DCA_kernel
+DCA_USER_DIR=$GIT_DIR/DCA_user
+
+SERVER_IP=10.0.0.20
+SERVER_PASSWD="vagrant"
+CLIENT_IP=10.0.0.40
+CLIENT_PASSWD="vagrant"
+
+
+
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
+
 
 # NOTE: reverse this order to speed up tests
 # NOTE2: if reversing, can also remove --construct flag after the 250 test is
@@ -14,7 +32,7 @@ EXP_DIR=$GIT_DIR/experiment_scripts
 for hosts in 10 50 100 175 250
 do
   echo "*************** Performing Experiment with $hosts Hosts ***************"
-  $EXP_DIR/nco_dca_experiment.sh $1 $hosts $GIT_DIR $EXP_DIR
+  $EXP_SCRIPT_DIR/nco_dca_experiment.sh $1 $hosts $GIT_DIR $EXP_SCRIPT_DIR
 done
 
 

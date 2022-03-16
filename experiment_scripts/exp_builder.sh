@@ -6,18 +6,34 @@
 #arg3 is the line number to start inserting at
 #arg4 is the host id
 
+# ************** STANDARD PARAMS MUST GO HERE ****************
+GIT_DIR=/home/vagrant/software_defined_customization
+NCO_DIR=$GIT_DIR/NCO
+EXP_SCRIPT_DIR=$GIT_DIR/experiment_scripts
+EXP_MOD_DIR=$GIT_DIR/experiment_modules
+SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
+DCA_KERNEL_DIR=$GIT_DIR/DCA_kernel
+DCA_USER_DIR=$GIT_DIR/DCA_user
 
+SERVER_IP=10.0.0.20
+SERVER_PASSWD="vagrant"
+CLIENT_IP=10.0.0.40
+CLIENT_PASSWD="vagrant"
+
+
+
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
 
 CURDIR="$( pwd )"
 
 line=$3;
 
-exp_mod_dir=../experiment_modules
-symvers_dir=$CURDIR/../experiment_modules/device_modules/host_$4
+symvers_dir=$EXP_MOD_DIR/device_modules/host_$4
 mod_dir=$symvers_dir/modules
 
 #copy module from core dir to the host module dir before changing it
-cp $exp_mod_dir/$1.c  $mod_dir
+cp $EXP_MOD_DIR/$1.c  $mod_dir
 
 #open module and replace insert u16 module_id = XX; with NCO assigned value
 sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c

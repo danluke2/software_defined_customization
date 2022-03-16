@@ -80,7 +80,9 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
     * 5GB Vagrant box
 
-    * 10GB VMDK for VirtualBox
+    * 11GB VMDK for server VM
+
+    * 11GB VMDK for client VM
 
 
 1) If not using Vagrant VM:
@@ -88,7 +90,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
     * Download and configure Ubuntu 20.04+ running kernel 5.11+
 
     * View notes in Vagrantfile and setup.sh on how to configure VM for experiments
-    
+
 
 ## Vagrant VM settings:
 

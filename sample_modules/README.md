@@ -131,14 +131,15 @@ a modified message and replies with this modified message
 
 1) All steps run on a single VM, either client or server VM will work
 
+1) `cd software_defined_customization/sample_modules`
 
-1) In the experiment\_modules folder, make and install sample python kernel modules:
+1) Make the sample python client and server kernel module:
 
     * BUILD\_MODULE is command line arg to direct building a specific module
 
-    * `make BUILD\_MODULE=sample_python_client.o`
+    * `make BUILD_MODULE=sample_python_client.o`
 
-    *  `make BUILD\_MODULE=sample_python_server.o`
+    *  `make BUILD_MODULE=sample_python_server.o`
 
         * verify no errors during module build
 
@@ -179,7 +180,7 @@ a modified message and replies with this modified message
 
 1) In a new terminal window, launch tcpdump to verify changes are applied to messages:
 
-    * `sudo tcpdump tcp port 65432 -i any -X`
+    * `sudo tcpdump tcp port 65432 -i lo -X`
 
     * alternatively, launch Wireshark and choose loopback interface
 

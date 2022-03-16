@@ -34,7 +34,7 @@ mod_dir=$symvers_dir/modules
 #copy module from core dir to the host module dir before changing it
 cp $core_mod_dir/$1.c  $mod_dir
 
-#open module and replace insert u16 module_id = XX; with NCO assigned value
+#open module and insert u16 module_id = XX; with NCO assigned value
 sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c
 ((line=line+1))
 sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$5\";" $mod_dir/${1}.c

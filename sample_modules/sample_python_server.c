@@ -28,7 +28,7 @@ static unsigned int destination_port = 0;
 module_param(destination_port, uint, 0600);
 MODULE_PARM_DESC(destination_port, "DPORT to match");
 
-static unsigned int source_port = 64532;
+static unsigned int source_port = 65432;
 module_param(source_port, uint, 0600);
 MODULE_PARM_DESC(source_port, "SPORT to match");
 

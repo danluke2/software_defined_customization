@@ -24,7 +24,7 @@ static char* source_ip = "0.0.0.0";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
-static unsigned int destination_port = 64532;
+static unsigned int destination_port = 65432;
 module_param(destination_port, uint, 0600);
 MODULE_PARM_DESC(destination_port, "DPORT to match");
 
