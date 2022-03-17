@@ -15,14 +15,16 @@ Acronyms:
 
 ## Overview:
 
-![](assets/stack.png =500x)
+<a href="url"><img src="https://github.com/danluke2/software_defined_customization/blob/main/assets/stack.png" align="center" height="400"  ></a>
+
 
 1) NCO distributes customizations to devices over a control channel for insertion at Layer 4.5
 
     * Layer 4.5 is transparent to application and transport layers
 
 
-![](assets/nco_host.png =400x)
+<a href="url"><img src="https://github.com/danluke2/software_defined_customization/blob/main/assets/nco_host.png" align="center" height="400"  ></a>
+
 
 2) NCO has several internal components to support distribution and management of the deployed customization
 
@@ -38,7 +40,10 @@ Acronyms:
 
     * Middlebox: interface with network controlled middlebox device to allow processing a deployed customization
 
-![](assets/automation.png =500x)
+
+
+<a href="url"><img src="https://github.com/danluke2/software_defined_customization/blob/main/assets/automation.png" align="center" height="400"  ></a>
+
 
 3) DCA establishes the control channel with NCO to manage customizations installed on the device.
 
