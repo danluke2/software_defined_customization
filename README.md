@@ -15,18 +15,48 @@ Acronyms:
 
 ## Overview:
 
+![](assets/stack.png =500x)
 
-1) Customization modules register with Layer 4.5 DCA
+1) NCO distributes customizations to devices over a control channel for insertion at Layer 4.5
 
-    * register the protocol (TCP or UDP), application (task) name, destination port,
-    destination IPv4 address, source IPv4 address (if server), and source port (if desired)
-    for tracking sockets
+    * Layer 4.5 is transparent to application and transport layers
+
+
+![](assets/nco_host.png =400x)
+
+2) NCO has several internal components to support distribution and management of the deployed customization
+
+    * Construct: responsible for building the per-device customization module to include embedding necessary parameters and storing all values in the CIB
+
+    * Deploy: supports transport of customization modules, in binary format, to devices on the networ
+
+    * Revoke: support the removal of outdated or misbehaving customization modules from a customized device
+
+    * Monitor: allows for retrieving module use statistics across the network to aid in forensics analysis
+
+    * Security: provide a mechanism for adding per-network module security requirements to match a given threat model
+
+    * Middlebox: interface with network controlled middlebox device to allow processing a deployed customization
+
+![](assets/automation.png =500x)
+
+3) DCA establishes the control channel with NCO to manage customizations installed on the device.
+
+    * DCA_user establishes the control channel with NCO
+
+    * DCA_kernel encompasses Layer 4.5 logic to manage customizations on the device
+
+3) Customization modules register with Layer 4.5 DCA
+
+    * register the protocol (TCP or UDP), application (task) name, destination port, destination IPv4 address, source IPv4 address (if server), and source port (if desired) for tracking sockets
 
         * server knows the source and dest IP since it binds to a source IP
 
         * clients don't know source IP since IP table lookup has not happened yet
 
-        * source port generally not useful since randomly assigned value
+        * source port (client) generally not useful since randomly assigned value
+
+        * destination port (server) generally not useful since randomly assigned by the client
 
     * provide send\_function and recv\_function pointers to be stored and
     applied to customized sockets
@@ -36,8 +66,12 @@ Acronyms:
         * if both are NULL, then customization is rejected
 
 
+### Youtube Videos:
+
+  * NetVerify 21 presentation focused on Layer 4.5 and initial idea of network wide control (15 min): https://youtu.be/s9vwJLDMSlI?start=17737&end=18730
 
 
+<!--
 2) tap.c: intercepts TCP and UDP calls, creates a customizable socket with
 key derived Sock FD
 
@@ -67,10 +101,10 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
     * remove customization from all active sockets using it
 
-    * after all sockets have customization removed, then allow customization module to be unloaded
+    * after all sockets have customization removed, then allow customization module to be unloaded -->
 
 
-## Prerequisites:
+<!-- ## Prerequisites:
 
 1) Vagrant: https://www.vagrantup.com
 
@@ -89,13 +123,14 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
     * Download and configure Ubuntu 20.04+ running kernel 5.11+
 
-    * View notes in Vagrantfile and setup.sh on how to configure VM for experiments
+    * View notes in Vagrantfile and setup.sh on how to configure VM for experiments and install Layer 4.5 module
+
 
 1) If changes to common variables are desired:
 
     * Update config.sh with new value to existing variable
 
-    * Execute config.sh to update all necessary files to relect the new value
+    * Execute config.sh to update all necessary files to reflect the new value
 
 
 ## Vagrant VM settings:
@@ -114,18 +149,45 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
       * Network 1: NAT, Paravirtualized adapter
 
-  * various aliases inserted by setup.sh script
+  * various aliases inserted by setup.sh script -->
 
 
 
 
-## Steps to install Layer 4.5 using Vagrant and VirtualBox:
+## Layer 4.5 using Vagrant and VirtualBox:
+
+#### Prerequisites:
+
+1) Vagrant: https://www.vagrantup.com
+
+1) VirtualBox: https://www.virtualbox.org
+
+1) Approximately 20GB of hard drive space
+
+    * 5GB Vagrant box
+
+    * 11GB VMDK for server VM
+
+    * 11GB VMDK for client VM
+
+
+
+#### Install Steps
 
 1) Git clone this repo
 
     * create your own branch after cloning to avoid accidental changes to master:
 
         * `git checkout -b someName`
+
+
+
+1) (Optional) If changes to common variables are desired:
+
+    * Update config.sh with new value to existing variable
+
+    * Execute config.sh to update all necessary files to reflect the new value
+
 
 1) (Optional) Update Makefile to reflect desired debug level:
 
@@ -164,16 +226,48 @@ turn will report the number of bytes sent to the app, as if modifications did no
     * NOTE: Layer 4.5 will auto load at startup and any modules present in the new module customizations folder will load after checking if Layer 4.5 is running
 
 
+#### Vagrant VM settings:
+
+  * username/password: vagrant/vagrant
+
+  * username/password: root/vagrant
+
+  * VBOX specific:
+
+      * base memory: 4096
+
+      * 2 CPU
+
+      * video: 32MB
+
+      * Network 1: NAT, Paravirtualized adapter
+
+  * various aliases inserted by setup.sh script
 
 
-## Youtube Videos:
+## Layer 4.5 on your own Ubuntu VM:
 
-  * NetVerify 21 presentation (15 min): https://youtu.be/s9vwJLDMSlI?start=17737&end=18730
+NOTE: Other Linux OS's are possible, but you need to adjust scripts to reflect your environment
+
+1) Download and configure Ubuntu 20.04+ running kernel 5.11+
+
+    * View notes in Vagrantfile and setup.sh on how to configure VM for experiments
+
+1) Install layer 4.5 kernel module
+
+    * `cd software_defined_customization/DCA_kernel/bash`
+
+    * `sudo ./installer.sh`
+
+
+
 
 
 
 ## Next Steps:
 
-1) To run sample modules, see README in sample\_modules
+1) To get experience with Layer 4.5 modules and how they are used, Use the README provided in the sample\_modules folder to run the provided sample modules
+
+    * Sample modules don't use the NCO or user-space DCA component and focus on Layer 4.5 only
 
 1) To run experiments from paper, see README in experiment\_scripts and modules in experiment\_modules
