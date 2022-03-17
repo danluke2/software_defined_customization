@@ -11,7 +11,6 @@ layer4_5.box
 *.db
 *pycache*
 *.iso
-*.png
 *.pcap
 *.txt
 *vagrant/.vagrant
