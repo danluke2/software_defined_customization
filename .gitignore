@@ -14,4 +14,3 @@ layer4_5.box
 *.pcap
 *.txt
 *vagrant/.vagrant
-*/device_modules/h*
