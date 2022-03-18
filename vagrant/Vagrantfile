@@ -40,7 +40,8 @@ Vagrant.configure("2") do |config|
       vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
       vb.customize ["bandwidthctl", :id, "add", "VagrantLimit", "--type", "network", "--limit", "1000m"]
       vb.customize ["modifyvm", :id, "--nicbandwidthgroup2", "VagrantLimit"]
-
+      vb.memory = 8092
+      vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
     end
   end
 
@@ -54,6 +55,8 @@ Vagrant.configure("2") do |config|
       vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
       vb.customize ["bandwidthctl", :id, "add", "VagrantLimit", "--type", "network", "--limit", "1000m"]
       vb.customize ["modifyvm", :id, "--nicbandwidthgroup2", "VagrantLimit"]
+      vb.memory = 8092
+      vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
     end
   end
 

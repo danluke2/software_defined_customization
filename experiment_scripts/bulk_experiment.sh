@@ -42,7 +42,7 @@ MD5="d14cb9b6f48feda0563cda7b5335e4c0"
 OUTPUT=$EXP_SCRIPT_DIR/logs/bulk_base.txt
 touch $OUTPUT
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; pkill python; cd $NCO_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; pkill python; cd $GIT_DIR/../Desktop; cp $NCO_DIR/overhead.iso .; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
 sleep 2
 
@@ -52,6 +52,9 @@ rmmod layer4_5
 echo $MD5 >> $OUTPUT
 
 echo "*************** starting baseline downloads ***************"
+
+# download file to VM desktop to avoid using shared disk space
+cd $GIT_DIR/../Desktop
 
 for ((i=1;i<=$1;i++))
 do
@@ -77,7 +80,7 @@ touch $OUTPUT
 
 echo Installing Layer 4.5 on server and client
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; $DCA_KERNEL_DIR/bash/installer.sh; cd $NCO_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; $DCA_KERNEL_DIR/bash/installer.sh; cd $GIT_DIR/../Desktop; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
 sleep 2
 echo $MD5 >> $OUTPUT
@@ -87,6 +90,9 @@ $DCA_KERNEL_DIR/bash/installer.sh;
 sleep 2
 
 echo "*************** starting tap downloads ***************"
+
+# download file to VM desktop to avoid using shared disk space
+cd $GIT_DIR/../Desktop
 
 for ((i=1;i<=$1;i++))
 do
@@ -109,7 +115,7 @@ echo "*************** finished tap test ***************"
 OUTPUT=$EXP_SCRIPT_DIR/logs/bulk_cust.txt
 touch $OUTPUT
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; cd $EXP_MOD_DIR; make BUILD_MODULE=overhead_test_bulk_file_server.o; insmod overhead_test_bulk_file_server.ko;  cd $NCO_DIR; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; cd $EXP_MOD_DIR; make BUILD_MODULE=overhead_test_bulk_file_server.o; insmod overhead_test_bulk_file_server.ko; cd $GIT_DIR/../Desktop; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
 
 sleep 2
@@ -122,6 +128,10 @@ cd $EXP_SCRIPT_DIR
 
 sleep 2
 echo "*************** starting cust downloads ***************"
+
+# download file to VM desktop to avoid using shared disk space
+cd $GIT_DIR/../Desktop
+
 
 for ((i=1;i<=$1;i++))
 do
@@ -143,8 +153,9 @@ echo cleaning up
 rmmod overhead_test_bulk_file_client
 rmmod layer4_5
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; rmmod overhead_test_bulk_file_server; rmmod layer4_5; exit"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; rmmod overhead_test_bulk_file_server; rmmod layer4_5; cd $GIT_DIR/../Desktop; rm overhead.iso; exit"
 
+cd $EXP_SCRIPT_DIR
 
 echo generating plot
 

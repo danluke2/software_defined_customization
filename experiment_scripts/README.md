@@ -24,13 +24,13 @@ NOTE: This first trial of 250 hosts takes a long time to complete (~9 min), most
 
 1) (SERVER) launch experiment script:
 
-    * `./nco_dca_batch_experiment.sh 2 no`
+    * `./nco_dca_batch_experiment.sh 15 no`
 
         * Arg1=Number of trials to perform
 
-            * Paper experiment used 15 trials (takes a long time to complete)
+            * Paper experiment used 15 trials (time to complete = 2+ hours)
 
-            * Recommend, 2 trials to save some time
+            * Recommend, 2 trials to save some time (time to complete ~ 25 min)
 
         * Arg2:
 
@@ -54,9 +54,9 @@ NOTE: This first trial of 250 hosts takes a long time to complete (~9 min), most
 
 1) Copy a large test file to the NCO directory
 
-    * The VM uses a shared folder so you don't need to copy the image to the VM
+    * The VM uses a shared folder so you don't need to copy the image to the VM since that will be accomplished by the bash script
 
-    * The paper uses an Ubuntu.iso file, but any large file will work.  For example, a copy of the Vagrant VM is fine
+    * The paper uses an Ubuntu.iso file (~3GB), but any large file will work.  
 
     * store the file as 'overhead.iso'
 
@@ -74,7 +74,12 @@ generate the graph:
 
     * `sudo ./bulk_experiment.sh 15`
 
-    * performs 15 trials
+    * Arg1=Number of trials to perform
+
+        * Paper experiment used 15 trials (time to complete = 20+ min)
+
+        * Recommend, 5 trials to save some time (time to complete ~ 7 min)
+
 
     * View generated graph: bulk_overhead.png
 
