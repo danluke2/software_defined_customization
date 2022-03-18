@@ -167,7 +167,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 1) VirtualBox: https://www.virtualbox.org
 
-1) Approximately 20GB of hard drive space
+1) Approximately 30GB of hard drive space
 
     * 5GB Vagrant box
 

@@ -24,15 +24,15 @@ NOTE: This first trial of 250 hosts takes a long time to complete (~9 min), most
 
 1) (SERVER) launch experiment script:
 
-    * `./nco_dca_batch_experiment.sh 15 no` (yes)
+    * `./nco_dca_batch_experiment.sh 15 no`
 
         * this performs 15 trials for each number of hosts and plots results
 
         * Arg2:
 
-            * y=modules are built for each host on first trial.  This greatly increases the experiment time.
+            * yes=modules are built for each host on first trial.  This greatly increases the experiment time.
 
-            * n=modules only built for first trial of 250 hosts and reused for all other trials to save time.
+            * no=modules only built for first trial of 250 hosts and reused for all other trials to save time.
 
 1) View generated graph: nco_deploy.png
 
