@@ -18,15 +18,19 @@ NOTE: Paper will be uploaded to arxiv soon
 
 ## NCO/DCA overhead experiment:
 
-NOTE: This first trial of 250 hosts takes a long time to complete (~9 min), mostly due to making a module to match each emulated host.
+NOTE: This first trial of 250 hosts takes a long time to complete (~9 min), mostly due to making a module to match each emulated host.  The complete test will take much longer.
 
 1) (SERVER) `cd ~/software_defined_customization/experiment_scripts`
 
 1) (SERVER) launch experiment script:
 
-    * `./nco_dca_batch_experiment.sh 15 no`
+    * `./nco_dca_batch_experiment.sh 2 no`
 
-        * this performs 15 trials for each number of hosts and plots results
+        * Arg1=Number of trials to perform
+
+            * Paper experiment used 15 trials (takes a long time to complete)
+
+            * Recommend, 2 trials to save some time
 
         * Arg2:
 

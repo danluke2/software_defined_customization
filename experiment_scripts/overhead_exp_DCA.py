@@ -45,7 +45,7 @@ system_release = platform.release()
 symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
 
 
-sleep_time = 10
+sleep_time = 5
 max = 5
 
 
@@ -121,7 +121,7 @@ def install_ko_file(conn_socket, filename, filesize, downloadDir, report_dict, h
 
 
 def emulated_host_thread(host_id, downloadDir):
-    sleep_time = 10
+    sleep_time = 5
     max = 5
     #connect to server, send initial report and wait for server commands
     # if connection terminated, then test is over
