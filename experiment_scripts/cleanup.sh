@@ -29,11 +29,11 @@ CLIENT_PASSWD=vagrant
 if [ "$1" = "NCO" ]; then
   cd $EXP_SCRIPT_DIR
   rm nco_deploy.png
-  rm cib.db
   cd logs
   rm n*
-  cd $EXP_MOD_DIR/device_modules
-  rm -rf h*
+  cd
+  rm -rf device_modules
+  rm cib.db
 fi
 
 

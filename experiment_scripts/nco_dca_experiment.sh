@@ -27,7 +27,8 @@ CLIENT_PASSWD=vagrant
 
 
 #directory holding the software_defined_customization git repo
-TEMP_DIR=~/Desktop/temp
+TEMP_DIR=$GIT_DIR/../Desktop/temp
+
 
 # NCO reset DB, start NCO with delay timer for constuction module
 # NCO connect to DCA clear temp folder, startup with desired number of hosts ($2)
@@ -38,11 +39,12 @@ TEMP_FILE=logs/nco_finished.txt
 
 echo "*************** Install L4.5 on DCA  ***************"
 
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$CLIENT_IP "rmmod layer4_5; $DCA_KERNEL_DIR/bash/installer.sh $DCA_KERNEL_DIR;"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$CLIENT_IP "rmmod layer4_5; $DCA_KERNEL_DIR/bash/installer.sh;"
 
 sleep 1
 
 echo "*************** starting first trial ***************"
+
 
 #first test is different than remainder b/c we need to build modules and deploy them
 if [ "$3" = "no" ]; then
@@ -78,7 +80,7 @@ echo "*************** finished first trial  ***************"
 # loop covers remaining trials for this number of hosts
 for ((i=2;i<=$1;i++))
 do
-  echo "*************** Performing trial $1 ***************"
+  echo "*************** Performing trial $i of $1 with $2 hosts ***************"
   python3 $EXP_SCRIPT_DIR/overhead_exp_NCO.py  --sleep 5 --number $2 &
 
   sleep 2

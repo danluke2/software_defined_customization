@@ -47,7 +47,7 @@ if args.sleep:
     timer = args.sleep
 
 
-exp_mod_dir = "../experiment_modules/"
+exp_mod_dir = "/home/vagrant/"
 symvers_dir = exp_mod_dir + "device_modules/host_" # + host_id
 
 next_module_id = 1
@@ -229,14 +229,15 @@ def retrieve_install_list(db_connection, host_id):
 
 # Build directory structure for storing host files
 def setup_host_dirs(host_id):
+
     #create the host dir based on assigned host_id
     os.mkdir(symvers_dir + host_id)
     #create the modules dir based on assigned host_id
     os.mkdir(symvers_dir + host_id + "/modules")
     #put generic makefile in modules dir
-    newPath = shutil.copy(exp_mod_dir + "Makefile", symvers_dir + host_id + "/modules")
+    newPath = shutil.copy(exp_mod_dir + "software_defined_customization/experiment_modules/Makefile", symvers_dir + host_id + "/modules")
     #put a copy of common_structs in modules dir also
-    newPath = shutil.copy(exp_mod_dir + "../DCA_kernel/common_structs.h", symvers_dir + host_id + "/modules")
+    newPath = shutil.copy(exp_mod_dir + "software_defined_customization/DCA_kernel/common_structs.h", symvers_dir + host_id + "/modules")
 
 
 #mac is just the host test number, so reuse as host id to make simple
@@ -262,7 +263,7 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release):
 
 
 def device_thread(conn, ip, port, cv, start_results, end_results, index, MAX_BUFFER_SIZE = 4096):
-    db_connection = db_connect('cib.db')
+    db_connection = db_connect(exp_mod_dir + 'cib.db')
 
     #handle initial client-initiated check-in, then client is in a recv state
 
@@ -401,7 +402,7 @@ def build_ko_module(db_connection, host_id, module, module_id):
 # 4) Give option to built again, but likely select 'n'.  This alerts all the
 # DCA threads that the modules are ready for deployment and the test begins
 def construction_module_thread(cv, t, construct):
-    db_connection = db_connect('cib.db')
+    db_connection = db_connect(exp_mod_dir + 'cib.db')
     # again = "y"
     # wait t time for all devices to connect and deliver symver file if needed
     time.sleep(t)

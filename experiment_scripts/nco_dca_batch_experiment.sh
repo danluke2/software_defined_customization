@@ -25,6 +25,10 @@ CLIENT_PASSWD=vagrant
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
+DEVICE_DIR=$GIT_DIR/../device_modules
+#setup device dir for experiment
+mkdir $DEVICE_DIR
+
 
 for hosts in 250 175 100 50 10
 do

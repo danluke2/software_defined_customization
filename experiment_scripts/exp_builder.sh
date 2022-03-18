@@ -29,7 +29,7 @@ CURDIR="$( pwd )"
 
 line=$3;
 
-symvers_dir=$EXP_MOD_DIR/device_modules/host_$4
+symvers_dir=$GIT_DIR/../device_modules/host_$4
 mod_dir=$symvers_dir/modules
 
 #copy module from core dir to the host module dir before changing it
