@@ -210,6 +210,8 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
         * If desired, turn off the virtualbox GUI by commenting out vg.gui = true
 
+        * adjust the allotted memory if your machine does not have sufficient RAM to support 2 VM's with 8GB each
+
         * setup.sh: shell script to run on first install (provisioning)
 
     * `vagrant up`  
@@ -239,13 +241,15 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
   * VBOX specific:
 
-      * base memory: 4096
+      * base memory: 8192
 
       * 2 CPU
 
       * video: 32MB
 
       * Network 1: NAT, Paravirtualized adapter
+
+      * Network 2: Internal Network, Paravirtualized adapter, 1Gbps link speed
 
   * various aliases inserted by setup.sh script
 

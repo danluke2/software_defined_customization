@@ -33,8 +33,18 @@ then
 fi
 
 
+#check if overhead file is present before starting
+FILE=$NCO_DIR/overhead.iso
+if [ -f "$FILE" ];
+then
+    echo "$FILE check passed"
+else
+	echo "Could not find required overhead file" 1>&2
+	exit -1
+fi
 
-MD5="d14cb9b6f48feda0563cda7b5335e4c0"
+
+MD5=($(md5sum $NCO_DIR/overhead.iso))
 
 # client connect to server over ssh, launch web server, then on client run experiment, save data to file
 
@@ -78,7 +88,7 @@ echo "*************** finished baseline test ***************"
 OUTPUT=$EXP_SCRIPT_DIR/logs/bulk_tap.txt
 touch $OUTPUT
 
-echo Installing Layer 4.5 on server and client
+echo "Installing Layer 4.5 on server and client"
 
 sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; $DCA_KERNEL_DIR/bash/installer.sh; cd $GIT_DIR/../Desktop; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 

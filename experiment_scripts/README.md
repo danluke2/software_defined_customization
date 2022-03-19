@@ -18,6 +18,9 @@ NOTE: Paper will be uploaded to arxiv soon
 
 ## NCO/DCA overhead experiment:
 
+Purpose: This experiment tests the overhead of distributing customizations unique to each host and the associated cost of managing the customization database.  
+
+
 NOTE: This first trial of 250 hosts takes about 8 min to complete, mostly due to making a module to match each emulated host.  The complete test will take much longer, depending on the number of trials selected and build argument provided.
 
 1) (SERVER) `cd ~/software_defined_customization/experiment_scripts`
@@ -52,6 +55,9 @@ NOTE: This first trial of 250 hosts takes about 8 min to complete, mostly due to
 
 ## Bulk file transfer overhead experiment:
 
+Purpose: First we determine the overhead of adding in TCP network taps for Layer 4.5 customization, but do not apply any customization to the connection.  Then we determine the overhead of the taps with a sample customization applied to the connection that performs multiple memory copy operations.
+
+
 1) Copy a large test file to the NCO directory
 
     * The VM uses a shared folder so you don't need to copy the image to the VM since that will be accomplished by the bash script
@@ -70,7 +76,6 @@ generate the graph:
 
         * SERVER_DIR=directory with overhead.iso
 
-        * MD5=the md5sum of the overhead file
 
     * `sudo ./bulk_experiment.sh 15`
 
@@ -93,6 +98,9 @@ generate the graph:
 
 
 ## Batch DNS overhead experiment:
+
+Purpose: First we determine the overhead of adding in UDP network taps for Layer 4.5 customization, but do not apply any customization to the connection.  Then we determine the overhead of the taps with a sample customization applied to the connection that alters each message sent.
+
 
 NOTE: during this experiment all DNS queries will result in the same IP address resolution, which makes normal internet usage not possible within the VM until experiment finishes.
 
@@ -121,6 +129,9 @@ generate the graph:
 
 
 ## Challenge/Response prototype:
+
+Purpose: This demonstrates the ability to alter customization modules to include security code prior to building the modules.  Once deployed, the server can challenge the module based on the added code.
+
 
 NOTE: The script assumes NCO and DCA are on same machine, but this is not a strict requirement and can be adapted to have them be different machines
 
@@ -172,6 +183,8 @@ tracelog entries
 
 
 ## Middlebox demo:
+
+Purpose: This demonstrates that a customization module can have a corresponding inverse module deployed to a network middlebox conducting deep packet inspection in order to process the customization.
 
 NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
