@@ -43,7 +43,7 @@ else
 	exit -1
 fi
 
-
+echo "Calculating file checksum"
 MD5=($(md5sum $NCO_DIR/overhead.iso))
 
 # client connect to server over ssh, launch web server, then on client run experiment, save data to file
@@ -53,6 +53,7 @@ OUTPUT=$EXP_SCRIPT_DIR/logs/bulk_base.txt
 touch $OUTPUT
 
 sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; pkill python; cd $GIT_DIR/../Desktop; cp $NCO_DIR/overhead.iso .; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
+
 
 sleep 2
 

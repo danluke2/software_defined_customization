@@ -216,6 +216,8 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
     * `vagrant up`  
 
+        * If you get 'bandwidthctl' error, then comment out that line in the vagrant file and run up command again
+
 
 1) Wait for machine to download and install Layer 4.5 and dependencies
 
