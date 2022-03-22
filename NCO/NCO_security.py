@@ -83,8 +83,9 @@ def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buff
                 result = 0
             else:
                 print(f"Module_id string mismatch, was {temp2} and should be {mod_id}")
-    except json.decoder.JSONDecodeError as e:
-        print(f"Error on process report recv call, {e}")
-        result = cfg.CLOSE_SOCK
+
+    except Exception as e:
+        print(f"Error processing challenge response: {e}")
+        result = cfg.REVOKE_MOD
 
     return result

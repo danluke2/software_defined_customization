@@ -224,6 +224,7 @@ def device_thread(conn, ip, port, buffer_size, interval):
                         break
                     # if temp == cfg.RETIRE_MOD:
                     if temp == cfg.REVOKE_MOD:
+                        print("*********** Failed challenge/respnse, Revoking module************")
                         #send revoke command b/c module failed check
                         err = revoke_module(conn, db_connection, host_id, mod_id)
                         if err != 0:
