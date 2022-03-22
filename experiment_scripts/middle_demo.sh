@@ -57,21 +57,21 @@ sleep $SLEEP_INT
 
 # start NCO process with command line params
 echo "*************** Starting NCO  ***************"
-gnome-terminal -- python3 $NCO_DIR/NCO.py --query_interval $1 --linear
+gnome-terminal -- bash -c  "echo '*************** Starting NCO  ***************'; python3 $NCO_DIR/NCO.py --query_interval $1 --linear"
 
 sleep $SLEEP_INT
 
 
 # start DCA process, which will have host_id = 1
 echo "*************** Starting DCA on Server  ***************"
-gnome-terminal --  python3 $DCA_USER_DIR/DCA.py
+gnome-terminal -- bash -c  "echo '*************** Server DCA  ***************'; python3 $DCA_USER_DIR/DCA.py"
 
 sleep $SLEEP_INT
 
 
 # start DCA middlebox process
 echo "*************** Starting Middlebox DCA on Server  ***************"
-gnome-terminal --  python3 $DCA_USER_DIR/DCA_middlebox.py
+gnome-terminal -- bash -c  "echo '*************** Middlebox DCA  ***************';  python3 $DCA_USER_DIR/DCA_middlebox.py"
 
 sleep $SLEEP_INT
 
@@ -99,14 +99,14 @@ sleep $SLEEP_INT
 
 # start middlebox collection process
 echo "*************** Starting Middlebox DCA on Server  ***************"
-gnome-terminal -- tcpdump udp port 53 -i any -w $GIT_DIR/middle_demo.pcap
+gnome-terminal -- bash -c  "echo '*************** Starting TCPDUMP  ***************'; tcpdump udp port 53 -i any -w $GIT_DIR/middle_demo.pcap"
 
 sleep $SLEEP_INT
 
 
 # start dnsmasq process on server
 echo "*************** Starting DNSMASQ on Server  ***************"
-gnome-terminal -- dnsmasq --no-daemon -c 0
+gnome-terminal -- bash -c  "echo '*************** Starting DNSMASQ  ***************'; dnsmasq --no-daemon -c 0"
 
 sleep $SLEEP_INT
 
@@ -128,9 +128,10 @@ sleep $SLEEP_INT
 
 pkill python3
 pkill tcpdump
+pkill dnsmasq
 rmmod demo_dns_server_app_tag
 rmmod layer4_5
 
 
 echo "Opening Wireshark PCAP"
-wireshark -r $GIT_DIR/middle_demo.pcap
+wireshark -r $GIT_DIR/middle_demo.pcap &

@@ -148,6 +148,8 @@ NOTE: The script assumes NCO and DCA are on same machine, but this is not a stri
 
         * skcipher = crypto_alloc_skcipher("YOUR_AES_CBC_ALGO", 0, 0);
 
+            * example: "cbc(aes)"
+
 
 1) (SERVER) `cd ~/software_defined_customization/experiment_scripts`
 
@@ -176,6 +178,9 @@ NOTE: The script assumes NCO and DCA are on same machine, but this is not a stri
 
     * NOTE: scripted experiment DCA id will always be 1
 
+    * Open cib.db with DB Browser for SQLite (already installed): `sqlitebrowser ~/software_defined_customization/NCO/cib.db`
+
+
    ![](../assets/active_table.png)
 
 1) Allow script to run until completed
@@ -190,6 +195,8 @@ NOTE: The script assumes NCO and DCA are on same machine, but this is not a stri
 
 1) Verify each challenge/response was conducted correctly by reviewing
 tracelog entries
+
+    * `tracelog`
 
    ![](../assets/challenge_log.png)
 
@@ -249,7 +256,6 @@ NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
 1) Allow script to run until completed, signaled by Wireshark opening collected traffic packet.
 
-    * dnsmasq terminal will stay open for verification that dns queries were made
 
 
 1) Wireshark:

@@ -88,7 +88,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
   else
   {
     //something strange came in
-    trace_printk("L4.5: DNS packet length makes no sense, size = %lu\n", recv_buf_st->recv_return);
+    trace_printk("L4.5: DNS packet does not match pattern, size = %lu\n", recv_buf_st->recv_return);
   }
 
   return;

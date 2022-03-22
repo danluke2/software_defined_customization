@@ -25,6 +25,8 @@ CLIENT_PASSWD=vagrant
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
+WIRESHARK_DIR=/usr/lib/x86_64-linux-gnu/wireshark/plugins
+
 # NCO/DCA
 if [ "$1" = "NCO" ]; then
   cd $EXP_SCRIPT_DIR
@@ -77,4 +79,6 @@ if [ "$1" = "MIDDLEBOX" ]; then
   rm -rf h*
   cd $GIT_DIR
   rm middle_demo.pcap
+  cd $WIRESHARK_DIR
+  sudo rm demo*
 fi
