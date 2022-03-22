@@ -135,6 +135,20 @@ Purpose: This demonstrates the ability to alter customization modules to include
 
 NOTE: The script assumes NCO and DCA are on same machine, but this is not a strict requirement and can be adapted to have them be different machines
 
+
+1) (SERVER) Verify server VM has correct crypto driver present:
+
+    * `cat /proc/crypto | grep cbc`
+
+        * Response should include: "driver: cbc-aes-aesni"
+
+    * If correct driver not present, then update 'nco_challenge_response.c' with an aes-cbc driver present on your machine
+
+        * location: software_defined_customization/NCO/core_modules
+
+        * skcipher = crypto_alloc_skcipher("YOUR_AES_CBC_ALGO", 0, 0);
+
+
 1) (SERVER) `cd ~/software_defined_customization/experiment_scripts`
 
 
@@ -151,7 +165,12 @@ NOTE: The script assumes NCO and DCA are on same machine, but this is not a stri
 
 1) Verify NCO and DCA are running in separate terminal windows
 
+    * First message in terminal displays either NCO or DCA
+
 1) Verify DCA connected to NCO
+
+    ![](../assets/connect.png)
+
 
 1) Verify challenge module deployed to DCA and challenge/response window set to 5 seconds
 
@@ -164,6 +183,10 @@ NOTE: The script assumes NCO and DCA are on same machine, but this is not a stri
     * Verify each check passed via terminal output
 
    ![](../assets/challenge.png)
+
+   * If challenge/response fails, a message will be printed at NCO and module will be revoked
+
+   ![](../assets/challenge_error.png)
 
 1) Verify each challenge/response was conducted correctly by reviewing
 tracelog entries

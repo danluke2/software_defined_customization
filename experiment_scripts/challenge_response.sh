@@ -46,13 +46,13 @@ sleep 2
 
 # start NCO process with command line params
 echo "*************** Starting NCO  ***************"
-gnome-terminal -- python3 $NCO_DIR/NCO.py --challenge --window $1 --query_interval $2 --linear
+gnome-terminal -- bash -c  "echo '*************** Starting NCO  ***************';  python3 $NCO_DIR/NCO.py --challenge --window $1 --query_interval $2 --linear"
 
 sleep 2
 
 # start DCA process, which will have host_id = 1
 echo "*************** Starting DCA  ***************"
-gnome-terminal --  python3 $DCA_USER_DIR/DCA.py
+gnome-terminal -- bash -c  "echo '*************** Starting DCA  ***************';  python3 $DCA_USER_DIR/DCA.py"
 
 
 sleep 2
