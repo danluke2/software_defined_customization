@@ -219,4 +219,10 @@ a modified message and replies with this modified message
 
     * `sudo rmmod sample_python_server`
 
-    * `cyclelog` (if desired)
+    
+
+1) Copy tracelog to file and refresh:
+
+    * `tracecopy FILENAME`
+
+    * copies tracelog to ~/software_defined_customization folder

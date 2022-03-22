@@ -50,7 +50,11 @@ NOTE: This first trial of 250 hosts takes about 8 min to complete, mostly due to
 
     * `./cleanup.sh NCO`
 
+1) Copy tracelog to file and refresh:
 
+    * `tracecopy FILENAME`
+
+    * copies tracelog to ~/software_defined_customization folder
 
 
 ## Bulk file transfer overhead experiment:
@@ -97,6 +101,12 @@ generate the graph:
 
 
 
+1) Copy tracelog to file and refresh:
+
+    * `tracecopy FILENAME`
+
+    * copies tracelog to ~/software_defined_customization folder
+
 ## Batch DNS overhead experiment:
 
 Purpose: First we determine the overhead of adding in UDP network taps for Layer 4.5 customization, but do not apply any customization to the connection.  Then we determine the overhead of the taps with a sample customization applied to the connection that alters each message sent.
@@ -127,6 +137,12 @@ generate the graph:
 
     * `./cleanup.sh BATCH`
 
+
+1) Copy tracelog to file and refresh:
+
+    * `tracecopy FILENAME`
+
+    * copies tracelog to ~/software_defined_customization folder
 
 ## Challenge/Response prototype:
 
@@ -210,6 +226,11 @@ tracelog entries
     * `./cleanup.sh CHALLENGE`
 
 
+1) Copy tracelog to file and refresh:
+
+    * `tracecopy FILENAME`
+
+    * copies tracelog to ~/software_defined_customization folder
 
 
 ## Middlebox demo:
@@ -274,3 +295,10 @@ NOTE: this demo will assume the middlebox is on same machine as the DNS server
     * `cd ~/software_defined_customization/experiment_scripts`
 
     * `./cleanup.sh MIDDLEBOX`
+
+
+1) Copy tracelog to file and refresh:
+
+    * `tracecopy FILENAME`
+
+    * copies tracelog to ~/software_defined_customization folder
