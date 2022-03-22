@@ -91,7 +91,7 @@ sleep $SLEEP_INT
 sleep $SLEEP_INT
 
 # Insert client module in DB for deployment to host_id = 2
-echo "*************** Deploy Server Module and Inverse  ***************"
+echo "*************** Deploy Client Module and Inverse  ***************"
 python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 2
 
 sleep $SLEEP_INT
