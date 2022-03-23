@@ -11,7 +11,9 @@ NOTE: Paper will be uploaded to arxiv soon
 
     * The Vagrantfile creates a server and client VM with required packages installed.
 
+1) Various aliases are used and are pre-installed on the Vagrant VM's
 
+    * see setup.sh for VM aliases
 
 
 
@@ -52,7 +54,7 @@ NOTE: This first trial of 250 hosts takes about 8 min to complete, mostly due to
 
 1) Copy tracelog to file and refresh:
 
-    * `tracecopy FILENAME`
+    * `tracecopy nco_dca.txt`
 
     * copies tracelog to ~/software_defined_customization folder
 
@@ -103,7 +105,7 @@ generate the graph:
 
 1) Copy tracelog to file and refresh:
 
-    * `tracecopy FILENAME`
+    * `tracecopy bulk_transfer.txt`
 
     * copies tracelog to ~/software_defined_customization folder
 
@@ -140,7 +142,7 @@ generate the graph:
 
 1) Copy tracelog to file and refresh:
 
-    * `tracecopy FILENAME`
+    * `tracecopy batch_dns.txt`
 
     * copies tracelog to ~/software_defined_customization folder
 
@@ -228,7 +230,7 @@ tracelog entries
 
 1) Copy tracelog to file and refresh:
 
-    * `tracecopy FILENAME`
+    * `tracecopy chellenge_response.txt`
 
     * copies tracelog to ~/software_defined_customization folder
 
@@ -299,6 +301,6 @@ NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
 1) Copy tracelog to file and refresh:
 
-    * `tracecopy FILENAME`
+    * `tracecopy middle_demo.txt`
 
     * copies tracelog to ~/software_defined_customization folder
