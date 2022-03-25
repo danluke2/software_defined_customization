@@ -58,7 +58,7 @@ sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
 
 # *************** Other Makefile updates ***************
 
-MAKEFILE_PATHS="$DCA_KERNEL_DIR/test_modules $EXP_MOD_DIR $GIT_DIR/sample_modules "
+MAKEFILE_PATHS="$DCA_KERNEL_DIR/test_modules $EXP_MOD_DIR $EXP_MOD_DIR/geni $GIT_DIR/sample_modules "
 
 for x in $MAKEFILE_PATHS
 do
