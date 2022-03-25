@@ -1,0 +1,9 @@
+[Unit]
+Description=Python simple server loader systemd service.
+
+[Service]
+Type=simple
+ExecStart='/users/dflukasz/software_defined_customization/experiment_scripts/client_server/python_simple_server.py'
+
+[Install]
+WantedBy=multi-user.target
