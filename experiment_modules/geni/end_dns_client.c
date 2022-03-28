@@ -42,6 +42,10 @@ static unsigned int protocol = 17; // UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
+static unsigned int tag_count = 1;
+module_param(tag_count, uint, 0600);
+MODULE_PARM_DESC(tag_count, "Number of customization tags to insert");
+
 char cust_tag_test[9] = "XTAGXdig";
 size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test)-1; // i.e., 8 bytes
 
@@ -56,6 +60,8 @@ u16 module_id=2;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
   bool copy_success;
+  int counter = 0;
+  
   send_buf_st->copy_length = 0;
 
   // trace_print_hex_dump("Original DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, length, true);
@@ -69,10 +75,11 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
   send_buf_st->copy_length += send_buf_st->length;
 
-
-  memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
-  send_buf_st->copy_length += cust_tag_test_size;
-
+  for (counter=0; counter <= tag_count; counter++ )
+  {
+    memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
+    send_buf_st->copy_length += cust_tag_test_size;
+ }
 
   return;
 }
