@@ -109,6 +109,8 @@ generate the graph:
 
     * copies tracelog to ~/software_defined_customization folder
 
+
+
 ## Batch DNS overhead experiment:
 
 Purpose: First we determine the overhead of adding in UDP network taps for Layer 4.5 customization, but do not apply any customization to the connection.  Then we determine the overhead of the taps with a sample customization applied to the connection that alters each message sent.

@@ -6,6 +6,7 @@
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/init.h>
+#include <linux/inet.h>
 #include <linux/uio.h> // For iter structures
 
 #include "../common_structs.h"
@@ -96,7 +97,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
   }
 
   trace_print_hex_dump("Cust DNS packet ID: ", DUMP_PREFIX_ADDRESS, 16, 1, send_buf_st->buf, 2, true);
-  return;
+
 
   // determine fqdn size
   while (*field_length != 0)
@@ -112,7 +113,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
   // advance iter past rest of DNS header
   iov_iter_advance(send_buf_st->src_iter, sizeof(struct dns_header) - 2);
 
-  copy_success = copy_from_iter_full(send_buf_st->buf + (size_t) 2, send_buf_st->length - sizeof(struct dns_header) + 2 , send_buf_st->src_iter);
+  copy_success = copy_from_iter_full(send_buf_st->buf + (size_t) 2, send_buf_st->length - sizeof(struct dns_header), send_buf_st->src_iter);
   if(copy_success == false)
   {
     trace_printk("L4.5 ALERT: Failed to copy FQDN to cust buffer\n");
