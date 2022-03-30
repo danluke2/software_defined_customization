@@ -1,0 +1,9 @@
+[Unit]
+Description=NCO systemd service.
+
+[Service]
+Type=simple
+ExecStart='/users/dflukasz/software_defined_customization/NCO/NCO.py'
+
+[Install]
+WantedBy=multi-user.target
