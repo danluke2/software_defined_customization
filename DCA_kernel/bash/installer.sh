@@ -8,8 +8,11 @@ CURDIR="$( pwd )"
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
-CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
+INSTALL_LOCATION=/usr/lib/modules/5.13.0-37-generic/layer4_5
+CUST_LOCATION=/usr/lib/modules/5.13.0-37-generic/layer4_5/customizations
+DCA_LOCATION=/usr/lib/modules/5.13.0-37-generic/layer4_5/DCA
+DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
+
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
@@ -45,6 +48,7 @@ echo "Making Layer 4.5 modules"
 
 # Make the files
 cd $INSTALLER_MAKEFILE_DIR
+make clean || error_exit "Makefile clean error detected"
 make && make install || error_exit "Makefile error detected"
 
 
@@ -53,6 +57,8 @@ make && make install || error_exit "Makefile error detected"
 insmod $INSTALL_LOCATION/layer4_5.ko layer4_5_path="$INSTALL_LOCATION"
 echo "Layer 4.5 started"
 
+# update system module dependencies
+depmod
 
 echo "***************************"
 echo "Adding Layer 4.5 to modules config for auto load on boot"
@@ -92,7 +98,7 @@ Description=Customization loader systemd service.
 
 [Service]
 Type=simple
-ExecStart='/usr/lib/modules/$(uname -r)/layer4_5/loader.sh'
+ExecStart='$INSTALL_LOCATION/loader.sh'
 
 [Install]
 WantedBy=multi-user.target
@@ -103,4 +109,6 @@ systemctl enable layer4_5_loader.service
 
 
 echo "***************************"
-echo "(TODO) Installing DCA service"
+echo "Copying DCA files"
+mkdir -p $DCA_LOCATION
+cp -R $DCA_USER_DIR/* $DCA_LOCATION

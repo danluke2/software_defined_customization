@@ -15,6 +15,8 @@ import struct
 
 import platform #for linux distro
 
+# remove prints and log instead
+import logging
 
 
 parser = argparse.ArgumentParser(description='DCA middlebox user space program')
@@ -23,6 +25,8 @@ parser.add_argument('--port', type=int, required=False, help="NCO middlebox port
 parser.add_argument('--dir', type=str, required=False, help="Inverse Module download dir")
 parser.add_argument('--type', type=str, required=False, help="Middlebox Type Info")
 parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
+parser.add_argument('--logging', help="Enable logging to file instead of print to console", action="store_true" )
+parser.add_argument('--logfile', type=str, required=False, help="Full log file path to use, defaults to layer4_5 directory")
 
 args = parser.parse_args()
 
@@ -33,6 +37,7 @@ INTERFACE="enp0s8"
 type="Wireshark"
 system_name = platform.system()
 system_release = platform.release()
+symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
 
 # assuming Wireshark plugin dir
 download_dir = "/usr/lib/x86_64-linux-gnu/wireshark/plugins"
@@ -54,7 +59,13 @@ if args.dir:
 if args.type:
     type = args.type
 
-
+if args.logging:
+    if args.logfile:
+        logging.basicConfig(filename=args.logfile, level=logging.DEBUG)
+    else:
+        logging.basicConfig(filename=symver_location + 'DCA/middlebox_dca_messages.log', level=logging.DEBUG)
+else:
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 
@@ -97,17 +108,17 @@ def recv_inverse_module(conn_socket, filename, filesize):
                 break
             file_to_write.write(data)
             filesize -= len(data)
-            # print("remaining = ", filesize)
+            # logging.info("remaining = ", filesize)
             if filesize<=0:
                 break
         file_to_write.close()
-    print(f"Inverse module name = {filename} completed")
+    logging.info(f"Inverse module name = {filename} completed")
 
 
 
 # read in list of modules to remove, then finish
 def revoke_inverse_module(conn_socket, filename):
-    print(f"revoke module = {download_dir}/{filename}")
+    logging.info(f"revoke module = {download_dir}/{filename}")
     result = 0
     try:
         # now we need to remove the module
@@ -117,7 +128,7 @@ def revoke_inverse_module(conn_socket, filename):
         result = -1
         temp = (f"{e}").encode('utf-8')
         conn_socket.sendall(temp)
-        print(f"Exception: {e}")
+        logging.info(f"Exception: {e}")
     return result
 
 
@@ -138,9 +149,9 @@ while True:
                 connected=True
                 send_initial_report(s)
                 count = 0
-                print(f"Connected to NCO at {HOST}:{PORT}")
+                logging.info(f"Connected to NCO at {HOST}:{PORT}")
             except ConnectionRefusedError:
-                print("FAILED to reach server. Sleep briefly & try again")
+                logging.info("FAILED to reach server. Sleep briefly & try again")
                 time.sleep(sleep_time)
                 continue
 
@@ -149,28 +160,28 @@ while True:
             try:
                 data = s.recv(1024)
                 recv_dict = json.loads(data)
-                print(f"Recieved message: {recv_dict}")
+                logging.info(f"Recieved message: {recv_dict}")
 
             except json.decoder.JSONDecodeError as e:
                 count +=1
                 if count >= max:
-                    print("max json errors reached")
+                    logging.info("max json errors reached")
                     stop_recv = True
 
             except OSError as e:
-                print(f"OSError {e}")
+                logging.info(f"OSError {e}")
                 stop_recv = True
 
             except Exception as e:
-                print(f"Error during data reception: {e}")
+                logging.info(f"Error during data reception: {e}")
                 count +=1
                 if count >= max:
-                    print("max general errors reached")
+                    logging.info("max general errors reached")
                     stop_recv = True
 
             try:
                 if recv_dict["cmd"] == "recv_inverse":
-                    print(f"prepare to recv inverse module, name = {recv_dict['name']}")
+                    logging.info(f"prepare to recv inverse module, name = {recv_dict['name']}")
                     recv_inverse_module(s, recv_dict['name'], recv_dict['size'])
 
 
@@ -183,5 +194,5 @@ while True:
 
 
             except Exception as e:
-                print(f"Command parsing error, {e}")
+                logging.info(f"Command parsing error, {e}")
                 break

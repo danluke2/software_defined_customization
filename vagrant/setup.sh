@@ -19,8 +19,6 @@ SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_script
 
 $DCA_KERNEL_DIR/bash/installer.sh
 
-depmod
-
 
 #replace dnsmasq config to match experiments
 cp $GIT_DIR/vagrant/dnsmasq.conf /etc/dnsmasq.conf
@@ -43,7 +41,7 @@ alias client_echo='python3 $SIMPLE_SERVER_DIR/echo_client.py'
 alias clean_layer='sudo rm -rf /usr/lib/modules/$(uname -r)/layer4_5'
 
 tracecopy () {
-    sudo cp /sys/kernel/tracing/trace /home/vagrant/software_defined_customization/$1
+    sudo cp /sys/kernel/tracing/trace $GIT_DIR/$1
     sudo bash -c '> /sys/kernel/tracing/trace'
 }
 EOT

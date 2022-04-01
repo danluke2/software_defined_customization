@@ -5,8 +5,7 @@
 
 1) Further test/improve overhead of using LKM approach
 
-1) how to reset cust module global variables or make socket specific (i.e., one cust mod
-  applies to 2 sockets, then both update the same global vars)
+1) how to reset cust module global variables or make socket specific (i.e., one cust mod applies to 2 sockets, then both update the same global vars)
 
     * providing socket flow params can help distinguish different flows
 

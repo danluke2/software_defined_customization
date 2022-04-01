@@ -1,7 +1,9 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
-DISTRO_DIR=/lib/modules/5.13.0-35-generic
+INSTALL_LOCATION=/usr/lib/modules/5.13.0-37-generic/layer4_5
+DISTRO_DIR=/lib/modules/5.13.0-37-generic
+
+
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
@@ -34,22 +36,13 @@ all: layer4_5
 
 layer4_5:
 	make "KCFLAGS=$(KCFLAGS) $(DEBUG_FLAGS)" -C $(DISTRO_DIR)/build M=$(INSTALLER_MAKEFILE_DIR) modules
-	# make "KCFLAGS=$(KCFLAGS) $(DEBUG_FLAGS)" -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 
 clean:
 	make -C $(DISTRO_DIR)/build M=$(INSTALLER_MAKEFILE_DIR) clean
 	rm -rf *.o *.so
 
-# PREFIX = /usr/lib/modules/$(shell uname -r)/layer4_5
 
-# .PHONY: install-addons
-# install-addons: addons
-# 	mkdir -p $(INSTALL_LOCATION)
-# 	for FILE in $(INSTALL_FILES); do \
-# 		mkdir -p "`dirname "$(INSTALL_LOCATION)/$$FILE"`"; \
-# 		cp $$FILE $(INSTALL_LOCATION)/$$FILE; \
-# 	done
 
 .PHONY: install-layer4_5
 install-layer4_5: layer4_5

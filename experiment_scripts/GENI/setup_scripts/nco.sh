@@ -2,9 +2,23 @@
 # Usual directory for downloading software in ProtoGENI hosts is `/local`
 cd /local
 
+
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/users/dflukasz/software_defined_customization
 NCO_DIR=$GIT_DIR/NCO
-GENI_DIR=$GIT_DIR/experiment_scripts/GENI
+DCA_KERNEL_DIR=$GIT_DIR/DCA_kernel
+EXP_SCRIPT_DIR=$GIT_DIR/experiment_scripts
+SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
+GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
+
+
+GENI_USERNAME=$1
+
+
+# ************** STANDARD PARAMS MUST GO HERE ****************
+
+
 
 ##### Check if file is there #####
 if [ ! -f "./nco_installed.txt" ]
@@ -21,13 +35,13 @@ then
     wait $EPID
 
     # Install custom software
-    cd /users/dflukasz
+    cd /users/$GENI_USERNAME
     sudo git clone https://github.com/danluke2/software_defined_customization.git & EPID=$!
     wait $EPID
-    sudo chown -R dflukasz $GIT_DIR
+    sudo chown -R $GENI_USERNAME $GIT_DIR
 
 
-    LINE=8
+    LINE=14
     FILE=$GIT_DIR/config.sh
     sudo sed -i "${LINE}d" $FILE
     sudo sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
@@ -35,15 +49,17 @@ then
     cd $GIT_DIR
     sudo ./config.sh
 
-    NCO_DIR=/
-    sudo cp $GENI_DIR/setup_scripts/nco.service etc/systemd/system/nco.service
+
+    sudo cp $GENI_SCRIPT_DIR/setup_scripts/nco.service etc/systemd/system/nco.service
 
     #register loader with systemd
     sudo systemctl enable nco.service
 
+    sudo systemctl start nco.service
+
 fi
 ##### Run Boot-time commands
 # Start my service -- assume it was installed at /usr/local/bin
-cd /users/dflukasz/software_defined_customization
+cd $GIT_DIR
 sudo git pull
 sudo systemctl restart nco.service

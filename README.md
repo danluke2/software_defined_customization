@@ -76,87 +76,6 @@ Acronyms:
   * NetVerify 21 presentation focused on Layer 4.5 and initial idea of network wide control (15 min): https://youtu.be/s9vwJLDMSlI?start=17737&end=18730
 
 
-<!--
-2) tap.c: intercepts TCP and UDP calls, creates a customizable socket with
-key derived Sock FD
-
-    * socket creation encompasses customization assignment based on registered
-    customization nodes
-
-    * if socket will be customized, send/recv customization functions are
-    stored in customization\_socket struct
-
-    * each socket can have a single customization applied
-
-
-
-1) On send/recv, tap.c returns a call to DCA (if customizing socket), which in
-turn will report the number of bytes sent to the app, as if modifications did not take place
-
-    * send: DCA calls stored send_function to modify the buffer  
-
-    * recv: DCA calls stored recv_function to modify the buffer
-
-
-
-
-4) Customization modules unregister with Layer 4.5 DCA when no longer needed:
-
-    * remove customization from available list so can't be applied to new sockets
-
-    * remove customization from all active sockets using it
-
-    * after all sockets have customization removed, then allow customization module to be unloaded -->
-
-
-<!-- ## Prerequisites:
-
-1) Vagrant: https://www.vagrantup.com
-
-1) VirtualBox: https://www.virtualbox.org
-
-1) Approximately 20GB of hard drive space
-
-    * 5GB Vagrant box
-
-    * 11GB VMDK for server VM
-
-    * 11GB VMDK for client VM
-
-
-1) If not using Vagrant VM:
-
-    * Download and configure Ubuntu 20.04+ running kernel 5.11+
-
-    * View notes in Vagrantfile and setup.sh on how to configure VM for experiments and install Layer 4.5 module
-
-
-1) If changes to common variables are desired:
-
-    * Update config.sh with new value to existing variable
-
-    * Execute config.sh to update all necessary files to reflect the new value
-
-
-## Vagrant VM settings:
-
-  * username/password: vagrant/vagrant
-
-  * username/password: root/vagrant
-
-  * VBOX specific:
-
-      * base memory: 4096
-
-      * 2 CPU
-
-      * video: 32MB
-
-      * Network 1: NAT, Paravirtualized adapter
-
-  * various aliases inserted by setup.sh script -->
-
-
 
 
 ## Layer 4.5 using Vagrant and VirtualBox:
@@ -187,9 +106,11 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 
 
-1) (Optional) If changes to common variables are desired:
+1) If changes to common variables or file paths are required/desired:
 
     * Update config.sh with new value to existing variable
+
+        * Only need to update portion marked 'UPDATE SECTION'
 
     * Execute config.sh to update all necessary files to reflect the new value
 
@@ -199,6 +120,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
     * software_defined_customization/DCA\_kernel/Makefile
 
     * Makefile is set with DEBUG defined by default to print messages to a trace file
+
 
 1) Navigate to the vagrant folder and install base machine:
 
@@ -258,7 +180,7 @@ turn will report the number of bytes sent to the app, as if modifications did no
 
 ## Layer 4.5 on your own Ubuntu VM:
 
-NOTE: Other Linux OS's are possible, but you need to adjust scripts to reflect your environment
+NOTE: Other Linux OS's are possible, but you need to adjust scripts to reflect your environment (mainly the installer file)
 
 1) Download and configure Ubuntu 20.04+ running kernel 5.11+
 
@@ -277,8 +199,8 @@ NOTE: Other Linux OS's are possible, but you need to adjust scripts to reflect y
 
 ## Next Steps:
 
-1) To get experience with Layer 4.5 modules and how they are used, Use the README provided in the sample\_modules folder to run the provided sample modules
+1) To get experience with Layer 4.5 modules and how they are used, Use the README provided in the layer4_5_modules/sample\_modules folder to run the provided sample modules
 
     * Sample modules don't use the NCO or user-space DCA component and focus on Layer 4.5 only
 
-1) To run experiments from paper, see README in experiment\_scripts and modules in experiment\_modules
+1) To run experiments from paper, see README in experiment\_scripts/netsoft and modules in layer4_5_modules/netsoft

@@ -16,7 +16,8 @@ import platform #for linux distro
 # comms with Layer 4.5
 from netlink_helper import *
 
-
+# remove prints and log instead
+import logging
 
 
 parser = argparse.ArgumentParser(description='DCA user space program')
@@ -25,11 +26,12 @@ parser.add_argument('--port', type=int, required=False, help="NCO port")
 parser.add_argument('--dir', type=str, required=False, help="KO Module download dir")
 parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
 parser.add_argument('--controlled', help="Require user input to start checkin process", action="store_true" )
+parser.add_argument('--logging', help="Enable logging to file instead of print to console", action="store_true" )
 
 args = parser.parse_args()
 
 
-
+# HOST = '10.10.0.5' GENI
 HOST = '10.0.0.20'
 PORT = 65432        # The port used by the NCO
 INTERFACE="enp0s8"
@@ -37,6 +39,9 @@ system_name = platform.system()
 system_release = platform.release()
 symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
 download_dir = symver_location + "customizations"
+
+
+
 
 max = 5
 
@@ -52,7 +57,10 @@ if args.iface:
 if args.dir:
     download_dir = args.dir
 
-
+if args.logging:
+    logging.basicConfig(filename=symver_location + 'DCA/dca_messages.log', level=logging.DEBUG)
+else:
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 
@@ -77,7 +85,7 @@ def send_full_report(conn_socket):
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 def send_challenge_report(conn_socket, cust_id, iv, msg):
-    print(f"Challenge message {msg}")
+    logging.info(f"Challenge message {msg}")
     send_dict = challenge_layer4_5(cust_id, iv, msg)
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
@@ -96,7 +104,7 @@ def query_layer4_5():
     sock.fd.close()
 
     payload = report.payload.decode("utf-8")
-    print(f"Query Response {payload}")
+    logging.info(f"Query Response {payload}")
 
     if payload == "Failed to create cust report":
         payload = "{};"
@@ -120,7 +128,7 @@ def challenge_layer4_5(cust_id, iv, msg):
     sock.fd.close()
 
     payload = report.payload.decode("utf-8")
-    print(f"Challenge Response {payload}")
+    logging.info(f"Challenge Response {payload}")
 
     if payload == "Failed to create cust report":
         payload = "{};"
@@ -148,15 +156,15 @@ def send_symvers(conn_socket):
     data = conn_socket.recv(1024)
     data = data.decode("utf-8")
     if data != 'Clear to send':
-        print("NCO can't accept")
+        logging.info("NCO can't accept")
         return
 
     with open(symver_location + 'Module.symvers', 'rb') as file_to_send:
-        print("symver file open")
+        # logging.info("symver file open")
         for data in file_to_send:
-            # print("sending module")
+            # logging.info("sending module")
             conn_socket.sendall(data)
-        print("symvers file close")
+        # logging.info("symvers file close")
 
 
 def recv_ko_files(conn_socket, count):
@@ -164,13 +172,12 @@ def recv_ko_files(conn_socket, count):
         data = conn_socket.recv(1024)
         ko_dict = json.loads(data)
         filename = ko_dict["name"]
-        print(f"module name = {filename}")
         filesize = ko_dict["size"]
-        print(f"module size = {filesize}")
+        logging.info(f"module name = {filename}, size = {filesize}")
         conn_socket.sendall(b'Clear to send')
         install_ko_file(conn_socket, filename, filesize)
-        print(f"module name = {filename} completed")
-    print("finished all ko modules")
+        logging.info(f"module name = {filename} completed")
+    # logging.info("finished all ko modules")
 
 
 def install_ko_file(conn_socket, filename, filesize):
@@ -181,7 +188,7 @@ def install_ko_file(conn_socket, filename, filesize):
                 break
             file_to_write.write(data)
             filesize -= len(data)
-            # print("remaining = ", filesize)
+            # logging.info("remaining = ", filesize)
             if filesize<=0:
                 break
         file_to_write.close()
@@ -191,12 +198,12 @@ def install_ko_file(conn_socket, filename, filesize):
         subprocess.run(["insmod", download_dir+"/"+filename])
 
     except Exception as e:
-        print(f"Exception: {e}")
+        logging.info(f"Exception: {e}")
 
 
 # read in list of modules to remove, then finish
 def revoke_module(conn_socket, filename):
-    print(f"revoke module = {download_dir}/{filename}")
+    logging.info(f"revoke module = {download_dir}/{filename}")
     result = 0
     try:
         # now we need to remove the module
@@ -206,7 +213,7 @@ def revoke_module(conn_socket, filename):
         result = -1
         temp = (f"{e}").encode('utf-8')
         conn_socket.sendall(temp)
-        print(f"Exception: {e}")
+        logging.info(f"Exception: {e}")
     return result
 
 
@@ -219,6 +226,7 @@ sleep_time = 10
 while True:
     connected = False
     stop_recv = False
+    log_print = True
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
         while not connected:
@@ -228,7 +236,9 @@ while True:
                 send_initial_report(s)
                 count = 0
             except ConnectionRefusedError:
-                print("FAILED to reach server. Sleep briefly & try again")
+                if log_print:
+                    logging.info("FAILED to reach server. Sleep briefly & try again")
+                    log_print = False
                 time.sleep(sleep_time)
                 continue
 
@@ -238,33 +248,33 @@ while True:
             try:
                 data = s.recv(1024)
                 recv_dict = json.loads(data)
-                print(f"Recieved message: {recv_dict}")
+                logging.info(f"Recieved message: {recv_dict}")
 
             except json.decoder.JSONDecodeError as e:
                 count +=1
                 if count >= max:
-                    print("max json errors reached")
+                    logging.info("max json errors reached")
                     stop_recv = True
 
             except OSError as e:
-                print(f"OSError {e}")
+                logging.info(f"OSError {e}")
                 stop_recv = True
 
             except Exception as e:
-                print(f"Error during data reception: {e}")
+                logging.info(f"Error during data reception: {e}")
                 count +=1
                 if count >= max:
-                    print("max general errors reached")
+                    logging.info("max general errors reached")
                     stop_recv = True
 
             try:
                 if recv_dict["cmd"] == "send_symvers":
-                    print("requested module.symvers file")
+                    # logging.info("requested module.symvers file")
                     send_symvers(s)
 
 
                 elif recv_dict["cmd"] == "recv_module":
-                    print(f"prepare to recv modules, count = {recv_dict['count']}")
+                    # logging.info(f"prepare to recv modules, count = {recv_dict['count']}")
                     s.sendall(b'Clear to send')
                     recv_ko_files(s, recv_dict["count"])
 
@@ -286,5 +296,5 @@ while True:
                     send_challenge_report(s, recv_dict["id"], recv_dict["iv"], recv_dict["msg"])
 
             except Exception as e:
-                print(f"Command parsing error, {e}")
+                logging.info(f"Command parsing error, {e}")
                 break
