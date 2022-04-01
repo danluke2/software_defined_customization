@@ -139,6 +139,19 @@ done
 # *************** DCA_user Bash updates ***************
 
 
+# *************** NCO Bash updates ***************
+
+INSTALLER_FILES="service.sh"
+for x in $INSTALLER_FILES
+do
+  LINE=10 # file line to start writing at
+  FILE=$NCO_DIR/$x
+  sed -i "${LINE}d" $FILE
+  sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
+done
+
+# *************** DCA_user Bash updates ***************
+
 
 
 # *************** Vagrant Bash updates ***************

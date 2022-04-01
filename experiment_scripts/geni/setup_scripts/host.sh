@@ -5,7 +5,9 @@ cd /local
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
-GIT_DIR=/users/dflukasz/software_defined_customization
+GENI_USERNAME=$1
+
+GIT_DIR=/users/$GENI_USERNAME/software_defined_customization
 NCO_DIR=$GIT_DIR/NCO
 DCA_KERNEL_DIR=$GIT_DIR/DCA_kernel
 EXP_SCRIPT_DIR=$GIT_DIR/experiment_scripts
@@ -13,10 +15,11 @@ SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
 GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
 
 
-GENI_USERNAME=$1
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
+
+
 
 ##### Check if file is there #####
 if [ ! -f "./layer4_5_installed.txt" ]
@@ -49,9 +52,6 @@ then
 
     sudo $DCA_KERNEL_DIR/bash/installer.sh & EPID=$!
     wait $EPID
-
-    sudo depmod
-
 
 fi
 ##### Run Boot-time commands

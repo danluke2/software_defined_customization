@@ -5,7 +5,9 @@ cd /local
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
-GIT_DIR=/users/dflukasz/software_defined_customization
+GENI_USERNAME=$1
+
+GIT_DIR=/users/$GENI_USERNAME/software_defined_customization
 NCO_DIR=$GIT_DIR/NCO
 DCA_KERNEL_DIR=$GIT_DIR/DCA_kernel
 EXP_SCRIPT_DIR=$GIT_DIR/experiment_scripts
@@ -13,7 +15,6 @@ SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
 GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
 
 
-GENI_USERNAME=$1
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
@@ -41,21 +42,24 @@ then
     sudo chown -R $GENI_USERNAME $GIT_DIR
 
 
+    # update GIT dir
     LINE=14
     FILE=$GIT_DIR/config.sh
     sudo sed -i "${LINE}d" $FILE
     sudo sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
 
+    # Update NCO IP address
+    LINE=49
+    FILE=$GIT_DIR/config.sh
+    sudo sed -i "${LINE}d" $FILE
+    sudo sed -i "${LINE}i\SERVER_IP=10.10.0.5" $FILE
+
     cd $GIT_DIR
     sudo ./config.sh
 
 
-    sudo cp $GENI_SCRIPT_DIR/setup_scripts/nco.service etc/systemd/system/nco.service
-
-    #register loader with systemd
-    sudo systemctl enable nco.service
-
-    sudo systemctl start nco.service
+    cd $NCO_DIR
+    sudo ./service.sh
 
 fi
 ##### Run Boot-time commands
