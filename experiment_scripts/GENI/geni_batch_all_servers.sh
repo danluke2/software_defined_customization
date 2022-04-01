@@ -21,8 +21,8 @@ SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_script
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 
-
-
+USERNAME=
+PASSWORD=
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
