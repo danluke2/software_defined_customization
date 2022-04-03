@@ -34,6 +34,7 @@ mkdir $DEVICE_DIR
 
 
 for hosts in 250 175 100 50 10
+# for hosts in 20 10
 do
   echo "*************** Performing Experiment with $hosts Hosts ***************"
   $NETSOFT_SCRIPT_DIR/nco_dca_experiment.sh $1 $hosts $2

@@ -153,6 +153,19 @@ done
 # *************** DCA_user Bash updates ***************
 
 
+# *************** Python simple server Bash update ***************
+
+INSTALLER_FILES="service.sh"
+for x in $INSTALLER_FILES
+do
+  LINE=10 # file line to start writing at
+  FILE=$SIMPLE_SERVER_DIR/$x
+  sed -i "${LINE}d" $FILE
+  sed -i "${LINE}i\SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR" $FILE
+done
+
+# *************** DCA_user Bash updates ***************
+
 
 # *************** Vagrant Bash updates ***************
 
@@ -311,8 +324,26 @@ sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
 ((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\nco_dir='$NCO_DIR/'" $FILE
-# *************** NCO Builder update ***************
+# *************** NCO cfg update ***************
 
+
+# *************** DCA cfg update ***************
+# file line to start writing at
+LINE=2
+
+FILE=$DCA_USER_DIR/cfg.py
+sed -i "${LINE}d" $FILE
+sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
+((LINE=LINE+1))
+sed -i "${LINE}d" $FILE
+sed -i "${LINE}i\dca_dir='$DCA_USER_DIR/'" $FILE
+((LINE=LINE+1))
+sed -i "${LINE}d" $FILE
+sed -i "${LINE}i\symver_location='$INSTALL_LOCATION/'" $FILE
+((LINE=LINE+1))
+sed -i "${LINE}d" $FILE
+sed -i "${LINE}i\system_release='$distro'" $FILE
+# *************** DCA cfg update ***************
 
 
 

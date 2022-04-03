@@ -1,13 +1,13 @@
 #!/bin/bash
 
-#Purpose:  establishes NCO service to support Layer 4.5 framework
+#Purpose:  establishes Python simple server service
 
 
 
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
-NCO_DIR=/home/vagrant/software_defined_customization/NCO
+SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 
 
 
@@ -23,10 +23,10 @@ fi
 
 
 
-echo "Installing NCO service"
+echo "Installing Python Simple Server service"
 
 
-LOADER_FILE=/etc/systemd/system/nco.service
+LOADER_FILE=/etc/systemd/system/simple_server.service
 
 if test -f "$LOADER_FILE"; then
     echo "$LOADER_FILE exists."
@@ -37,18 +37,18 @@ touch $LOADER_FILE
 
 cat <<EOT >> $LOADER_FILE
 [Unit]
-Description=NCO systemd service.
+Description=Python simple server loader systemd service.
 
 [Service]
 Type=simple
-ExecStart='$NCO_DIR/NCO.py'
+ExecStart='$SIMPLE_SERVER_DIR/python_simple_server.py'
 
 [Install]
 WantedBy=multi-user.target
 EOT
 
 #register loader with systemd
-systemctl enable nco.service
+systemctl enable simple_server.service
 
 # start DCA service
-systemctl start nco.service
+systemctl start simple_server.service

@@ -11,7 +11,8 @@ import argparse
 import fcntl
 import struct
 
-import platform #for linux distro
+# import platform #for linux distro
+import cfg
 
 # comms with Layer 4.5
 from netlink_helper import *
@@ -27,38 +28,42 @@ parser.add_argument('--dir', type=str, required=False, help="KO Module download 
 parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
 parser.add_argument('--controlled', help="Require user input to start checkin process", action="store_true" )
 parser.add_argument('--logging', help="Enable logging to file instead of print to console", action="store_true" )
+parser.add_argument('--logfile', type=str, required=False, help="Full log file path to use, defaults to layer4_5 directory")
 
 args = parser.parse_args()
 
 
 # HOST = '10.10.0.5' GENI
-HOST = '10.0.0.20'
-PORT = 65432        # The port used by the NCO
-INTERFACE="enp0s8"
-system_name = platform.system()
-system_release = platform.release()
-symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
-download_dir = symver_location + "customizations"
+# HOST = '10.0.0.20'
+# PORT = 65432        # The port used by the NCO
+# INTERFACE="enp0s8"
+# system_name = platform.system()
+# system_release = platform.release()
+# symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
+# download_dir = symver_location + "customizations"
 
 
 
 
-max = 5
+
 
 if args.ip:
-    HOST=args.ip
+    cfg.HOST=args.ip
 
 if args.port:
-    PORT=args.port
+    cfg.PORT=args.port
 
 if args.iface:
-    INTERFACE=args.iface
+    cfg.INTERFACE=args.iface
 
 if args.dir:
-    download_dir = args.dir
+    cfg.download_dir = args.dir
 
 if args.logging:
-    logging.basicConfig(filename=symver_location + 'DCA/dca_messages.log', level=logging.DEBUG)
+    if args.logfile:
+        logging.basicConfig(filename=args.logfile, level=logging.DEBUG)
+    else:
+        logging.basicConfig(filename=cfg.log_file, level=logging.DEBUG)
 else:
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -70,19 +75,22 @@ def send_periodic_report(conn_socket):
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
+
 def send_initial_report(conn_socket):
     send_dict = {}
-    send_dict['mac'] =  getHwAddr(INTERFACE)
-    send_dict['release'] = system_release
+    send_dict['mac'] =  getHwAddr(cfg.INTERFACE)
+    send_dict['release'] = cfg.system_release
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
+
 def send_full_report(conn_socket):
     send_dict = query_layer4_5()
-    send_dict['mac'] =  getHwAddr(INTERFACE)
-    send_dict['release'] = system_release
+    send_dict['mac'] =  getHwAddr(cfg.INTERFACE)
+    send_dict['release'] = cfg.system_release
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+
 
 def send_challenge_report(conn_socket, cust_id, iv, msg):
     logging.info(f"Challenge message {msg}")
@@ -147,19 +155,19 @@ def getHwAddr(ifname):
 
 
 def send_symvers(conn_socket):
-    filename = symver_location + 'Module.symvers'
+    filename = cfg.symver_location + 'Module.symvers'
     filesize = os.path.getsize(filename)
     send_dict = {"file" : "Module.symvers", "size":filesize}
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
-    data = conn_socket.recv(1024)
+    data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
     data = data.decode("utf-8")
     if data != 'Clear to send':
         logging.info("NCO can't accept")
         return
 
-    with open(symver_location + 'Module.symvers', 'rb') as file_to_send:
+    with open(cfg.symver_location + 'Module.symvers', 'rb') as file_to_send:
         # logging.info("symver file open")
         for data in file_to_send:
             # logging.info("sending module")
@@ -169,7 +177,7 @@ def send_symvers(conn_socket):
 
 def recv_ko_files(conn_socket, count):
     for x in range(count):
-        data = conn_socket.recv(1024)
+        data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
         ko_dict = json.loads(data)
         filename = ko_dict["name"]
         filesize = ko_dict["size"]
@@ -181,7 +189,7 @@ def recv_ko_files(conn_socket, count):
 
 
 def install_ko_file(conn_socket, filename, filesize):
-    with open(os.path.join(download_dir, filename), 'wb') as file_to_write:
+    with open(os.path.join(cfg.download_dir, filename), 'wb') as file_to_write:
         while True:
             data = conn_socket.recv(filesize)
             if not data:
@@ -195,7 +203,7 @@ def install_ko_file(conn_socket, filename, filesize):
 
     try:
         # now we need to insert the module or launch the loader service or wait for service to run?
-        subprocess.run(["insmod", download_dir+"/"+filename])
+        subprocess.run(["insmod", cfg.download_dir+"/"+filename])
 
     except Exception as e:
         logging.info(f"Exception: {e}")
@@ -203,7 +211,7 @@ def install_ko_file(conn_socket, filename, filesize):
 
 # read in list of modules to remove, then finish
 def revoke_module(conn_socket, filename):
-    logging.info(f"revoke module = {download_dir}/{filename}")
+    logging.info(f"revoke module = {cfg.download_dir}/{filename}")
     result = 0
     try:
         # now we need to remove the module
@@ -219,7 +227,6 @@ def revoke_module(conn_socket, filename):
 
 
 
-sleep_time = 10
 #connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again
 # while (input("DCA loop again?") == "y"):
@@ -231,28 +238,28 @@ while True:
 
         while not connected:
             try:
-                s.connect((HOST, PORT))
+                s.connect((cfg.HOST, cfg.PORT))
                 connected=True
                 send_initial_report(s)
                 count = 0
             except ConnectionRefusedError:
                 if log_print:
-                    logging.info("FAILED to reach server. Sleep briefly & try again")
+                    logging.info("FAILED to reach server. Sleep briefly & try again loop")
                     log_print = False
-                time.sleep(sleep_time)
+                time.sleep(cfg.nco_connect_sleep_time)
                 continue
 
-        sleep_time = 30
+
         # basically do while loop with switch statements to perform desired action
         while not stop_recv:
             try:
-                data = s.recv(1024)
+                data = s.recv(cfg.MAX_BUFFER_SIZE)
                 recv_dict = json.loads(data)
                 logging.info(f"Recieved message: {recv_dict}")
 
             except json.decoder.JSONDecodeError as e:
                 count +=1
-                if count >= max:
+                if count >= cfg.max_errors:
                     logging.info("max json errors reached")
                     stop_recv = True
 
@@ -263,7 +270,7 @@ while True:
             except Exception as e:
                 logging.info(f"Error during data reception: {e}")
                 count +=1
-                if count >= max:
+                if count >= cfg.max_errors:
                     logging.info("max general errors reached")
                     stop_recv = True
 

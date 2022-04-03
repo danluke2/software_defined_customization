@@ -24,6 +24,8 @@ core_mod_dir = "core_modules/"
 symvers_dir = "device_modules/host_" # + host_id
 inverse_dir = "inverse_modules/"
 
+log_file = nco_dir + "nco_messages.log"
+
 #signal codes
 REFRESH_INSTALL_LIST = 1
 DB_ERROR = -1

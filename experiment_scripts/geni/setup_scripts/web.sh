@@ -53,17 +53,16 @@ then
     sudo $DCA_KERNEL_DIR/bash/installer.sh & EPID=$!
     wait $EPID
 
-
-    SIMPLE_DIR=/etc/systemd/system/simple_server.service
-    sudo cp $GENI_SCRIPT_DIR/setup_scripts/simple_server.service $SIMPLE_DIR
-
-    #register loader with systemd
-    sudo systemctl enable simple_server.service
-
-    sudo systemctl start simple_server.service
-
 fi
 ##### Run Boot-time commands
 # Start my service -- assume it was installed at /usr/local/bin
 cd $GIT_DIR
 sudo git pull
+
+
+cd $DCA_USER_DIR
+sudo DCA.py --ip 10.10.0.5 --iface eth1 --logging --logfile $DCA_USER_DIR/dca_messages.log &
+
+
+cd $SIMPLE_SERVER_DIR
+python3 python_simple_server.py &

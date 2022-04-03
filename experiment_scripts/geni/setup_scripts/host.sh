@@ -10,6 +10,7 @@ GENI_USERNAME=$1
 GIT_DIR=/users/$GENI_USERNAME/software_defined_customization
 NCO_DIR=$GIT_DIR/NCO
 DCA_KERNEL_DIR=$GIT_DIR/DCA_kernel
+DCA_USER_DIR=$GIT_DIR/DCA_user
 EXP_SCRIPT_DIR=$GIT_DIR/experiment_scripts
 SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
 GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
@@ -58,3 +59,6 @@ fi
 # Start my service -- assume it was installed at /usr/local/bin
 cd $GIT_DIR
 sudo git pull
+
+cd $DCA_USER_DIR
+sudo DCA.py --ip 10.10.0.5 --iface eth1 --logging --logfile $DCA_USER_DIR/dca_messages.log &

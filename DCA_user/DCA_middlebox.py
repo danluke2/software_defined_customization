@@ -13,8 +13,8 @@ import argparse
 import fcntl
 import struct
 
-import platform #for linux distro
-
+# import platform #for linux distro
+import cfg
 # remove prints and log instead
 import logging
 
@@ -31,63 +31,53 @@ parser.add_argument('--logfile', type=str, required=False, help="Full log file p
 args = parser.parse_args()
 
 
-HOST = '10.0.0.20'
-PORT = 65433        # The middlebox port used by the NCO
-INTERFACE="enp0s8"
-type="Wireshark"
-system_name = platform.system()
-system_release = platform.release()
-symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
-
-# assuming Wireshark plugin dir
-download_dir = "/usr/lib/x86_64-linux-gnu/wireshark/plugins"
-
-max = 5
 
 if args.ip:
-    HOST=args.ip
+    cfg.HOST=args.ip
 
 if args.port:
-    PORT=args.port
+    cfg.MIDDLE_PORT=args.port
 
 if args.iface:
-    INTERFACE=args.iface
+    cfg.INTERFACE=args.iface
 
 if args.dir:
-    download_dir = args.dir
+    cfg.middle_dir = args.dir
 
 if args.type:
-    type = args.type
+    cfg.middle_type = args.type
 
 if args.logging:
     if args.logfile:
         logging.basicConfig(filename=args.logfile, level=logging.DEBUG)
     else:
-        logging.basicConfig(filename=symver_location + 'DCA/middlebox_dca_messages.log', level=logging.DEBUG)
+        logging.basicConfig(filename=cfg.middle_log_file, level=logging.DEBUG)
 else:
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 
-def send_periodic_report(conn_socket):
-    send_dict = inverse_dir_lookup()
-    send_string = json.dumps(send_dict, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+
+
 
 def send_initial_report(conn_socket):
     send_dict = {}
-    send_dict['mac'] =  getHwAddr(INTERFACE)
-    send_dict['release'] = system_release
-    send_dict['type']=type
+    send_dict['mac'] =  getHwAddr(cfg.INTERFACE)
+    send_dict['release'] = cfg.system_release
+    send_dict['type']=cfg.middle_type
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 
+# def send_periodic_report(conn_socket):
+#     send_dict = inverse_dir_lookup()
+#     send_string = json.dumps(send_dict, indent=4)
+#     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
-def inverse_dir_lookup():
-    # get a list of all installed inverse modules
-
-    return json.loads(payload)
+# def inverse_dir_lookup():
+#     # get a list of all installed inverse modules
+#
+#     return json.loads(payload)
 
 
 
@@ -101,7 +91,7 @@ def getHwAddr(ifname):
 
 def recv_inverse_module(conn_socket, filename, filesize):
     conn_socket.sendall(b'Clear to send')
-    with open(os.path.join(download_dir, filename), 'wb') as file_to_write:
+    with open(os.path.join(cfg.middle_dir, filename), 'wb') as file_to_write:
         while True:
             data = conn_socket.recv(filesize)
             if not data:
@@ -118,11 +108,11 @@ def recv_inverse_module(conn_socket, filename, filesize):
 
 # read in list of modules to remove, then finish
 def revoke_inverse_module(conn_socket, filename):
-    logging.info(f"revoke module = {download_dir}/{filename}")
+    logging.info(f"revoke module = {cfg.middle_dir}/{filename}")
     result = 0
     try:
         # now we need to remove the module
-        subprocess.run(["rm", download_dir + '/' + filename], check=True)
+        subprocess.run(["rm", cfg.middle_dir + '/' + filename], check=True)
         conn_socket.sendall(b'success')
     except subprocess.CalledProcessError as e:
         result = -1
@@ -134,37 +124,39 @@ def revoke_inverse_module(conn_socket, filename):
 
 
 
-sleep_time = 10
 #connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again
 # while (input("DCA middlebox loop again?") == "y"):
 while True:
     connected = False
     stop_recv = False
+    log_print = True
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
         while not connected:
             try:
-                s.connect((HOST, PORT))
+                s.connect((cfg.HOST, cfg.MIDDLE_PORT))
                 connected=True
                 send_initial_report(s)
                 count = 0
-                logging.info(f"Connected to NCO at {HOST}:{PORT}")
+                logging.info(f"Connected to NCO at {cfg.HOST}:{cfg.MIDDLE_PORT}")
             except ConnectionRefusedError:
-                logging.info("FAILED to reach server. Sleep briefly & try again")
-                time.sleep(sleep_time)
+                if log_print:
+                    logging.info("FAILED to reach server. Sleep briefly & try again loop")
+                    log_print = False
+                time.sleep(cfg.nco_connect_sleep_time)
                 continue
 
         # basically do while loop with switch statements to perform desired action
         while not stop_recv:
             try:
-                data = s.recv(1024)
+                data = s.recv(cfg.MAX_BUFFER_SIZE)
                 recv_dict = json.loads(data)
                 logging.info(f"Recieved message: {recv_dict}")
 
             except json.decoder.JSONDecodeError as e:
                 count +=1
-                if count >= max:
+                if count >= cfg.max_errors:
                     logging.info("max json errors reached")
                     stop_recv = True
 
@@ -175,7 +167,7 @@ while True:
             except Exception as e:
                 logging.info(f"Error during data reception: {e}")
                 count +=1
-                if count >= max:
+                if count >= cfg.max_errors:
                     logging.info("max general errors reached")
                     stop_recv = True
 
@@ -189,8 +181,8 @@ while True:
                     revoke_inverse_module(s, recv_dict["name"])
 
 
-                elif recv_dict["cmd"] == "run_report":
-                    send_periodic_report(s)
+                # elif recv_dict["cmd"] == "run_report":
+                #     send_periodic_report(s)
 
 
             except Exception as e:

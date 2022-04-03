@@ -58,12 +58,14 @@ then
     sudo ./config.sh
 
 
-    cd $NCO_DIR
-    sudo ./service.sh
+    # cd $NCO_DIR
+    # sudo ./service.sh
 
 fi
 ##### Run Boot-time commands
 # Start my service -- assume it was installed at /usr/local/bin
 cd $GIT_DIR
 sudo git pull
-sudo systemctl restart nco.service
+# sudo systemctl restart nco.service
+cd $NCO_DIR
+python3 NCO.py --logging

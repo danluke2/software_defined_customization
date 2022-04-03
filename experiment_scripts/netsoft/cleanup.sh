@@ -34,8 +34,8 @@ WIRESHARK_DIR=/usr/lib/x86_64-linux-gnu/wireshark/plugins
 if [ "$1" = "NCO" ]; then
   cd $NETSOFT_SCRIPT_DIR
   rm nco_deploy.png
-  cd logs
-  rm n*
+  cd $EXP_SCRIPT_DIR/logs
+  rm nco_results_*.txt
   cd
   rm -rf device_modules
   rm cib.db
@@ -48,7 +48,7 @@ if [ "$1" = "BULK" ]; then
   cd $NETSOFT_SCRIPT_DIR
   rm bulk_overhead.png
   cd $EXP_SCRIPT_DIR/logs
-  rm bulk*
+  rm bulk_*.txt
   cd $NETSOFT_MOD_DIR
   make clean
 fi
@@ -59,7 +59,7 @@ if [ "$1" = "BATCH" ]; then
   cd $NETSOFT_SCRIPT_DIR
   rm batch_overhead.png
   cd $EXP_SCRIPT_DIR/logs
-  rm batch*
+  rm batch_*.txt
   cd $NETSOFT_MOD_DIR
   make clean
 fi
@@ -70,7 +70,7 @@ if [ "$1" = "CHALLENGE" ]; then
   cd $NCO_DIR
   rm cib.db
   cd device_modules
-  rm -rf h*
+  rm -rf host*
 fi
 
 
@@ -79,9 +79,9 @@ if [ "$1" = "MIDDLEBOX" ]; then
   cd $NCO_DIR
   rm cib.db
   cd device_modules
-  rm -rf h*
+  rm -rf host*
   cd $GIT_DIR
   rm middle_demo.pcap
   cd $WIRESHARK_DIR
-  sudo rm demo*
+  sudo rm demo*.lua
 fi
