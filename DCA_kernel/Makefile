@@ -1,7 +1,7 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.13.0-37-generic/layer4_5
-DISTRO_DIR=/lib/modules/5.13.0-37-generic
+INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
+DISTRO_DIR=/lib/modules/5.13.0-35-generic
 
 
 

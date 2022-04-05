@@ -8,9 +8,9 @@ MODULE="layer4_5"
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.13.0-37-generic/layer4_5
-CUST_LOCATION=/usr/lib/modules/5.13.0-37-generic/layer4_5/customizations
-DCA_LOCATION=/usr/lib/modules/5.13.0-37-generic/layer4_5/DCA
+INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
+DCA_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/DCA
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 
 
