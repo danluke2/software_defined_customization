@@ -170,7 +170,7 @@ done
 # *************** Vagrant Bash updates ***************
 
 FILE=$GIT_DIR/vagrant/setup.sh
-LINE=10 # file line to start writing at
+LINE=15 # file line to start writing at
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
 ((LINE=LINE+1))

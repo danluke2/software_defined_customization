@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 
+#lock kernel version so we don't need to deal with updates for testing
+sudo apt-mark hold linux-image-generic-hwe-20.04
+sudo apt-mark hold linux-generic-hwe-20.04
+sudo apt-mark hold linux-headers-generic-hwe-20.04
+
 apt update
-apt -y upgrade
+# apt -y upgrade
 
 timedatectl set-ntp on
 timedatectl
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
+DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 
