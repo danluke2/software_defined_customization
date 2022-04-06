@@ -8,6 +8,11 @@ import time
 import cfg
 from CIB_helper import *
 
+import logging
+import sys
+
+
+logger = logging.getLogger(__name__)  # use module name
 
 
 
@@ -35,10 +40,10 @@ def handle_deployed_update(db_connection, host_id, deployed_list):
                 result = cfg.REFRESH_INSTALL_LIST
             else:
                 # TODO: handle this case; maybe trigger revocation call
-                print(f"host has deployed module not in deployed or Install DB, module =", module["ID"])
+                logger.info(f"host has deployed module not in deployed or Install DB, module =", module["ID"])
 
     for module_id in deployed_db:
-        print(f"Module_id {module_id} in DB, but not reported by host")
+        logger.info(f"Module_id {module_id} in DB, but not reported by host")
         update_deployed_host_error(db_connection, host_id, module_id, int(time.time()))
 
     return result
@@ -49,14 +54,14 @@ def handle_deployed_update(db_connection, host_id, deployed_list):
 def send_install_modules(conn_socket, host_id, modules):
     count = len(modules)
     for module in modules:
-        print(f"sending module {module}")
+        logger.info(f"sending module {module}")
         command = {"cmd": "recv_module", "count": count}
         send_string = json.dumps(command, indent=4)
         conn_socket.sendall(bytes(send_string,encoding="utf-8"))
         data = conn_socket.recv(1024)
         data = data.decode("utf-8")
         if data != 'Clear to send':
-            print("client can't accept")
+            logger.info("client can't accept")
             break
         else:
             send_ko_module(conn_socket, host_id, module)
@@ -76,15 +81,15 @@ def send_ko_module(conn_socket, host_id, module):
     data = conn_socket.recv(1024)
     data = data.decode("utf-8")
     if data != 'Clear to send':
-        print("client can't accept")
+        logger.info("client can't accept")
         return
 
     with open(mod_dir + module + ".ko", 'rb') as file_to_send:
-        print(f"{module} file open")
+        logger.info(f"{module} file open")
         for data in file_to_send:
-            # print("sending module")
+            # logger.info("sending module")
             conn_socket.sendall(data)
-        print(f"{module} file closed")
+        logger.info(f"{module} file closed")
 
 
 

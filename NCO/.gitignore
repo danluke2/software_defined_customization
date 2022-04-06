@@ -2,3 +2,4 @@
 overhead.iso
 *pycache*
 cib.db
+*.log

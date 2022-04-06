@@ -125,3 +125,8 @@ Common items I refer to when trying to understand code and functions in the kern
 1) get task from tgid:
 
    https://linux-kernel.vger.kernel.narkive.com/oJRnbfkU/find-task-by-pid-problem
+
+
+1) python multiprocessing/logging:
+
+    https://fanchenbao.medium.com/python3-logging-with-multiprocessing-f51f460b8778

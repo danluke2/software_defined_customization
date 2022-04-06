@@ -24,7 +24,10 @@ core_mod_dir = "core_modules/"
 symvers_dir = "device_modules/host_" # + host_id
 inverse_dir = "inverse_modules/"
 
+log_console = False
 log_file = nco_dir + "nco_messages.log"
+log_size = 1024 * 8 * 32 # 32KB
+log_max = 5 # keep max of 5 logs
 
 #signal codes
 REFRESH_INSTALL_LIST = 1

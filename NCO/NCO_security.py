@@ -8,8 +8,14 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
 
+import logging
+import sys
+
 import cfg
 from CIB_helper import *
+
+
+logger = logging.getLogger(__name__)  # use module name
 
 
 
@@ -51,7 +57,7 @@ def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buff
 
     data = os.urandom(8)
     temp = data.hex()
-    print(f"Challenge before encrypt as hex is {temp}")
+    logger.info(f"Challenge before encrypt as hex is {temp}")
 
     key = select_built_module_key(db_connection, host_id, mod_id)
     cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -61,7 +67,7 @@ def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buff
 
     send_string = json.dumps(command, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
-    print(f"Sent challenge request to {host_id}, challenge: {command}")
+    logger.info(f"Sent challenge request to {host_id}, challenge: {command}")
 
 
     # process the response now
@@ -73,19 +79,19 @@ def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buff
         cipher = AES.new(key, AES.MODE_CBC, iv)
         pt = unpad(cipher.decrypt(ct), AES.block_size)
         temp2 = pt.hex()
-        print(f"The decrypted response as hex is {temp2}")
+        logger.info(f"The decrypted response as hex is {temp2}")
         if temp2.startswith(temp):
-            print("Challenge string matches")
+            logger.info("Challenge string matches")
             temp2 = temp2[-6:]
             temp2 = int(temp2, 16)
             if temp2 == mod_id:
-                print("Module_id matches")
+                logger.info("Module_id matches")
                 result = 0
             else:
-                print(f"Module_id string mismatch, was {temp2} and should be {mod_id}")
+                logger.info(f"Module_id string mismatch, was {temp2} and should be {mod_id}")
 
     except Exception as e:
-        print(f"Error processing challenge response: {e}")
+        logger.info(f"Error processing challenge response: {e}")
         result = cfg.REVOKE_MOD
 
     return result

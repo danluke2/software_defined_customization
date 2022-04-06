@@ -80,17 +80,16 @@ class Connection(object):
         msglen, msg_type, flags, seq, pid = struct.unpack("IHHII", data[:16])
         msg = Message(msg_type, flags, seq, data[16:])
         msg.pid = pid
-        if msg_type == NLMSG_DONE:
-           print("payload :", msg.payload)
+        # if msg_type == NLMSG_DONE:
+           # print("payload :", msg.payload)
            # print("msg.pid :", msg.pid)
            # print("msg.seq :", msg.seq)
         if msg.type == NLMSG_ERROR:
             errno = -struct.unpack("i", msg.payload[:4])[0]
             if errno != 0:
-                err = OSError("Netlink error: %s (%d)" % (
-                                                    os.strerror(errno), errno))
+                err = OSError("Netlink error: %s (%d)" % (os.strerror(errno), errno))
                 err.errno = errno
-                print("err :",err)
+                # print("err :",err)
                 raise err
 
         #return msg.payload

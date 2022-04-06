@@ -65,4 +65,4 @@ sudo DCA.py --ip 10.10.0.5 --iface eth1 --logging --logfile $DCA_USER_DIR/dca_me
 
 
 cd $SIMPLE_SERVER_DIR
-python3 python_simple_server.py &
+sudo python3 python_simple_server.py &

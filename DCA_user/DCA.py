@@ -33,20 +33,6 @@ parser.add_argument('--logfile', type=str, required=False, help="Full log file p
 args = parser.parse_args()
 
 
-# HOST = '10.10.0.5' GENI
-# HOST = '10.0.0.20'
-# PORT = 65432        # The port used by the NCO
-# INTERFACE="enp0s8"
-# system_name = platform.system()
-# system_release = platform.release()
-# symver_location = '/usr/lib/modules/' + system_release + '/layer4_5/'
-# download_dir = symver_location + "customizations"
-
-
-
-
-
-
 if args.ip:
     cfg.HOST=args.ip
 
@@ -59,13 +45,14 @@ if args.iface:
 if args.dir:
     cfg.download_dir = args.dir
 
+
 if args.logging:
     if args.logfile:
-        logging.basicConfig(filename=args.logfile, level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s:%(message)s', filename=args.logfile, level=logging.DEBUG)
     else:
-        logging.basicConfig(filename=cfg.log_file, level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s:%(message)s', filename=cfg.log_file, level=logging.DEBUG)
 else:
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(format='%(levelname)s:%(message)s', stream=sys.stdout, level=logging.DEBUG)
 
 
 
@@ -73,6 +60,7 @@ else:
 def send_periodic_report(conn_socket):
     send_dict = query_layer4_5()
     send_string = json.dumps(send_dict, indent=4)
+    logging.info(f"Periodic report: {send_string}")
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 
@@ -81,6 +69,7 @@ def send_initial_report(conn_socket):
     send_dict['mac'] =  getHwAddr(cfg.INTERFACE)
     send_dict['release'] = cfg.system_release
     send_string = json.dumps(send_dict, indent=4)
+    logging.info(f"Initial report: {send_string}")
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 
@@ -89,6 +78,7 @@ def send_full_report(conn_socket):
     send_dict['mac'] =  getHwAddr(cfg.INTERFACE)
     send_dict['release'] = cfg.system_release
     send_string = json.dumps(send_dict, indent=4)
+    logging.info(f"Full report: {send_string}")
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 
@@ -172,7 +162,7 @@ def send_symvers(conn_socket):
         for data in file_to_send:
             # logging.info("sending module")
             conn_socket.sendall(data)
-        # logging.info("symvers file close")
+        logging.info("symvers file sent")
 
 
 def recv_ko_files(conn_socket, count):
@@ -185,7 +175,7 @@ def recv_ko_files(conn_socket, count):
         conn_socket.sendall(b'Clear to send')
         install_ko_file(conn_socket, filename, filesize)
         logging.info(f"module name = {filename} completed")
-    # logging.info("finished all ko modules")
+    logging.info("finished all ko modules")
 
 
 def install_ko_file(conn_socket, filename, filesize):
@@ -276,32 +266,40 @@ while True:
 
             try:
                 if recv_dict["cmd"] == "send_symvers":
-                    # logging.info("requested module.symvers file")
+                    logging.info("requested module.symvers file")
                     send_symvers(s)
 
 
                 elif recv_dict["cmd"] == "recv_module":
-                    # logging.info(f"prepare to recv modules, count = {recv_dict['count']}")
+                    logging.info(f"prepare to recv modules, count = {recv_dict['count']}")
                     s.sendall(b'Clear to send')
                     recv_ko_files(s, recv_dict["count"])
 
 
                 elif recv_dict["cmd"] == "revoke_module":
+                    logging.info(f"revoke request received")
                     revoke_module(s, recv_dict["name"])
 
 
 
                 elif recv_dict["cmd"] == "run_report":
+                    logging.info(f"report request received")
                     send_periodic_report(s)
 
 
                 elif recv_dict["cmd"] == "run_full_report":
+                    logging.info(f"full report request")
                     send_full_report(s)
 
 
                 elif recv_dict["cmd"] == "challenge":
+                    logging.info(f"challenge request")
                     send_challenge_report(s, recv_dict["id"], recv_dict["iv"], recv_dict["msg"])
 
             except Exception as e:
                 logging.info(f"Command parsing error, {e}")
-                break
+                logging.info(f"Command received was: {recv_dict}")
+                count +=1
+                if count >= cfg.max_errors:
+                    logging.info(f"Max exceptions recv, breaking connection")
+                    break

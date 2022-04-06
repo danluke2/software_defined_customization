@@ -49,7 +49,7 @@ sleep 2
 
 # start NCO process with command line params
 echo "*************** Starting NCO  ***************"
-gnome-terminal -- bash -c  "echo '*************** Starting NCO  ***************';  python3 $NCO_DIR/NCO.py --challenge --window $1 --query_interval $2 --linear"
+gnome-terminal -- bash -c  "echo '*************** Starting NCO  ***************';  python3 $NCO_DIR/NCO.py --challenge --window $1 --query_interval $2 --linear --print"
 
 sleep 2
 

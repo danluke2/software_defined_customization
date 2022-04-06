@@ -41,7 +41,7 @@ SLEEP_INT=5
 #install Layer 4.5 on each device
 echo "*************** Install L4.5 on Client  ***************"
 
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$CLIENT_IP "rmmod layer4_5; ifconfig enp0s3 down; $DCA_KERNEL_DIR/bash/installer.sh;"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$CLIENT_IP "rmmod layer4_5; $DCA_KERNEL_DIR/bash/installer.sh;"
 
 sleep $SLEEP_INT
 
@@ -60,7 +60,7 @@ sleep $SLEEP_INT
 
 # start NCO process with command line params
 echo "*************** Starting NCO  ***************"
-gnome-terminal -- bash -c  "echo '*************** Starting NCO  ***************'; python3 $NCO_DIR/NCO.py --query_interval $1 --linear"
+gnome-terminal -- bash -c  "echo '*************** Starting NCO  ***************'; python3 $NCO_DIR/NCO.py --query_interval $1 --linear --print"
 
 sleep $SLEEP_INT
 
@@ -81,7 +81,8 @@ sleep $SLEEP_INT
 
 # start DCA process on client, which will have host_id = 2
 echo "*************** Starting DCA on Client  ***************"
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "python3 $DCA_USER_DIR/DCA.py >/dev/null 2>&1 &"
+# sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "python3 $DCA_USER_DIR/DCA.py >/dev/null 2>&1 &"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "python3 $DCA_USER_DIR/DCA.py --logging >/dev/null 2>&1 &"
 
 sleep $SLEEP_INT
 
@@ -115,8 +116,9 @@ sleep $SLEEP_INT
 
 
 # perform DNS requests from client
+# turn off interface to force using local DNS server
 echo "*************** Conducting DNS Queries from Client  ***************"
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "dig @10.0.0.20 -p 53 www.dig_test.com; curl www.curl_test.com;"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "ifconfig enp0s3 down; sleep 3; dig @10.0.0.20 -p 53 www.dig_test.com; curl www.curl_test.com;"
 
 sleep $SLEEP_INT
 

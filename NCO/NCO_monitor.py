@@ -11,6 +11,12 @@ from CIB_helper import *
 from NCO_revoke import handle_revoke_update
 from NCO_deploy import handle_deployed_update
 
+import logging
+import sys
+
+logger = logging.getLogger(__name__)  # use module name
+
+
 
 ######################### MONITORING FUNCTIONS #############################
 
@@ -19,7 +25,7 @@ def request_report(conn_socket, host_id):
     command = {"cmd": "run_report"}
     send_string = json.dumps(command, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
-    print(f"Sent report request to {host_id}")
+    logger.info(f"Sent report request to {host_id}")
 
 
 
@@ -28,7 +34,7 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
         data = conn_socket.recv(buffer_size)
         json_data = json.loads(data)
     except json.decoder.JSONDecodeError as e:
-        print(f"Error on process report recv call, {e}")
+        logger.info(f"Error on process report recv call, {e}")
         return cfg.CLOSE_SOCK
     # TODO: check report mac matches host_id and update DB?
     deployed_list = json_data["Active"]
@@ -65,11 +71,11 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release, interval):
             generated_id = cfg.next_module_id
             cfg.next_module_id +=1
 
-        print(f"Inserting host {mac}, ID = {generated_id}")
+        logger.info(f"Inserting host {mac}, ID = {generated_id}")
         # if host_id already exists, then DB error occurs and we try again
         err = insert_host(db_connection, mac, generated_id, ip, port, 0, 0, kernel_release, interval)
         if (err == cfg.DB_ERROR):
-            print("Could not insert host, try again")
+            logger.info("Could not insert host, try again")
             if counter == max_tries:
                 return cfg.DB_ERROR
             counter +=1
@@ -79,5 +85,5 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release, interval):
     setup_host_dirs(str(generated_id))
     host = select_host(db_connection, mac)
     if (host == cfg.DB_ERROR):
-        print("Could not retrieve host after insert, DB_ERROR")
+        logger.info("Could not retrieve host after insert, DB_ERROR")
     return host

@@ -49,11 +49,11 @@ if args.type:
 
 if args.logging:
     if args.logfile:
-        logging.basicConfig(filename=args.logfile, level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s:%(message)s', filename=args.logfile, level=logging.DEBUG)
     else:
-        logging.basicConfig(filename=cfg.middle_log_file, level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s:%(message)s', filename=cfg.log_file, level=logging.DEBUG)
 else:
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    logging.basicConfig(format='%(levelname)s:%(message)s', stream=sys.stdout, level=logging.DEBUG)
 
 
 

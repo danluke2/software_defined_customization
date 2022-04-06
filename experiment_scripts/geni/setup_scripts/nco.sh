@@ -68,4 +68,4 @@ cd $GIT_DIR
 sudo git pull
 # sudo systemctl restart nco.service
 cd $NCO_DIR
-python3 NCO.py --logging
+sudo python3 NCO.py --logfile $NCO_DIR/nco_messages.log &

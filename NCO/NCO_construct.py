@@ -4,10 +4,17 @@ import subprocess
 import time
 import json
 import os
+import signal
 
 import cfg
 from CIB_helper import *
 from NCO_security import generate_key
+
+import logging
+import sys
+
+
+logger = logging.getLogger(__name__)  # use module name
 
 
 
@@ -19,10 +26,10 @@ def request_symver_file(conn_socket, db_connection, host_id, mac):
     command = {"cmd": "send_symvers"}
     send_string = json.dumps(command, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
-    print("Sent symver request")
+    logger.info("Sent symver request")
     err = recv_symvers_file(conn_socket, host_id)
     if err != cfg.CLOSE_SOCK:
-        print("have symvers file")
+        logger.info("have symvers file")
         err = update_host(db_connection, mac, "symvers_ts", int(time.time()))
     return err
 
@@ -33,13 +40,16 @@ def recv_symvers_file(conn_socket, host_id):
         data = conn_socket.recv(1024)
         recv_string = json.loads(data)
     except json.decoder.JSONDecodeError as e:
-        print(f"Error on recv symver recv call, {e}")
-        print(f"recv: {data}")
+        logger.info(f"Error on recv symver recv call, {e}")
+        logger.info(f"recv: {data}")
         return cfg.CLOSE_SOCK
 
-    print('recv file: ', recv_string["file"])
-    print('recv file size: ', recv_string["size"])
+
+    file_name = recv_string["file"]
     file_size = recv_string["size"]
+
+    logger.info(f"recv file: {file_name}")
+    logger.info(f"recv file size: {file_size}")
 
     conn_socket.sendall(b'Clear to send')
 
@@ -50,7 +60,7 @@ def recv_symvers_file(conn_socket, host_id):
                 break
             file_to_write.write(data)
             file_size -= len(data)
-            print("remaining = ", file_size)
+            # logger.info("remaining = ", file_size)
             if file_size<=0:
                 break
         file_to_write.close()
@@ -63,15 +73,15 @@ def recv_symvers_file(conn_socket, host_id):
 def insert_and_update_module_tables(db_connection, module, module_id, host_id, key):
     require_install = 1
     install_time = 0 #indicates ASAP
-    print(f"inserting module {module} into built table")
+    logger.info(f"inserting module {module} into built table")
     err = insert_built_module(db_connection, host_id, module, module_id, int(time.time()), key, require_install, install_time)
     if err == cfg.DB_ERROR:
-        print(f"Error inserting {module} into built table")
+        logger.info(f"Error inserting {module} into built table")
     else:
-        print(f"Deleting module from required build table")
+        logger.info(f"Deleting module from required build table")
         err = delete_req_build_module(db_connection, module, host_id)
         if err == cfg.DB_ERROR:
-            print(f"Error removing module {module} from required build table")
+            logger.info(f"Error removing module {module} from required build table")
             #TODO: what action should be taken in this case?
 
     return err
@@ -85,7 +95,7 @@ def build_ko_module(db_connection, host_id, module, module_id, key):
         subprocess.run([cfg.nco_dir + "builder.sh", module, str(module_id), str(cfg.INSERT_LINE), str(host_id), key.hex()], check=True)
         result = 0
     except subprocess.CalledProcessError as e:
-        print(f"Error occured during module build process, error={e}")
+        logger.info(f"Error occured during module build process, error={e}")
         result = -1
 
     return result
@@ -101,10 +111,23 @@ def construction_loop(db_connection):
         err = build_ko_module(db_connection, host_id_list[i], module_list[i], cfg.next_module_id, key)
         if err == -1:
             #move on to next module instead of updating the tables
-            print(f"Construction error for host {host_id_list[i]}")
+            logger.info(f"Construction error for host {host_id_list[i]}")
             continue
         else:
             err = insert_and_update_module_tables(db_connection, module_list[i], cfg.next_module_id, host_id_list[i], key)
             if err == cfg.DB_ERROR:
-                print(f"Error occured updating module tables")
+                logger.info(f"Error occured updating module tables")
             cfg.next_module_id += 1
+
+
+
+def construction_process(exit_event, interval, queue):
+    logger.info("Construction process running")
+    db_connection = db_connect(cfg.nco_dir + 'cib.db')
+    while(True):
+        construction_loop(db_connection)
+        time.sleep(interval)
+        if exit_event.is_set():
+            break
+
+    logger.info("Construction process exiting")
