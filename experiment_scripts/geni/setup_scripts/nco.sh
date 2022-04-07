@@ -32,8 +32,10 @@ then
     #Install necessary packages
     sudo apt-get update & EPID=$!
     wait $EPID
-    sudo apt install -y sshpass curl iperf3 net-tools & EPID=$!
+    sudo apt install -y python3-pip sshpass curl iperf3 net-tools & EPID=$!
     wait $EPID
+
+
 
     # Install custom software
     cd /users/$GENI_USERNAME
@@ -61,6 +63,9 @@ then
     # cd $NCO_DIR
     # sudo ./service.sh
 
+    sudo pip3 install pycryptodome & EPID=$!
+    wait $EPID
+
 fi
 ##### Run Boot-time commands
 # Start my service -- assume it was installed at /usr/local/bin
@@ -68,4 +73,4 @@ cd $GIT_DIR
 sudo git pull
 # sudo systemctl restart nco.service
 cd $NCO_DIR
-sudo python3 NCO.py --logfile $NCO_DIR/nco_messages.log &
+sudo su $GENI_USERNAME -c 'sudo python3 NCO.py &'
