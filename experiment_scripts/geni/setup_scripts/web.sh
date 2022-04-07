@@ -47,6 +47,12 @@ then
     sudo sed -i "${LINE}d" $FILE
     sudo sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
 
+    # Update NCO IP address
+    LINE=49
+    FILE=$GIT_DIR/config.sh
+    sudo sed -i "${LINE}d" $FILE
+    sudo sed -i "${LINE}i\SERVER_IP=10.10.0.5" $FILE
+
     cd $GIT_DIR
     sudo ./config.sh
 
@@ -59,10 +65,12 @@ fi
 cd $GIT_DIR
 sudo git pull
 
+sleep 10
 
 cd $DCA_USER_DIR
-sudo DCA.py --ip 10.10.0.5 --iface eth1 --logging --logfile $DCA_USER_DIR/dca_messages.log &
+sudo su $GENI_USERNAME -c 'sudo python3 DCA.py --iface eth1 --logging &'
 
+sleep 10
 
 cd $SIMPLE_SERVER_DIR
-sudo python3 python_simple_server.py &
+sudo su $GENI_USERNAME -c 'sudo python3 python_simple_server.py &''
