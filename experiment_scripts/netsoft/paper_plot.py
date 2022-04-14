@@ -44,7 +44,7 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
 
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 plt.ylabel('Seconds')
-plt.title("Bulk File Transer Time")
+plt.title("Bulk File Transfer Time")
 
 # plt.show()
 plt.savefig('tcp_overhead.png')
@@ -56,7 +56,7 @@ udp_data_tap = [7785.877, 7830.522, 7682.462, 7756.673, 7821.008, 7787.260, 7768
 udp_data_cust = [7755.357, 8005.567, 7755.329, 7788.964, 7832.619, 7743.185, 7934.737, 7915.508, 7792.570, 7869.995, 7763.449, 7845.715, 7931.759, 7762.519, 7773.534]
 
 udp_data_base = [x/1000 for x in udp_data_base]
-udp_data_tap = [x/1000 for x in udp_data_layer]
+udp_data_tap = [x/1000 for x in udp_data_tap]
 udp_data_cust = [x/1000 for x in udp_data_cust]
 udp_data = [udp_data_base, udp_data_tap, udp_data_cust]
 
