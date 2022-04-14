@@ -55,7 +55,7 @@ sleep 2
 
 # start DCA process, which will have host_id = 1
 echo "*************** Starting DCA  ***************"
-gnome-terminal -- bash -c  "echo '*************** Starting DCA  ***************';  python3 $DCA_USER_DIR/DCA.py"
+gnome-terminal -- bash -c  "echo '*************** Starting DCA  ***************';  python3 $DCA_USER_DIR/DCA.py --print"
 
 
 sleep 2

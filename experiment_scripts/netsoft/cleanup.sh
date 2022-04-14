@@ -76,8 +76,11 @@ fi
 
 # Middlebox
 if [ "$1" = "MIDDLEBOX" ]; then
+  cd $DCA_USER_DIR
+  rm *_messages.log
   cd $NCO_DIR
   rm cib.db
+  rm nco_messages.log
   cd device_modules
   rm -rf host*
   cd $GIT_DIR

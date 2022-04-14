@@ -17,6 +17,7 @@ import struct
 import cfg
 # remove prints and log instead
 import logging
+from logging import handlers
 
 
 parser = argparse.ArgumentParser(description='DCA middlebox user space program')
@@ -25,7 +26,7 @@ parser.add_argument('--port', type=int, required=False, help="NCO middlebox port
 parser.add_argument('--dir', type=str, required=False, help="Inverse Module download dir")
 parser.add_argument('--type', type=str, required=False, help="Middlebox Type Info")
 parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
-parser.add_argument('--logging', help="Enable logging to file instead of print to console", action="store_true" )
+parser.add_argument('--print', help="Enables logging to console", action="store_true" )
 parser.add_argument('--logfile', type=str, required=False, help="Full log file path to use, defaults to layer4_5 directory")
 
 args = parser.parse_args()
@@ -47,17 +48,29 @@ if args.dir:
 if args.type:
     cfg.middle_type = args.type
 
-if args.logging:
-    if args.logfile:
-        logging.basicConfig(format='%(levelname)s:%(message)s', filename=args.logfile, level=logging.DEBUG)
-    else:
-        logging.basicConfig(format='%(levelname)s:%(message)s', filename=cfg.log_file, level=logging.DEBUG)
-else:
-    logging.basicConfig(format='%(levelname)s:%(message)s', stream=sys.stdout, level=logging.DEBUG)
+if args.print:
+    cfg.log_console = True
+
+if args.logfile:
+    cfg.log_file = args.logfile
 
 
+logger = logging.getLogger(__name__)  # use module name
 
 
+def logger_configurer():
+    root = logging.getLogger()
+    file_handler = handlers.RotatingFileHandler(cfg.log_file, 'a', cfg.log_size, cfg.log_max)
+    file_formatter = logging.Formatter('%(asctime)s  %(message)s')
+    file_handler.setFormatter(file_formatter)
+    root.addHandler(file_handler)
+    root.setLevel(logging.DEBUG)
+
+    if cfg.log_console:
+        console_handler = logging.StreamHandler()
+        console_formatter = logging.Formatter('%(message)s')
+        console_handler.setFormatter(console_formatter)
+        root.addHandler(console_handler)
 
 
 def send_initial_report(conn_socket):
@@ -123,6 +136,7 @@ def revoke_inverse_module(conn_socket, filename):
 
 
 
+logger_configurer()
 
 #connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again

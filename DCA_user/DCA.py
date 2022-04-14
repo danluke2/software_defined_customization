@@ -19,6 +19,7 @@ from netlink_helper import *
 
 # remove prints and log instead
 import logging
+from logging import handlers
 
 
 parser = argparse.ArgumentParser(description='DCA user space program')
@@ -27,7 +28,7 @@ parser.add_argument('--port', type=int, required=False, help="NCO port")
 parser.add_argument('--dir', type=str, required=False, help="KO Module download dir")
 parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
 parser.add_argument('--controlled', help="Require user input to start checkin process", action="store_true" )
-parser.add_argument('--logging', help="Enable logging to file instead of print to console", action="store_true" )
+parser.add_argument('--print', help="Enables logging to console", action="store_true" )
 parser.add_argument('--logfile', type=str, required=False, help="Full log file path to use, defaults to layer4_5 directory")
 
 args = parser.parse_args()
@@ -45,14 +46,29 @@ if args.iface:
 if args.dir:
     cfg.download_dir = args.dir
 
+if args.print:
+    cfg.log_console = True
 
-if args.logging:
-    if args.logfile:
-        logging.basicConfig(format='%(levelname)s:%(message)s', filename=args.logfile, level=logging.DEBUG)
-    else:
-        logging.basicConfig(format='%(levelname)s:%(message)s', filename=cfg.log_file, level=logging.DEBUG)
-else:
-    logging.basicConfig(format='%(levelname)s:%(message)s', stream=sys.stdout, level=logging.DEBUG)
+if args.logfile:
+    cfg.log_file = args.logfile
+
+
+logger = logging.getLogger(__name__)  # use module name
+
+
+def logger_configurer():
+    root = logging.getLogger()
+    file_handler = handlers.RotatingFileHandler(cfg.log_file, 'a', cfg.log_size, cfg.log_max)
+    file_formatter = logging.Formatter('%(asctime)s  %(message)s')
+    file_handler.setFormatter(file_formatter)
+    root.addHandler(file_handler)
+    root.setLevel(logging.DEBUG)
+
+    if cfg.log_console:
+        console_handler = logging.StreamHandler()
+        console_formatter = logging.Formatter('%(message)s')
+        console_handler.setFormatter(console_formatter)
+        root.addHandler(console_handler)
 
 
 
@@ -60,7 +76,7 @@ else:
 def send_periodic_report(conn_socket):
     send_dict = query_layer4_5()
     send_string = json.dumps(send_dict, indent=4)
-    logging.info(f"Periodic report: {send_string}")
+    # logging.info(f"Periodic report: {send_string}")
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 
@@ -216,6 +232,8 @@ def revoke_module(conn_socket, filename):
 
 
 
+
+logger_configurer()
 
 #connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again

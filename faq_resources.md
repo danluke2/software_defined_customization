@@ -120,6 +120,9 @@ Common items I refer to when trying to understand code and functions in the kern
     https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04
 
 
+1) prevent ubuntu updates:
+
+    https://askubuntu.com/questions/938494/how-to-i-prevent-ubuntu-from-kernel-version-upgrade-and-notification
 
 
 1) get task from tgid:

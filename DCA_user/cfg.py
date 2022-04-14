@@ -33,6 +33,10 @@ KEY_SIZE = 32
 IV_SIZE = 16
 
 
+log_console = False
+log_size = 1024 * 8 * 32 # 32KB
+log_max = 5 # keep max of 5 logs
+
 
 log_file = dca_dir + "dca_messages.log"
 middle_log_file = dca_dir + "middle_dca_messages.log"

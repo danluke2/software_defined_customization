@@ -67,14 +67,14 @@ sleep $SLEEP_INT
 
 # start DCA process, which will have host_id = 1
 echo "*************** Starting DCA on Server  ***************"
-gnome-terminal -- bash -c  "echo '*************** Server DCA  ***************'; python3 $DCA_USER_DIR/DCA.py"
+gnome-terminal -- bash -c  "echo '*************** Server DCA  ***************'; python3 $DCA_USER_DIR/DCA.py --print --logfile $DCA_USER_DIR/server_dca_messages.log"
 
 sleep $SLEEP_INT
 
 
 # start DCA middlebox process
 echo "*************** Starting Middlebox DCA on Server  ***************"
-gnome-terminal -- bash -c  "echo '*************** Middlebox DCA  ***************';  python3 $DCA_USER_DIR/DCA_middlebox.py"
+gnome-terminal -- bash -c  "echo '*************** Middlebox DCA  ***************';  python3 $DCA_USER_DIR/DCA_middlebox.py --print --logfile $DCA_USER_DIR/middlebox_dca_messages.log"
 
 sleep $SLEEP_INT
 
@@ -82,7 +82,7 @@ sleep $SLEEP_INT
 # start DCA process on client, which will have host_id = 2
 echo "*************** Starting DCA on Client  ***************"
 # sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "python3 $DCA_USER_DIR/DCA.py >/dev/null 2>&1 &"
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "python3 $DCA_USER_DIR/DCA.py --logging >/dev/null 2>&1 &"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "python3 $DCA_USER_DIR/DCA.py --logfile $DCA_USER_DIR/client_dca_messages.log >/dev/null 2>&1 &"
 
 sleep $SLEEP_INT
 
