@@ -120,7 +120,7 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
 
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 plt.ylabel('Seconds')
-plt.title("Bulk File Transer Time")
+plt.title("Bulk File Transfer Time")
 
 # plt.show()
 plt.savefig('bulk_overhead.png')
