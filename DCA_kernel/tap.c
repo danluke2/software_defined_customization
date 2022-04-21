@@ -160,22 +160,13 @@ struct sock* new_inet_csk_accept(struct sock *sk, int flags, int *err, bool kern
   new_sock = ref_inet_csk_accept(sk, flags, err, kern);
   cust_socket = create_cust_socket(task, new_sock, NULL);
   trace_print_cust_socket(cust_socket, "tcp_accept");
-  #ifdef DEBUG
+  #ifdef DEBUG1
     if(cust_socket != NULL)
     {
-      if(cust_socket->customization != NULL)
-      {
-        // Socket added to tracking table, dump socket info to log
-        trace_print_cust_socket(cust_socket, "tcp_accept");
-      }
-      #ifdef DEBUG1
-      else
+      if(cust_socket->customization == NULL)
       {
         trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
-        // Socket added to tracking table, dump socket info to log
-        trace_print_cust_socket(cust_socket, "tcp_accept");
       }
-      #endif
     }
   #endif
   return new_sock;
@@ -252,7 +243,7 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
 	if(cust_socket == NULL)
   {
     #ifdef DEBUG3
-      trace_printk("L4.5: NULL cust socket in recvmsg, pid %d\n", task->pid);
+      trace_printk("L4.5: NULL cust socket in recvmsg, creating cust socket for pid %d\n", task->pid);
     #endif
 
     cust_socket = create_cust_socket(task, sk, msg);
@@ -349,12 +340,11 @@ int new_udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 // @see customization_socket.c:create_cust_socket
 // @return the amount of bytes from L4 if no customization performed
 // @return the amount of bytes after customization performed, or an error code
-int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock, int flags, int *addr_len,
-                  int (*recvmsg)(struct sock*, struct msghdr*, size_t, int, int, int*))
+int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock, int flags, int *addr_len, int (*recvmsg)(struct sock*, struct msghdr*, size_t, int, int, int*))
 {
   struct task_struct *task = current;
   struct customization_socket *cust_socket;
-  int recvmsg_return;
+  int recvmsg_return = 0;
 
 
   //only tapping iovec at the moment, but not sure we should limit
@@ -366,17 +356,24 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     return recvmsg(sk, msg, len, nonblock, flags, addr_len);
   }
 
-  recvmsg_return = recvmsg(sk, msg, len, nonblock, flags, addr_len);
-  if(recvmsg_return <= 0)
-  {
-    // a 0 length or error message has no need for customization removal
-    #ifdef DEBUG1
-      trace_printk("L4.5: received %d length message, pid %d\n", recvmsg_return, task->pid);
-    #endif
-    return recvmsg_return;
-  }
 
+  // Try to get cust socket, but if first time seeing socket this will fail to find the socket
   cust_socket = get_cust_socket(task, sk);
+  // if(cust_socket == NULL)
+  // {
+  //   // need to fill the socket params by doing a recvmsg call so we can properly create the cust socket
+  //   recvmsg_return = recvmsg(sk, msg, len, nonblock, flags, addr_len);
+  //   if(recvmsg_return <= 0)
+  //   {
+  //     // a 0 length or error message has no need for customization removal
+  //     #ifdef DEBUG1
+  //       trace_printk("L4.5: received %d length message, pid %d\n", recvmsg_return, task->pid);
+  //     #endif
+  //     return recvmsg_return;
+  //   }
+  //   // now we try again to get the cust socket that matches the current socket
+  //   cust_socket = get_cust_socket(task, sk);
+  // }
 
   //this section generall only runs on first tap attempt (server, UDP)
   if(cust_socket == NULL)
@@ -384,6 +381,9 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     #ifdef DEBUG3
       trace_printk("L4.5: NULL cust socket in recvmsg, pid %d\n", task->pid);
     #endif
+
+    // Perform a PEEK request so we don't remove data from L4 yet, but can fill in missing msg params if they exist
+    recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
 
     cust_socket = create_cust_socket(task, sk, msg);
     if(cust_socket == NULL)
@@ -413,16 +413,45 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     #endif
 	}
 
-  // if tracking was set to false at some point, stop trying to modify messages
+  // if tracking was set to SKIP at some point, stop trying to modify messages
   if(cust_socket->customize_recv_or_skip == SKIP)
   {
     #ifdef DEBUG3
       trace_printk("L4.5: cust_socket recv set to skip, pid %d\n", task->pid);
     #endif
-    return recvmsg_return;
+    //undo the PEEK, then do real recvmsg
+    // iov_iter_revert(&msg->msg_iter, recvmsg_return);
+    // if(recvmsg_return ==0)
+    // {
+    //   recvmsg_return = recvmsg(sk, msg, len, nonblock, flags, addr_len);
+    // }
+    // return recvmsg_return;
+    return recvmsg(sk, msg, len, nonblock, flags, addr_len);
   }
 
-  return dca_recvmsg(cust_socket, sk, msg, len, recvmsg_return);
+  // // need to check if kmsg has been allocatted yet
+  // if(cust_socket->temp_buf_st.kmsg_ptr == NULL)
+  // {
+  //   cust_socket->temp_buf_st.kmsg = *msg;
+  //   cust_socket->temp_buf_st.kmsg_ptr = msg;
+  //   //setup kmsg
+  //   iov_iter_kvec(&cust_socket->temp_buf_st.kmsg.msg_iter, READ | ITER_KVEC, &cust_socket->temp_buf_st.iov, 1, cust_socket->temp_buf_st.available_bytes);
+  //
+  // }
+  // // fill the customization buffer instead of msg buffer with desired amount of data to allow customization to process data correctly prior to filling msghdr
+  // recvmsg_return = recvmsg(sk, &cust_socket->temp_buf_st.kmsg, cust_socket->temp_buf_st.available_bytes, nonblock, flags, addr_len);
+  //
+  // // even if recvmsg_return = 0, we still want to do cust b/c of the buffering
+  // if(recvmsg_return < 0)
+  // {
+  //   // an error message has no need for customization removal
+  //   #ifdef DEBUG1
+  //     trace_printk("L4.5: received %d length message, pid %d\n", recvmsg_return, task->pid);
+  //   #endif
+  //   return recvmsg_return;
+  // }
+
+  return dca_recvmsg(cust_socket, sk, msg, len, nonblock, flags, addr_len, recvmsg);
 }
 
 

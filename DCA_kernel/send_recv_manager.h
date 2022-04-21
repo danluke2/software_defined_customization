@@ -15,9 +15,7 @@
 // @pre msg holds app message destined for Layer 4
 // @post msg is customized and transferred to kvec and sent to L4
 // @return number of bytes app expected to send or error
-int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk,
-							  struct msghdr *msg, size_t size,
-								int (*sendmsg)(struct sock*, struct msghdr*, size_t));
+int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct msghdr *msg, size_t size, int (*sendmsg)(struct sock*, struct msghdr*, size_t));
 
 
 
@@ -27,12 +25,10 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk,
 // @param[I] sk sock struct sent to L4 sendmsg
 // @param[I] msg holds application message iovec
 // @param[I] len total bytes app can receive
-// @param[I] recv_ret total bytes L4 recv call received and put in msg
 // @pre msg holds app message from Layer 4 recv call
 // @post msg is customized and overwritten if necessary prior to delivery to app
 // @return number of bytes in msg for app or error
-int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk,
-								struct msghdr *msg, size_t len, size_t recv_ret);
+int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct msghdr *msg, size_t len,int nonblock, int flags, int *addr_len, int (*recvmsg)(struct sock*, struct msghdr*, size_t, int, int, int*));
 
 
 #endif

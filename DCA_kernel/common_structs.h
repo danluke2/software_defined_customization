@@ -62,7 +62,26 @@ struct customization_buffer
 	struct iov_iter *src_iter;  // source buffer to work from
 	size_t length; // send=amount of data in src_iter, recv=max amount to return
 	size_t recv_return; // amount of data L4 returned from recvmsg call
+
+	void *temp_buf;
+	u32 available_bytes; //bytes available to put temp data
+	struct kvec iov;
+  struct msghdr kmsg;
+	struct msghdr *kmsg_ptr;
+
+	bool skip_cust;
+	bool no_cust;
 };
+
+// buffers for customization module use to buffer inoming messages
+// struct customization_temp_buffer
+// {
+// 	void *temp_buf;
+// 	u32 available_bytes; //bytes available to put temp data
+// 	struct kvec iov;
+//   struct msghdr kmsg;
+// 	struct msghdr *kmsg_ptr;
+// };
 
 
 // primary structure for application sockets to hold customization information
@@ -83,6 +102,8 @@ struct customization_socket
 	void *customization;
 	struct customization_buffer send_buf_st;
 	struct customization_buffer recv_buf_st;
+	// struct customization_temp_buffer temp_buf_st;
+
 	struct timespec64 last_cust_send_time_struct; // last time cust was applied
 	struct timespec64 last_cust_recv_time_struct; // last time cust was applied
 

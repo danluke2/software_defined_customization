@@ -71,6 +71,11 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 	new_cust_socket->send_buf_st.buf = NULL;
 	new_cust_socket->recv_buf_st.buf = NULL;
 
+	new_cust_socket->recv_buf_st.temp_buf = NULL;
+	new_cust_socket->recv_buf_st.kmsg_ptr = NULL;
+	new_cust_socket->recv_buf_st.no_cust = false;
+	new_cust_socket->recv_buf_st.skip_cust = false;
+
 	// set default time values to indicate no packets seen yet
 	new_cust_socket->last_cust_send_time_struct.tv_sec = 0;
 	new_cust_socket->last_cust_send_time_struct.tv_nsec = 0;
@@ -78,6 +83,7 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 	new_cust_socket->last_cust_recv_time_struct.tv_nsec = 0;
 
 	set_four_tuple(sk, new_cust_socket, msg);
+
 
 	// all necessary values set to match a customization
 	cust_node = get_customization(new_cust_socket);
@@ -310,8 +316,7 @@ static void set_four_tuple(struct sock *sk, struct customization_socket *cust_so
 // @param[X] cust_sock The customization socket to assign cust to
 // @param[I] cust_node The customization to apply to the socket
 // @post customization buffers are allocated and customization params set
-static void assign_customization(struct customization_socket *cust_sock,
-													struct customization_node *cust_node)
+static void assign_customization(struct customization_socket *cust_sock, struct customization_node *cust_node)
 {
 	// condition ? value_if_true : value_if_false
 	u32 send_buffer_size = (cust_node->send_buffer_size != 0) ? cust_node->send_buffer_size : SEND_BUF_SIZE;
@@ -372,19 +377,43 @@ static void assign_customization(struct customization_socket *cust_sock,
 		}
 		else
 		{
-			#ifdef DEBUG
-				trace_printk("L4.5: Assigned recv buffer, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
-			#endif
-			socket_allocsminusfrees++;
+			socket_allocsminusfrees++; //recv buf
 			cust_sock->recv_buf_st.buf_size = recv_buffer_size;
-			cust_sock->customize_recv_or_skip = CUSTOMIZE;
-			cust_sock->customization = cust_node;
+
+
+			cust_sock->recv_buf_st.temp_buf = kmalloc(recv_buffer_size,  GFP_KERNEL | __GFP_NOFAIL);
+			if(cust_sock->recv_buf_st.temp_buf == NULL)
+			{
+				#ifdef DEBUG
+					trace_printk("L4.5: Recv cust temp buffer malloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol, cust_sock->socket_flow.task_name_pid);
+				#endif
+				cust_sock->customize_recv_or_skip = SKIP;
+			}
+			else
+			{
+				#ifdef DEBUG
+					trace_printk("L4.5: Assigned recv buffer, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
+				#endif
+				// we only buffer recv for now, so set kmsg params here
+				cust_sock->recv_buf_st.iov.iov_len = recv_buffer_size;
+				cust_sock->recv_buf_st.iov.iov_base = cust_sock->recv_buf_st.temp_buf;
+				// if(cust_sock->recv_buf_st.kmsg_ptr != NULL)
+				// {
+				// 	//setup kmsg
+				// 	iov_iter_kvec(&cust_sock->recv_buf_st.kmsg.msg_iter, READ | ITER_KVEC, &cust_sock->recv_buf_st.iov, 1, recv_buffer_size);
+				// }
+
+				socket_allocsminusfrees++; //temp buf
+				cust_sock->recv_buf_st.available_bytes = recv_buffer_size;
+				cust_sock->customize_recv_or_skip = CUSTOMIZE;
+				cust_sock->customization = cust_node;
+			}
 		}
 	}
 
 	if(cust_sock->customization != NULL)
 	{
-		// only need active spinlock if customizing socket
+		// only need to create the active spinlock if customizing socket
 		spin_lock_init(&cust_sock->active_customization_lock);
 		// increment count here to keep count accurate/easier to manage
 		cust_node->sock_count += 1;
@@ -416,11 +445,23 @@ static void unassign_customization(struct customization_socket *cust_sock)
 	{
 		kfree(cust_sock->recv_buf_st.buf);
 		cust_sock->recv_buf_st.buf = NULL;
+		socket_allocsminusfrees--;
 		#ifdef DEBUG
 			trace_printk("L4.5: Freed recv buff, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
 		#endif
-		socket_allocsminusfrees--;
 	}
+
+	if(cust_sock->recv_buf_st.temp_buf != NULL)
+	{
+		kfree(cust_sock->recv_buf_st.temp_buf);
+		cust_sock->recv_buf_st.temp_buf = NULL;
+		socket_allocsminusfrees--;
+		#ifdef DEBUG
+			trace_printk("L4.5: Freed temp buff, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
+		#endif
+	}
+
+
 	// adjust the cust node sock count if necessary
 	if(cust_sock->customization != NULL)
 	{
