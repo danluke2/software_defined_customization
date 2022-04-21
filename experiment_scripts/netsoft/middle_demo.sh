@@ -18,13 +18,12 @@ GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
 
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
-
-
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
@@ -127,7 +126,7 @@ echo "*************** finished  ***************"
 
 
 echo "removing dns modules and layer 4.5"
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "pkill python; rmmod demo_dns_client_app_tag; rmmod layer4_5; ifconfig enp0s3 up"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "pkill python; rmmod demo_dns_client_app_tag; rmmod layer4_5; cd $CUST_LOCATION; rm demo_dns*.ko; ifconfig enp0s3 up"
 
 sleep $SLEEP_INT
 
@@ -136,6 +135,8 @@ pkill tcpdump
 pkill dnsmasq
 rmmod demo_dns_server_app_tag
 rmmod layer4_5
+cd $CUST_LOCATION
+rm demo_dns_*.ko
 
 
 echo "Opening Wireshark PCAP"

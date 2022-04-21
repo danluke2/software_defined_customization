@@ -227,6 +227,9 @@ do
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\DCA_USER_DIR=$DCA_USER_DIR" $FILE
   ((LINE=LINE+1))
+  sed -i "${LINE}d" $FILE
+  sed -i "${LINE}i\CUST_LOCATION=$CUST_LOCATION" $FILE
+  ((LINE=LINE+1))
   ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\SERVER_IP=$SERVER_IP" $FILE
