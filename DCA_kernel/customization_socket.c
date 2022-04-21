@@ -384,7 +384,7 @@ static void assign_customization(struct customization_socket *cust_sock,
 
 	if(cust_sock->customization != NULL)
 	{
-		// only need active spinlock if customizing socket
+		// only need to create the active spinlock if customizing socket
 		spin_lock_init(&cust_sock->active_customization_lock);
 		// increment count here to keep count accurate/easier to manage
 		cust_node->sock_count += 1;

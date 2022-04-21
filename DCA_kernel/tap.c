@@ -349,12 +349,11 @@ int new_udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 // @see customization_socket.c:create_cust_socket
 // @return the amount of bytes from L4 if no customization performed
 // @return the amount of bytes after customization performed, or an error code
-int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock, int flags, int *addr_len,
-                  int (*recvmsg)(struct sock*, struct msghdr*, size_t, int, int, int*))
+int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock, int flags, int *addr_len, int (*recvmsg)(struct sock*, struct msghdr*, size_t, int, int, int*))
 {
   struct task_struct *task = current;
   struct customization_socket *cust_socket;
-  int recvmsg_return;
+  int recvmsg_return = 0;
 
 
   //only tapping iovec at the moment, but not sure we should limit
