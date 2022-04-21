@@ -243,7 +243,7 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
 	if(cust_socket == NULL)
   {
     #ifdef DEBUG3
-      trace_printk("L4.5: NULL cust socket in recvmsg, creating cust socket for pid %d\n", task->pid);
+      trace_printk("L4.5: NULL cust socket in sendmsg, creating cust socket for pid %d\n", task->pid);
     #endif
 
     cust_socket = create_cust_socket(task, sk, msg);
@@ -379,7 +379,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
   if(cust_socket == NULL)
   {
     #ifdef DEBUG3
-      trace_printk("L4.5: NULL cust socket in recvmsg, pid %d\n", task->pid);
+      trace_printk("L4.5: NULL cust socket in recvmsg, creating cust socket for pid %d\n", task->pid);
     #endif
 
     // Perform a PEEK request so we don't remove data from L4 yet, but can fill in missing msg params if they exist

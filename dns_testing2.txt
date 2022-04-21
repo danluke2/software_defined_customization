@@ -1,0 +1,295 @@
+# tracer: nop
+#
+# entries-in-buffer/entries-written: 284/284   #P:2
+#
+#                                _-----=> irqs-off
+#                               / _----=> need-resched
+#                              | / _---=> hardirq/softirq
+#                              || / _--=> preempt-depth
+#                              ||| /     delay
+#           TASK-PID     CPU#  ||||   TIMESTAMP  FUNCTION
+#              | |         |   ||||      |         |
+          insmod-7218    [000] ....   934.074882: 0xffffffffc07f5af5: L4.5: address of tcp_prot is 0000000067a8c379
+          insmod-7218    [000] ....   934.074883: 0xffffffffc07f5c05: L4.5: address of udp_prot is 00000000642333b7
+          insmod-7218    [000] ....   934.074883: 0xffffffffc080605b: L4.5: TCP/UDP taps registered
+         systemd-1       [001] ....   935.360236: 0xffffffffc07f52f5: L4.5: socket close call, pid=1, sk=18446636347487233024
+         systemd-1       [001] ....   935.360237: 0xffffffffc07f533d: L4.5: socket not found; pid=1, sk=18446636347487233024
+         systemd-1       [001] ....   935.360310: 0xffffffffc07f52f5: L4.5: socket close call, pid=1, sk=18446636347487233024
+         systemd-1       [001] ....   935.360310: 0xffffffffc07f533d: L4.5: socket not found; pid=1, sk=18446636347487233024
+          insmod-8076    [001] ....   951.018664: 0xffffffffc07f6e6f: L4.5: Registering module
+          insmod-8076    [001] ....   951.018665: 0xffffffffc07f8625: Node protocol = 17
+          insmod-8076    [001] ....   951.018665: 0xffffffffc07f8625: Node pid task = *
+          insmod-8076    [001] ....   951.018665: 0xffffffffc07f8625: Node tgid task = dig
+          insmod-8076    [001] ....   951.018665: 0xffffffffc07f8625: Node id = 56
+          insmod-8076    [001] ....   951.018666: 0xffffffffc07f8625: Node dest port = 53
+          insmod-8076    [001] ....   951.018666: 0xffffffffc07f8625: Node source port = 0
+          insmod-8076    [001] ....   951.018666: 0xffffffffc07f8625: Node dest_ip = 10.0.0.20
+          insmod-8076    [001] ....   951.018667: 0xffffffffc07f8625: Node src_ip = 0.0.0.0
+          insmod-8076    [001] ....   951.018667: 0xffffffffc07f6e6f: L4.5: Registration time: 1650574467
+          insmod-8076    [001] ....   951.018667: 0xffffffffc0806120: L4.5: client dns module loaded, id=56
+            http-8082    [001] ....   957.275410: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 8082
+            http-8082    [001] ....   957.275412: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+            http-8082    [001] ....   957.275413: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=http, tgid task=http, uid = 105
+            http-8082    [001] ....   957.275413: 0xffffffffc07f6617: L4.5: Adding pid 8082 to normal table
+            http-8082    [001] ....   957.275413: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 8082, sk 18446636347486852736
+            http-8082    [001] ....   957.275415: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=127.0.0.1:58540, cust_send=0, cust_recv=0
+            http-8082    [001] ....   957.275415: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 8082
+ systemd-resolve-498     [001] ....   957.275488: 0xffffffffc07f550a: L4.5: NULL cust socket in recvmsg, creating cust socket for pid 498
+ systemd-resolve-498     [001] ....   957.275489: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+ systemd-resolve-498     [001] ....   957.275490: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=systemd-resolve, tgid task=systemd-resolve, uid = 101
+ systemd-resolve-498     [001] ....   957.275490: 0xffffffffc07f6617: L4.5: Adding pid 498 to normal table
+ systemd-resolve-498     [001] ....   957.275490: 0xffffffffc07f55a3: L4.5: Customization skipped for pid 498, sk 18446636347432904832
+ systemd-resolve-498     [001] ....   957.275491: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=127.0.0.53:53, cust_send=0, cust_recv=0
+ systemd-resolve-498     [001] ....   957.275492: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.275498: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.275498: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.275612: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 498
+ systemd-resolve-498     [001] ....   957.275613: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+ systemd-resolve-498     [001] ....   957.275613: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=systemd-resolve, tgid task=systemd-resolve, uid = 101
+ systemd-resolve-498     [001] ....   957.275614: 0xffffffffc07f6617: L4.5: Adding pid 498 to normal table
+ systemd-resolve-498     [001] ....   957.275614: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 498, sk 18446636347486860800
+ systemd-resolve-498     [001] ....   957.275615: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=10.0.0.40:53630, cust_send=0, cust_recv=0
+ systemd-resolve-498     [001] ....   957.275615: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.276153: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.276154: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.276157: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.276157: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.276172: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.276173: 0xffffffffc07f52f5: L4.5: socket close call, pid=498, sk=18446636347486860800
+ systemd-resolve-498     [001] ....   957.276191: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.276191: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+            http-8082    [001] ....   957.276220: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8082, cust_pid 8082
+            http-8082    [001] ....   957.276220: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8082
+            http-8082    [001] ....   957.276226: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8082, cust_pid 8082
+            http-8082    [001] ....   957.276226: 0xffffffffc07f52f5: L4.5: socket close call, pid=8082, sk=18446636347486852736
+            http-8082    [001] ....   957.276537: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 8082
+            http-8082    [001] ....   957.276538: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+            http-8082    [001] ....   957.276538: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=http, tgid task=http, uid = 105
+            http-8082    [001] ....   957.276538: 0xffffffffc07f6617: L4.5: Adding pid 8082 to normal table
+            http-8082    [001] ....   957.276539: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 8082, sk 18446636347486861952
+            http-8082    [001] ....   957.276540: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=127.0.0.1:50359, cust_send=0, cust_recv=0
+            http-8082    [001] ....   957.276540: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 8082
+ systemd-resolve-498     [001] ....   957.276556: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.276556: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.276559: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.276559: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.276611: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 498
+ systemd-resolve-498     [001] ....   957.276612: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+ systemd-resolve-498     [001] ....   957.276612: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=systemd-resolve, tgid task=systemd-resolve, uid = 101
+ systemd-resolve-498     [001] ....   957.276613: 0xffffffffc07f6617: L4.5: Adding pid 498 to normal table
+ systemd-resolve-498     [001] ....   957.276613: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 498, sk 18446636347486856192
+ systemd-resolve-498     [001] ....   957.276614: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=10.0.0.40:39648, cust_send=0, cust_recv=0
+ systemd-resolve-498     [001] ....   957.276614: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+            http-8082    [001] ....   957.276670: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8082, cust_pid 8082
+            http-8082    [001] ....   957.276671: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 8082
+ systemd-resolve-498     [001] ....   957.276710: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.276711: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.276714: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.276714: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.276758: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 498
+ systemd-resolve-498     [001] ....   957.276759: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+ systemd-resolve-498     [001] ....   957.276760: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=systemd-resolve, tgid task=systemd-resolve, uid = 101
+ systemd-resolve-498     [001] ....   957.276760: 0xffffffffc07f6617: L4.5: Adding pid 498 to normal table
+ systemd-resolve-498     [001] ....   957.276760: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 498, sk 18446636347486849280
+ systemd-resolve-498     [001] ....   957.276761: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=10.0.0.40:36809, cust_send=0, cust_recv=0
+ systemd-resolve-498     [001] ....   957.276761: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.277017: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.277017: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.277021: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.277021: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.277035: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.277035: 0xffffffffc07f52f5: L4.5: socket close call, pid=498, sk=18446636347486856192
+ systemd-resolve-498     [001] ....   957.277051: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.277051: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+            http-8082    [001] ....   957.277081: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8082, cust_pid 8082
+            http-8082    [001] ....   957.277082: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8082
+ systemd-resolve-498     [001] ....   957.277179: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.277179: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.277183: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.277183: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.277196: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.277196: 0xffffffffc07f52f5: L4.5: socket close call, pid=498, sk=18446636347486849280
+ systemd-resolve-498     [001] ....   957.277211: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.277211: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+            http-8082    [001] ....   957.277244: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8082, cust_pid 8082
+            http-8082    [001] ....   957.277245: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8082
+            http-8082    [001] ....   957.277248: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8082, cust_pid 8082
+            http-8082    [001] ....   957.277249: 0xffffffffc07f52f5: L4.5: socket close call, pid=8082, sk=18446636347486861952
+            http-8082    [001] ....   957.277326: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+            http-8082    [001] ....   957.277327: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=6, pid task=http, tgid task=http, uid = 105
+            http-8082    [001] ....   957.277327: 0xffffffffc07f6617: L4.5: Adding pid 8082 to normal table
+            http-8082    [001] ....   957.277328: 0xffffffffc07f5242: L4.5: Customization skipped for pid 8082, sk 18446636347430192640
+            http-8082    [001] ....   957.277329: 0xffffffffc07f84b5: L4.5 tcp_connect: dest_ip:port=10.0.0.20:80, source_ip:port=10.0.0.40:58702, cust_send=0, cust_recv=0
+            http-8082    [001] ....   957.277631: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8082, cust_pid 8082
+            http-8082    [001] ....   957.277632: 0xffffffffc07f5385: L4.5: socket close call, pid=8082, sk=18446636347430192640
+            http-8083    [001] ....   957.285483: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 8083
+            http-8083    [001] ....   957.285485: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+            http-8083    [001] ....   957.285485: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=http, tgid task=http, uid = 105
+            http-8083    [001] ....   957.285486: 0xffffffffc07f6617: L4.5: Adding pid 8083 to normal table
+            http-8083    [001] ....   957.285486: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 8083, sk 18446636347486846976
+            http-8083    [001] ....   957.285487: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=127.0.0.1:37433, cust_send=0, cust_recv=0
+            http-8083    [001] ....   957.285487: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 8083
+ systemd-resolve-498     [001] ....   957.285544: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.285545: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.285550: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.285551: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.285622: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 498
+ systemd-resolve-498     [001] ....   957.285623: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+ systemd-resolve-498     [001] ....   957.285623: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=systemd-resolve, tgid task=systemd-resolve, uid = 101
+ systemd-resolve-498     [001] ....   957.285623: 0xffffffffc07f6617: L4.5: Adding pid 498 to normal table
+ systemd-resolve-498     [001] ....   957.285624: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 498, sk 18446636347486853888
+ systemd-resolve-498     [001] ....   957.285624: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=10.0.0.40:50398, cust_send=0, cust_recv=0
+ systemd-resolve-498     [001] ....   957.285625: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.286129: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.286129: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.286133: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.286133: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.286146: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.286147: 0xffffffffc07f52f5: L4.5: socket close call, pid=498, sk=18446636347486853888
+ systemd-resolve-498     [001] ....   957.286162: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.286162: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+            http-8083    [001] ....   957.286191: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8083, cust_pid 8083
+            http-8083    [001] ....   957.286191: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8083
+            http-8083    [001] ....   957.286197: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8083, cust_pid 8083
+            http-8083    [001] ....   957.286197: 0xffffffffc07f52f5: L4.5: socket close call, pid=8083, sk=18446636347486846976
+            http-8083    [001] ....   957.286497: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 8083
+            http-8083    [001] ....   957.286498: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+            http-8083    [001] ....   957.286499: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=http, tgid task=http, uid = 105
+            http-8083    [001] ....   957.286499: 0xffffffffc07f6617: L4.5: Adding pid 8083 to normal table
+            http-8083    [001] ....   957.286499: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 8083, sk 18446636347486857344
+            http-8083    [001] ....   957.286500: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=127.0.0.1:41540, cust_send=0, cust_recv=0
+            http-8083    [001] ....   957.286500: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 8083
+ systemd-resolve-498     [001] ....   957.286515: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.286516: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.286519: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.286519: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.286569: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 498
+ systemd-resolve-498     [001] ....   957.286570: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+ systemd-resolve-498     [001] ....   957.286570: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=systemd-resolve, tgid task=systemd-resolve, uid = 101
+ systemd-resolve-498     [001] ....   957.286570: 0xffffffffc07f6617: L4.5: Adding pid 498 to normal table
+ systemd-resolve-498     [001] ....   957.286571: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 498, sk 18446636347486859648
+ systemd-resolve-498     [001] ....   957.286571: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=10.0.0.40:55893, cust_send=0, cust_recv=0
+ systemd-resolve-498     [001] ....   957.286572: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+            http-8083    [001] ....   957.286625: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8083, cust_pid 8083
+            http-8083    [001] ....   957.286625: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 8083
+ systemd-resolve-498     [001] ....   957.286636: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.286636: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.286638: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.286639: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.286713: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 498
+ systemd-resolve-498     [001] ....   957.286714: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+ systemd-resolve-498     [001] ....   957.286714: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=systemd-resolve, tgid task=systemd-resolve, uid = 101
+ systemd-resolve-498     [001] ....   957.286714: 0xffffffffc07f6617: L4.5: Adding pid 498 to normal table
+ systemd-resolve-498     [001] ....   957.286715: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 498, sk 18446636347486855040
+ systemd-resolve-498     [001] ....   957.286715: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=0.0.0.0:0, source_ip:port=10.0.0.40:52624, cust_send=0, cust_recv=0
+ systemd-resolve-498     [001] ....   957.286716: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.287017: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.287018: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.287021: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.287022: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.287036: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.287037: 0xffffffffc07f52f5: L4.5: socket close call, pid=498, sk=18446636347486859648
+ systemd-resolve-498     [001] ....   957.287051: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.287052: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.287073: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.287073: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.287075: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.287075: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 498
+ systemd-resolve-498     [001] ....   957.287082: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.287082: 0xffffffffc07f52f5: L4.5: socket close call, pid=498, sk=18446636347486855040
+ systemd-resolve-498     [001] ....   957.287090: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 498, cust_pid 498
+ systemd-resolve-498     [001] ....   957.287090: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 498
+            http-8083    [001] ....   957.287112: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8083, cust_pid 8083
+            http-8083    [001] ....   957.287112: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8083
+            http-8083    [001] ....   957.287122: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8083, cust_pid 8083
+            http-8083    [001] ....   957.287122: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8083
+            http-8083    [001] ....   957.287124: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8083, cust_pid 8083
+            http-8083    [001] ....   957.287125: 0xffffffffc07f52f5: L4.5: socket close call, pid=8083, sk=18446636347486857344
+            http-8083    [001] ....   957.287205: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+            http-8083    [001] ....   957.287206: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=6, pid task=http, tgid task=http, uid = 105
+            http-8083    [001] ....   957.287206: 0xffffffffc07f6617: L4.5: Adding pid 8083 to normal table
+            http-8083    [001] ....   957.287206: 0xffffffffc07f5242: L4.5: Customization skipped for pid 8083, sk 18446636347430192640
+            http-8083    [001] ....   957.287207: 0xffffffffc07f84b5: L4.5 tcp_connect: dest_ip:port=10.0.0.20:80, source_ip:port=10.0.0.40:58704, cust_send=0, cust_recv=0
+            http-8083    [001] ....   957.287434: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8083, cust_pid 8083
+            http-8083    [001] ....   957.287435: 0xffffffffc07f5385: L4.5: socket close call, pid=8083, sk=18446636347430192640
+             dig-8104    [000] ....   961.175306: 0xffffffffc07f5385: L4.5: socket close call, pid=8104, sk=18446636347596509568
+             dig-8104    [000] ....   961.175307: 0xffffffffc07f53cd: L4.5: socket not found; pid=8104, sk=18446636347596509568
+  isc-worker0000-8105    [000] ....   961.177246: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 8105
+  isc-worker0000-8105    [000] ....   961.177248: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+  isc-worker0000-8105    [000] ....   961.177249: 0xffffffffc07f8849: Application tgid name check passed, cust_id=56
+  isc-worker0000-8105    [000] ....   961.177249: 0xffffffffc07f8872: Protocol check passed, cust_id=56
+  isc-worker0000-8105    [000] ....   961.177250: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=isc-worker0000, tgid task=dig, uid = 1000
+  isc-worker0000-8105    [000] ....   961.177250: 0xffffffffc07f6617: L4.5: Adding pid 8105 to normal table
+  isc-worker0000-8105    [000] ....   961.177250: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 8105, sk 18446636347508798976
+  isc-worker0000-8105    [000] ....   961.177252: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=127.0.0.1:53067, source_ip:port=127.0.0.1:53067, cust_send=0, cust_recv=0
+  isc-worker0000-8105    [000] ....   961.177253: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 8105
+  isc-worker0000-8105    [000] ....   961.177273: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8105, cust_pid 8105
+  isc-worker0000-8105    [000] ....   961.177273: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8105
+  isc-worker0000-8105    [000] ....   961.177278: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8105, cust_pid 8105
+  isc-worker0000-8105    [000] ....   961.177278: 0xffffffffc07f52f5: L4.5: socket close call, pid=8105, sk=18446636347508798976
+  isc-worker0000-8105    [000] ....   961.177433: 0xffffffffc07f52f5: L4.5: socket close call, pid=8105, sk=18446636347508792064
+  isc-worker0000-8105    [000] ....   961.177433: 0xffffffffc07f533d: L4.5: socket not found; pid=8105, sk=18446636347508792064
+  isc-worker0000-8105    [000] ....   961.177442: 0xffffffffc07f52f5: L4.5: socket close call, pid=8105, sk=18446636347508792064
+  isc-worker0000-8105    [000] ....   961.177442: 0xffffffffc07f533d: L4.5: socket not found; pid=8105, sk=18446636347508792064
+  isc-worker0000-8105    [000] ....   961.177452: 0xffffffffc07f550a: L4.5: NULL cust socket in recvmsg, creating cust socket for pid 8105
+  isc-worker0000-8105    [000] ....   961.177453: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+  isc-worker0000-8105    [000] ....   961.177453: 0xffffffffc07f8849: Application tgid name check passed, cust_id=56
+  isc-worker0000-8105    [000] ....   961.177453: 0xffffffffc07f8872: Protocol check passed, cust_id=56
+  isc-worker0000-8105    [000] ....   961.177454: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=isc-worker0000, tgid task=dig, uid = 1000
+  isc-worker0000-8105    [000] ....   961.177454: 0xffffffffc07f6617: L4.5: Adding pid 8105 to normal table
+  isc-worker0000-8105    [000] ....   961.177454: 0xffffffffc07f55a3: L4.5: Customization skipped for pid 8105, sk 18446636347508786304
+  isc-worker0000-8105    [000] ....   961.177455: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=189.179.255.255:57025, source_ip:port=0.0.0.0:52023, cust_send=0, cust_recv=0
+  isc-worker0000-8105    [000] ....   961.177455: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8105
+  isc-worker0000-8105    [000] ....   961.177467: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 8105, cust_pid 8105
+  isc-worker0000-8105    [000] ....   961.177468: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 8105
+    isc-socket-0-8107    [001] ....   961.178103: 0xffffffffc07f550a: L4.5: NULL cust socket in recvmsg, creating cust socket for pid 8107
+    isc-socket-0-8107    [001] ....   961.178105: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+    isc-socket-0-8107    [001] ....   961.178106: 0xffffffffc07f8849: Application tgid name check passed, cust_id=56
+    isc-socket-0-8107    [001] ....   961.178106: 0xffffffffc07f8872: Protocol check passed, cust_id=56
+    isc-socket-0-8107    [001] ....   961.178106: 0xffffffffc07f88a3: Dest check passed, cust_id=56
+    isc-socket-0-8107    [001] ....   961.178106: 0xffffffffc07f88d5: Src check passed, cust_id=56
+    isc-socket-0-8107    [001] ....   961.178107: 0xffffffffc07f7357: L4.5: cust socket match to registered module, pid = 8107
+    isc-socket-0-8107    [001] ....   961.178107: 0xffffffffc07f6381: L4.5: Assigning cust to socket, pid 8107
+    isc-socket-0-8107    [001] ....   961.178107: 0xffffffffc07f6381: L4.5: Send buffer size = 2048
+    isc-socket-0-8107    [001] ....   961.178108: 0xffffffffc07f6381: L4.5: Recv buffer size = 65536
+    isc-socket-0-8107    [001] ....   961.178108: 0xffffffffc07f641a: L4.5 Assigned send buffer, pid=8107, name=isc-socket-0
+    isc-socket-0-8107    [001] ....   961.178109: 0xffffffffc07f65e4: L4.5: Cust recv null, pid=8107, name=isc-socket-0
+    isc-socket-0-8107    [001] ....   961.178109: 0xffffffffc07f64eb: L4.5: Socket count = 1
+    isc-socket-0-8107    [001] ....   961.178110: 0xffffffffc07f652c: L4.5: Adding pid 8107 to customization table
+    isc-socket-0-8107    [001] ....   961.178111: 0xffffffffc07f84b5: L4.5 recvmsg: dest_ip:port=10.0.0.20:53, source_ip:port=0.0.0.0:52023, cust_send=1, cust_recv=0
+    isc-socket-0-8107    [001] ....   961.178111: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 8107
+    isc-socket-0-8107    [001] ....   961.178390: 0xffffffffc07f68c2: L4.5: cust socket found in customization table, current pid 8107, cust_pid 8107
+    isc-socket-0-8107    [001] ....   961.178391: 0xffffffffc07f609c: L4.5: Freed send buff, pid=8107, name=isc-socket-0
+    isc-socket-0-8107    [001] ....   961.178392: 0xffffffffc07f614c: L4.5: Cust removed, pid=8107, name=isc-socket-0
+    isc-socket-0-8107    [001] ....   961.178392: 0xffffffffc07f52f5: L4.5: socket close call, pid=8107, sk=18446636347508786304
+    avahi-daemon-5660    [000] ....   963.672579: 0xffffffffc07f5a56: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 5660
+    avahi-daemon-5660    [000] ....   963.672584: 0xffffffffc07f8815: Application pid name check passed, cust_id=56
+    avahi-daemon-5660    [000] ....   963.672585: 0xffffffffc07f6695: L4.5: cust request lookup NULL, proto=17, pid task=avahi-daemon, tgid task=avahi-daemon, uid = 115
+    avahi-daemon-5660    [000] ....   963.672586: 0xffffffffc07f6617: L4.5: Adding pid 5660 to normal table
+    avahi-daemon-5660    [000] ....   963.672587: 0xffffffffc07f5ad9: L4.5: Customization skipped for pid 5660, sk 18446636347428547840
+    avahi-daemon-5660    [000] ....   963.672590: 0xffffffffc07f84b5: L4.5 sendmsg: dest_ip:port=224.0.0.251:5353, source_ip:port=0.0.0.0:5353, cust_send=0, cust_recv=0
+    avahi-daemon-5660    [000] ....   963.672590: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 5660
+    avahi-daemon-5660    [000] ....   963.672772: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 5660, cust_pid 5660
+    avahi-daemon-5660    [000] ....   963.672773: 0xffffffffc07f5a1c: L4.5: cust_socket send set to skip, pid 5660
+    avahi-daemon-5660    [000] ....   963.672884: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 5660, cust_pid 5660
+    avahi-daemon-5660    [000] ....   963.672884: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 5660
+    avahi-daemon-5660    [000] ....   963.672901: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 5660, cust_pid 5660
+    avahi-daemon-5660    [000] ....   963.672902: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 5660
+    avahi-daemon-5660    [000] ....   964.448737: 0xffffffffc07f6840: L4.5: cust socket found in normal table, current pid 5660, cust_pid 5660
+    avahi-daemon-5660    [000] ....   964.448738: 0xffffffffc07f54c7: L4.5: cust_socket recv set to skip, pid 5660
+           rmmod-8114    [001] ....   967.364957: 0xffffffffc07f6fe5: L4.5: Unregistering module
+           rmmod-8114    [001] ....   967.364958: 0xffffffffc07f8625: Node protocol = 17
+           rmmod-8114    [001] ....   967.364958: 0xffffffffc07f8625: Node pid task = *
+           rmmod-8114    [001] ....   967.364958: 0xffffffffc07f8625: Node tgid task = dig
+           rmmod-8114    [001] ....   967.364959: 0xffffffffc07f8625: Node id = 56
+           rmmod-8114    [001] ....   967.364959: 0xffffffffc07f8625: Node dest port = 53
+           rmmod-8114    [001] ....   967.364959: 0xffffffffc07f8625: Node source port = 0
+           rmmod-8114    [001] ....   967.364960: 0xffffffffc07f8625: Node dest_ip = 10.0.0.20
+           rmmod-8114    [001] ....   967.364960: 0xffffffffc07f8625: Node src_ip = 0.0.0.0
+           rmmod-8114    [001] ....   967.364961: 0xffffffffc07f70b0: L4.5: Retire time 1650574483
+           rmmod-8114    [001] ....   967.364961: 0xffffffffc07f0158: L4.5: client module unloaded
+           rmmod-8122    [001] ....   972.955088: 0xffffffffc07f9681: L4.5: TCP/UDP taps unregistered
+           rmmod-8122    [001] ....   972.955090: 0xffffffffc07f6bdd: L4.5 Normal Socket: Deleting things in bucket [377] with pid value 5660 and socket value 0000000008fb5dcb
+           rmmod-8122    [001] ....   972.955091: 0xffffffffc07f6bdd: L4.5 Normal Socket: Deleting things in bucket [548] with pid value 8105 and socket value 0000000089ebbb4b
+           rmmod-8122    [001] ....   972.955093: 0xffffffffc07f6bdd: L4.5 Normal Socket: Deleting things in bucket [1022] with pid value 498 and socket value 00000000046cd75c
+           rmmod-8122    [001] ....   972.955095: 0xffffffffc07f6d32: Socket kallocs minus kfrees: 0

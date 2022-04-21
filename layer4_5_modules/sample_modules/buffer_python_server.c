@@ -109,7 +109,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 
   trace_printk("L4.5 module: recvmsg_ret = %lu, msg len = %lu\n", recv_buf_st->recv_return, recv_buf_st->length);
   trace_print_hex_dump("Temp Buffer Message: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->temp_buf, recv_buf_st->recv_return, true);
-  // print_hex_dump(KERN_DEBUG, "layer4.5 recv data: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, *copy_length, true);
+
 
   //NOTE: when buffering allowed, recv_return can be 0
   if(recv_buf_st->recv_return == 0)
@@ -165,7 +165,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     }
   }
 
-  // print_hex_dump(KERN_DEBUG, "layer4.5 recv data: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, *copy_length, true);
  	return;
 }
 

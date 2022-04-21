@@ -1,5 +1,5 @@
-// @file test_modules/overhead_dns_tag_client.c
-// @brief The customization module to insert dns tag to test overhead
+// @file test_modules/overhead_dns_tag_server.c
+// @brief The customization module to remove dns tag to test overhead
 
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -13,6 +13,7 @@
 #include "/home/vagrant/software_defined_customization/DCA_kernel/util/printing.h"
 
 
+
 extern int register_customization(struct customization_node *cust);
 
 extern int unregister_customization(struct customization_node *cust);
@@ -21,26 +22,25 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
 
 
 // Kernel module parameters with default values
-static char* destination_ip = "10.0.0.20";
+static char* destination_ip = "10.0.0.40";
 module_param(destination_ip, charp, 0600);  //root only access to change
 MODULE_PARM_DESC(destination_ip, "Dest IP to match");
 
-static char* source_ip = "0.0.0.0";
+static char* source_ip = "10.0.0.20";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
-static unsigned int destination_port = 53;
+static unsigned int destination_port = 0;
 module_param(destination_port, uint, 0600);
 MODULE_PARM_DESC(destination_port, "DPORT to match");
 
-static unsigned int source_port = 0;
+static unsigned int source_port = 53;
 module_param(source_port, uint, 0600);
 MODULE_PARM_DESC(source_port, "SPORT to match");
 
 static unsigned int protocol = 17; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
-
 
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
@@ -50,43 +50,67 @@ size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test)-1; // i.e., 32 bytes
 struct customization_node *dns_cust;
 
 
-// The following functions perform the buffer modifications requested by handler
+
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-  bool copy_success;
   send_buf_st->copy_length = 0;
-
-  trace_print_hex_dump("Original DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, send_buf_st->src_iter->iov->iov_base, send_buf_st->length, true);
-
-  memcpy(send_buf_st->buf, cust_tag_test, cust_tag_test_size);
-  send_buf_st->copy_length += cust_tag_test_size;
-
-  copy_success = copy_from_iter_full(send_buf_st->buf+cust_tag_test_size, send_buf_st->length, send_buf_st->src_iter);
-  if(copy_success == false)
-  {
-    trace_printk("L4.5 ALERT: Failed to copy DNS packet into buffer\n");
-    return;
-  }
-
-  send_buf_st->copy_length += send_buf_st->length;
-  // memcpy(send_buf_st->buf + send_buf_st->length, cust_tag_test, cust_tag_test_size);
-  // send_buf_st->copy_length += cust_tag_test_size;
-
-  trace_print_hex_dump("Cust DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, send_buf_st->buf, send_buf_st->copy_length, true);
-
   return;
 }
 
 
-// Function to customize the msg recieved from L4 prior to delivery to application
-// @param[I] recv_buf_st Pointer to the recv buffer structure
-// @param[I] socket_flow Pointer to the socket flow parameters
-// @pre recv_buf_st->src_iter holds app message destined for application
-// @post recv_buf holds customized message for DCA to send to app instead
+//reconstruct DNS packet from client side: ID+full query section->fill in header
+//recvmsg_ret is the amount of data in src_buf put there by layer 4
+//copy_length is amount of data in recv_buf to copy to msg
+//length = max buffer length -> copy_length must be <= length
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-  recv_buf_st->copy_length = 0;
- 	return;
+  bool copy_success;
+  recv_buf_st->no_cust = false;
+  recv_buf_st->skip_cust = false;
+
+  trace_printk("L4.5 module: recvmsg_ret = %lu, msg len = %lu\n", recv_buf_st->recv_return, recv_buf_st->length);
+  trace_print_hex_dump("Temp Buffer Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->temp_buf, recv_buf_st->recv_return, true);
+
+  //NOTE: when buffering allowed, recv_return can be 0
+  if(recv_buf_st->recv_return == 0)
+  {
+    recv_buf_st->copy_length = 0;
+  }
+  else
+  {
+    if(recv_buf_st->recv_return - cust_tag_test_size <=0)
+    {
+      //something strange came in
+      trace_printk("L4.5 ALERT: DNS packet length makes no sense, size = %lu\n", recv_buf_st->recv_return);
+
+      if(recv_buf_st->recv_return <= recv_buf_st->length)
+      {
+        recv_buf_st->no_cust = true;
+      }
+      else
+      {
+        // recv > length but does not match our cust, so drop the message
+        recv_buf_st->copy_length = 0;
+      }
+    }
+    else
+    {
+      recv_buf_st->copy_length = recv_buf_st->recv_return - cust_tag_test_size;
+
+      if(recv_buf_st->copy_length > recv_buf_st->length)
+      {
+        // copy > length, so drop the message since we don't want to buffer yet
+        recv_buf_st->copy_length = 0;
+      }
+
+      trace_printk("L4.5 module: memcpy kmsg iter buf\n");
+      memcpy(recv_buf_st->buf, recv_buf_st->temp_buf + cust_tag_test_size, recv_buf_st->copy_length);
+    }
+  }
+
+
+
+  return;
 }
 
 
@@ -95,43 +119,37 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 int __init sample_client_start(void)
 {
   int result;
-  // started seeing isc-socket-0 also for some reason
-	// char thread_name[16] = "isc-worker0000";  //this applies to dig requests
-  char thread_name[16] = "*";
-	char application_name[16] = "dig";
+  char thread_name[16] = "dnsmasq";
+	char application_name[16] = "dnsmasq";
 
-  dns_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
+	dns_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
 	if(dns_cust == NULL)
 	{
-		trace_printk("L4.5 ALERT: client DNS structure kmalloc failed\n");
+		trace_printk("L4.5 ALERT: server dns kmalloc failed\n");
 		return -1;
 	}
-
 
 	dns_cust->target_flow.protocol = (u16) protocol; // UDP
 	memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
 	memcpy(dns_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
 	dns_cust->target_flow.dest_port = (u16) destination_port;
-
-  //IP is a __be32 value
+  // dnsmasq doesn't bind unless you force it, which I do
   dns_cust->target_flow.dest_ip = in_aton(destination_ip);
-
   dns_cust->target_flow.source_ip = in_aton(source_ip);
   dns_cust->target_flow.source_port = (u16) source_port;
 
-	dns_cust->send_function = modify_buffer_send;
-	dns_cust->recv_function = NULL; // NULL if not modifying buffer contents
+	dns_cust->send_function = NULL;
+	dns_cust->recv_function = modify_buffer_recv;
 
-  // Cust ID set by customization controller, network uniqueness required
-	dns_cust->cust_id = 56;
+	dns_cust->cust_id = 65;
   dns_cust->registration_time_struct.tv_sec = 0;
   dns_cust->registration_time_struct.tv_nsec = 0;
   dns_cust->retired_time_struct.tv_sec = 0;
   dns_cust->retired_time_struct.tv_nsec = 0;
 
-  dns_cust->send_buffer_size = 2048; // we don't need a full buffer
-  dns_cust->recv_buffer_size = 0; // accept default buffer size
+  dns_cust->send_buffer_size = 0; // accept default buffer size
+  dns_cust->recv_buffer_size = 2048; // we don't need a full buffer
 
 	result = register_customization(dns_cust);
 
@@ -141,11 +159,10 @@ int __init sample_client_start(void)
     return -1;
   }
 
-	trace_printk("L4.5: client dns module loaded, id=%d\n", dns_cust->cust_id);
+  trace_printk("L4.5: server dns module loaded, id=%d\n", dns_cust->cust_id);
 
   return 0;
 }
-
 
 // The end function that calls the functions to unregister and stop Layer 4.5
 // @post Layer 4.5 customization unregistered
@@ -154,15 +171,16 @@ void __exit sample_client_end(void)
   int ret = unregister_customization(dns_cust);
 
   if(ret == 0){
-    trace_printk("L4.5 ALERT: client module unload error\n");
+    trace_printk("L4.5 ALERT: server module unload error\n");
   }
   else
   {
-    trace_printk("L4.5: client module unloaded\n");
+    trace_printk("L4.5: server module unloaded\n");
   }
   kfree(dns_cust);
 	return;
 }
+
 
 
 module_init(sample_client_start);
