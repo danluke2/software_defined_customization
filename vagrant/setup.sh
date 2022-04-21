@@ -5,6 +5,9 @@ sudo apt-mark hold linux-image-generic-hwe-20.04
 sudo apt-mark hold linux-generic-hwe-20.04
 sudo apt-mark hold linux-headers-generic-hwe-20.04
 
+# this should stop excessive dns queries
+dpkg --remove whoopsie
+
 apt update
 # apt -y upgrade
 
