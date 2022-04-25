@@ -42,6 +42,7 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
     ax.text(pos[tick]+0.35, y_posit[tick]-0.15, upperLabels3[tick],
              horizontalalignment='center', weight=weights[k], color="red")
 
+plt.xticks(fontsize=14)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 plt.ylabel('Seconds')
 plt.title("Bulk File Transfer Time")
@@ -89,6 +90,7 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
 plt.ylabel('Seconds')
 
 # displaying the title
+plt.xticks(fontsize=14)
 plt.title("DNS Batch Query/Response Time")
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 # plt.show()
