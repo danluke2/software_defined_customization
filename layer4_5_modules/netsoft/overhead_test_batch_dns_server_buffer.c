@@ -68,8 +68,15 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
   recv_buf_st->no_cust = false;
   recv_buf_st->skip_cust = false;
 
+  // we aren't buffering, so if recvmsg returned error, just pass back to app
+  if(recv_buf_st->recv_return < 0)
+  {
+    return;
+  }
+
+
   trace_printk("L4.5 module: recvmsg_ret = %lu, msg len = %lu\n", recv_buf_st->recv_return, recv_buf_st->length);
-  trace_print_hex_dump("Temp Buffer Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->temp_buf, recv_buf_st->recv_return, true);
+
 
   //NOTE: when buffering allowed, recv_return can be 0
   if(recv_buf_st->recv_return == 0)
@@ -78,6 +85,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
   }
   else
   {
+    trace_print_hex_dump("Temp Buffer Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->temp_buf, recv_buf_st->recv_return, true);
+    
     if(recv_buf_st->recv_return - cust_tag_test_size <=0)
     {
       //something strange came in
@@ -95,19 +104,37 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     }
     else
     {
-      recv_buf_st->copy_length = recv_buf_st->recv_return - cust_tag_test_size;
-
-      if(recv_buf_st->copy_length > recv_buf_st->length)
+      if(strncmp(cust_tag_test, recv_buf_st->temp_buf, cust_tag_test_size) == 0)
       {
-        // copy > length, so drop the message since we don't want to buffer yet
-        recv_buf_st->copy_length = 0;
-      }
+        trace_printk("L4.5: cust tag found\n");
+        recv_buf_st->copy_length = recv_buf_st->recv_return - cust_tag_test_size;
 
-      trace_printk("L4.5 module: memcpy kmsg iter buf\n");
-      memcpy(recv_buf_st->buf, recv_buf_st->temp_buf + cust_tag_test_size, recv_buf_st->copy_length);
+        if(recv_buf_st->copy_length > recv_buf_st->length)
+        {
+          // copy > length, so drop the message since we don't want to buffer yet
+          recv_buf_st->copy_length = 0;
+        }
+
+        memcpy(recv_buf_st->buf, recv_buf_st->temp_buf + cust_tag_test_size, recv_buf_st->copy_length);
+      }
+      else
+      {
+        trace_printk("L4.5: no cust tag\n");
+        if(recv_buf_st->recv_return <= recv_buf_st->length)
+        {
+          recv_buf_st->copy_length = recv_buf_st->recv_return;
+        }
+        else
+        {
+          recv_buf_st->copy_length = recv_buf_st->length;
+        }
+
+        memcpy(recv_buf_st->buf, recv_buf_st->temp_buf, recv_buf_st->copy_length);
+      }
     }
   }
 
+  trace_print_hex_dump("Cust Buffer DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, recv_buf_st->copy_length, true);
 
 
   return;

@@ -96,8 +96,7 @@ int __init sample_client_start(void)
 {
   int result;
   // started seeing isc-socket-0 also for some reason
-	// char thread_name[16] = "isc-worker0000";  //this applies to dig requests
-  char thread_name[16] = "*";
+	char thread_name[16] = "isc-worker0000";  //this applies to dig requests
 	char application_name[16] = "dig";
 
   dns_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);

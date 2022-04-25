@@ -107,8 +107,13 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
   recv_buf_st->no_cust = false;
   recv_buf_st->skip_cust = false;
 
+  // we aren't buffering, so if recvmsg returned error, just pass back to app
+  if(recv_buf_st->recv_return < 0)
+  {
+    return;
+  }
+
   trace_printk("L4.5 module: recvmsg_ret = %lu, msg len = %lu\n", recv_buf_st->recv_return, recv_buf_st->length);
-  trace_print_hex_dump("Temp Buffer Message: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->temp_buf, recv_buf_st->recv_return, true);
 
 
   //NOTE: when buffering allowed, recv_return can be 0
@@ -118,6 +123,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
   }
   else
   {
+    trace_print_hex_dump("Temp Buffer Message: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->temp_buf, recv_buf_st->recv_return, true);
+    
     if(recv_buf_st->recv_return - cust_test_size <=0)
     {
       if(recv_buf_st->recv_return <= recv_buf_st->length)

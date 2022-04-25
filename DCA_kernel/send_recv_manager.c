@@ -42,20 +42,16 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 		goto skip_and_send;
 	}
 
-	// store msg_iter values before cust modules does its thing
-	// cust_sock->send_buf_st.iter_copy.iov_offset = msg->msg_iter.iov_offset;
-	// cust_sock->send_buf_st.iter_copy.count = msg->msg_iter.count;
-	// cust_sock->send_buf_st.iter_copy.nr_segs = msg->msg_iter.nr_segs;
-	// cust_sock->send_buf_st.iter_copy.iov = msg->msg_iter.iov;
+
 	cust_sock->send_buf_st.src_iter = &msg->msg_iter;
 	cust_sock->send_buf_st.copy_length = 0; //default value
 	cust_sock->send_buf_st.length = size;
+
   // passes msg iter to customization send function
   cust_node->send_function(&cust_sock->send_buf_st, &cust_sock->socket_flow);
 
 	// restore msg_iter values after cust module likely changed them
 	msg->msg_iter = iter_temp;
-
 
 	#ifdef DEBUG2
 		// this is for troubleshooting; iter should be at state given to send
@@ -156,10 +152,9 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
   // a NULL pointer problem
 	spin_lock(&cust_sock->active_customization_lock);
 
-  //verify all pointers are good before doing anything else
-  // trace_printk("have lock\n");
-	cust_node = cust_sock->customization;
+  cust_node = cust_sock->customization;
 
+  //verify all pointers are good before doing anything else
 	if(cust_node == NULL || cust_sock->customize_recv_or_skip == SKIP)
 	{
 		#ifdef DEBUG
@@ -168,7 +163,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 		goto skip_and_error;
 	}
 
-	// this case should never happen, but possible if cust removed just before this call
+	// this case should never happen, but maybe possible if cust removed just before this call
 	if(cust_node->recv_function == NULL || cust_sock->recv_buf_st.buf == NULL || cust_sock->recv_buf_st.temp_buf == NULL)
 	{
 		#ifdef DEBUG
@@ -177,58 +172,48 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 		goto skip_and_error;
 	}
 
-  // do I need to set kmsg each time?
+  // set kmsg to match msg values
   cust_sock->recv_buf_st.kmsg = *msg;
-  //setup kmsg
+  //setup kmsg with temp buffer
   iov_iter_kvec(&cust_sock->recv_buf_st.kmsg.msg_iter, READ | ITER_KVEC, &cust_sock->recv_buf_st.iov, 1, cust_sock->recv_buf_st.available_bytes);
 
 
-  // need to check if kmsg has been allocatted yet b/c TCP and UDP allocate on first recvmsg
-  // if(cust_sock->recv_buf_st.kmsg_ptr == NULL)
-  // {
-  //   cust_sock->recv_buf_st.kmsg = *msg;
-  //   cust_sock->recv_buf_st.kmsg_ptr = msg;
-  //   //setup kmsg
-  //   iov_iter_kvec(&cust_sock->recv_buf_st.kmsg.msg_iter, READ | ITER_KVEC, &cust_sock->recv_buf_st.iov, 1, cust_sock->recv_buf_st.available_bytes);
-  // }
-
   // fill the customization buffer instead of msg buffer with desired amount of data to allow customization to process data correctly prior to filling msghdr
   recvmsg_ret = recvmsg(sk, &cust_sock->recv_buf_st.kmsg, cust_sock->recv_buf_st.available_bytes, nonblock, flags, addr_len);
+  // even if recvmsg_return <= 0, we still want to do cust b/c of the buffering
+  // so cust mod now needs to check recvmsg return and decide what to do
 
-  // even if recvmsg_return = 0, we still want to do cust b/c of the buffering
-  if(recvmsg_ret < 0)
-  {
-    // an error message has no need for customization removal
-    #ifdef DEBUG1
-      trace_printk("L4.5: received %lu error message, pid %d\n", recvmsg_ret, cust_sock->pid);
-    #endif
-    spin_unlock(&cust_sock->active_customization_lock);
-    return recvmsg_ret;
-  }
-
-  // this resets the kmsg iter buffer back to point at position before L4 recvmsg
-	iov_iter_revert(&cust_sock->recv_buf_st.kmsg.msg_iter, recvmsg_ret);
-	iter_temp = cust_sock->recv_buf_st.kmsg.msg_iter;
-
-	#ifdef DEBUG2
-		trace_printk("L4.5: Iter after reverting %lu bytes\n", recvmsg_ret);
-		trace_print_iov_params(&cust_sock->recv_buf_st.kmsg.msg_iter);
+  #ifdef DEBUG1
+		trace_printk("L4.5 Just after kmsg recvmsg\n");
+		trace_print_msg_params(&cust_sock->recv_buf_st.kmsg);
 	#endif
 
 
+  // this resets the kmsg iter buffer back to point at position before L4 recvmsg b/c module can use iter copy or memcpy
+	iov_iter_revert(&cust_sock->recv_buf_st.kmsg.msg_iter, recvmsg_ret);
+	iter_temp = cust_sock->recv_buf_st.kmsg.msg_iter;
 
-	// cust_sock->recv_buf_st.src_iter = &msg->msg_iter;
 	cust_sock->recv_buf_st.copy_length = 0; // just to ensure it is defined
 	cust_sock->recv_buf_st.length = len; // module must know max bytes it can copy
 	cust_sock->recv_buf_st.recv_return = recvmsg_ret;
+
 	// passes required data to cust_recv function
   cust_node->recv_function(&cust_sock->recv_buf_st, &cust_sock->socket_flow);
 
-  // restore msg_iter values after cust module likely changed them
+  // restore msg_iter values after cust module may have changed them
 	cust_sock->recv_buf_st.kmsg.msg_iter = iter_temp;
 
-	// cust module must have valid buffer pointer
-	// modules could set to NULL to signal no longer customizing the socket
+  // handle case when cust mod wants to trigger recv failure
+  if(cust_sock->recv_buf_st.recv_return < 0)
+  {
+    #ifdef DEBUG1
+      trace_printk("L4.5: received %lu error message from module, pid %d\n", cust_sock->recv_buf_st.recv_return, cust_sock->pid);
+    #endif
+    spin_unlock(&cust_sock->active_customization_lock);
+    return cust_sock->recv_buf_st.recv_return;
+  }
+
+	// check if module will no longer be customizing the socket
   if(cust_sock->recv_buf_st.skip_cust == true)
   {
 		#ifdef DEBUG
@@ -237,7 +222,6 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     goto skip_and_recv;
   }
 
-	//TODO: handle case when cust mod wants to trigger recv failure?
 
   if(cust_sock->recv_buf_st.no_cust == true)
   {
@@ -258,8 +242,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 
 
 
-  // cust module not required to always mod data, so prevent an unneccesary copy
-  // also make sure copy can succeed
+  // check if we can successfully perform copy operation
   if(cust_sock->recv_buf_st.copy_length > cust_sock->recv_buf_st.buf_size || cust_sock->recv_buf_st.copy_length > len)
   {
 		#ifdef DEBUG
@@ -271,14 +254,9 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
   }
 
 
-  #ifdef DEBUG2
-		trace_printk("L4.5 just before copy_to_iter, desired bytes = %lu\n", cust_sock->recv_buf_st.copy_length);
-		trace_print_iov_params(&msg->msg_iter);
-	#endif
-
   copy_success = copy_to_iter(cust_sock->recv_buf_st.buf, cust_sock->recv_buf_st.copy_length, &msg->msg_iter);
 
-	spin_unlock(&cust_sock->active_customization_lock);
+
 
 	//I don't think this is likely, but need to check
   if(copy_success != cust_sock->recv_buf_st.copy_length)
@@ -289,6 +267,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 				trace_print_iov_params(&msg->msg_iter);
 			#endif
 		#endif
+    spin_unlock(&cust_sock->active_customization_lock);
     //TODO: somehow inform module that data not delivered to app
 		// reset iter?
     return -EAGAIN;
@@ -299,9 +278,17 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     // return -EAGAIN;
   }
 
+
+
+  #ifdef DEBUG1
+		trace_printk("L4.5 End of DCA recvmsg\n");
+		trace_print_msg_params(msg);
+	#endif
+
 	#ifdef DEBUG2
 		trace_printk("L4.5: After copy success, before return to app\n");
 		trace_print_iov_params(&msg->msg_iter);
+    trace_print_hex_dump("msg buffer: ", DUMP_PREFIX_ADDRESS, 16, 1, msg->msg_iter.iov->iov_base, cust_sock->recv_buf_st.copy_length, true);
 	#endif
 
 	// only update time after we recv successfully
@@ -309,6 +296,8 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 	#ifdef DEBUG2
     trace_printk("L4.5: Last recv time: %llu\n", cust_sock->last_cust_recv_time_struct.tv_sec);
   #endif
+  
+  spin_unlock(&cust_sock->active_customization_lock);
 
   return cust_sock->recv_buf_st.copy_length;
 

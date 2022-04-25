@@ -67,7 +67,6 @@ struct customization_buffer
 	u32 available_bytes; //bytes available to put temp data
 	struct kvec iov;
   struct msghdr kmsg;
-	struct msghdr *kmsg_ptr;
 
 	bool skip_cust;
 	bool no_cust;

@@ -72,7 +72,6 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 	new_cust_socket->recv_buf_st.buf = NULL;
 
 	new_cust_socket->recv_buf_st.temp_buf = NULL;
-	new_cust_socket->recv_buf_st.kmsg_ptr = NULL;
 	new_cust_socket->recv_buf_st.no_cust = false;
 	new_cust_socket->recv_buf_st.skip_cust = false;
 
@@ -397,11 +396,7 @@ static void assign_customization(struct customization_socket *cust_sock, struct 
 				// we only buffer recv for now, so set kmsg params here
 				cust_sock->recv_buf_st.iov.iov_len = recv_buffer_size;
 				cust_sock->recv_buf_st.iov.iov_base = cust_sock->recv_buf_st.temp_buf;
-				// if(cust_sock->recv_buf_st.kmsg_ptr != NULL)
-				// {
-				// 	//setup kmsg
-				// 	iov_iter_kvec(&cust_sock->recv_buf_st.kmsg.msg_iter, READ | ITER_KVEC, &cust_sock->recv_buf_st.iov, 1, recv_buffer_size);
-				// }
+
 
 				socket_allocsminusfrees++; //temp buf
 				cust_sock->recv_buf_st.available_bytes = recv_buffer_size;

@@ -13,8 +13,10 @@
 #include "customization_socket.h"
 #include "send_recv_manager.h"
 
-
-
+// Update the target application under investigation
+#ifdef APP
+  char TARGET_APP[TASK_NAME_LEN]="dig"
+#endif
 
 
 // TCP General reference functions
@@ -227,6 +229,9 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
 {
   struct task_struct *task = current;
   struct customization_socket *cust_socket;
+  struct task_struct *test = pid_task(find_vpid(task->tgid), PIDTYPE_PID);
+  char target_app[TASK_NAME_LEN] = "dig";
+  bool found = false;
 
   //only sending iovec to modules at the moment, but not sure we should prevent
   if(!iter_is_iovec(&msg->msg_iter))
@@ -237,11 +242,21 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
     return sendmsg(sk, msg, size);
   }
 
+  if(strncmp(test->comm, target_app, TASK_NAME_LEN) == 0)
+  {
+    trace_printk("L4.5: found app send, pid %d, sk %lu\n", task->pid, (unsigned long)sk);
+    found = true;
+  }
+
   cust_socket = get_cust_socket(task, sk);
 
   //this section generall only runs on first tap attempt (client, UDP)
 	if(cust_socket == NULL)
   {
+    if(found)
+    {
+      trace_printk("L4.5: app create cust socket, pid %d, sk %lu\n", task->pid, (unsigned long)sk);
+    }
     #ifdef DEBUG3
       trace_printk("L4.5: NULL cust socket in sendmsg, creating cust socket for pid %d\n", task->pid);
     #endif
@@ -255,6 +270,12 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
       #endif
       return sendmsg(sk, msg, size);
     }
+    if(found)
+    {
+      trace_printk("L4.5: app cust socket created, pid %d, sk %lu\n", task->pid, (unsigned long)sk);
+      trace_print_cust_socket(cust_socket, "target app sendmsg");
+    }
+
     #ifdef DEBUG
       else
       {
@@ -275,6 +296,12 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
       }
     #endif
 	}
+
+  if(found)
+  {
+    trace_printk("L4.5: cust check, pid %d, sk %lu\n", task->pid, (unsigned long)sk);
+    trace_print_cust_socket(cust_socket, "target app sendmsg");
+  }
 
   //if tracking was set to SKIP at some point, stop trying to modify messages
   if(cust_socket->customize_send_or_skip == SKIP)
@@ -345,6 +372,10 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
   struct task_struct *task = current;
   struct customization_socket *cust_socket;
   int recvmsg_return = 0;
+  #ifdef APP
+    struct task_struct *test = pid_task(find_vpid(task->tgid), PIDTYPE_PID);
+    bool found = false;
+  #endif
 
 
   //only tapping iovec at the moment, but not sure we should limit
@@ -356,24 +387,16 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     return recvmsg(sk, msg, len, nonblock, flags, addr_len);
   }
 
+  #ifdef APP
+    if(strncmp(test->comm, TARGET_APP, TASK_NAME_LEN) == 0)
+    {
+      trace_printk("L4.5: found %s recv, pid %d, sk %lu\n", TARGET_APP, task->pid, (unsigned long)sk);
+      found = true;
+    }
+  #endif
 
   // Try to get cust socket, but if first time seeing socket this will fail to find the socket
   cust_socket = get_cust_socket(task, sk);
-  // if(cust_socket == NULL)
-  // {
-  //   // need to fill the socket params by doing a recvmsg call so we can properly create the cust socket
-  //   recvmsg_return = recvmsg(sk, msg, len, nonblock, flags, addr_len);
-  //   if(recvmsg_return <= 0)
-  //   {
-  //     // a 0 length or error message has no need for customization removal
-  //     #ifdef DEBUG1
-  //       trace_printk("L4.5: received %d length message, pid %d\n", recvmsg_return, task->pid);
-  //     #endif
-  //     return recvmsg_return;
-  //   }
-  //   // now we try again to get the cust socket that matches the current socket
-  //   cust_socket = get_cust_socket(task, sk);
-  // }
 
   //this section generall only runs on first tap attempt (server, UDP)
   if(cust_socket == NULL)
@@ -382,8 +405,26 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
       trace_printk("L4.5: NULL cust socket in recvmsg, creating cust socket for pid %d\n", task->pid);
     #endif
 
+    #ifdef APP
+      if(found)
+      {
+        trace_printk("L4.5: %s create cust socket, pid %d, sk %lu\n", TARGET_APP, task->pid, (unsigned long)sk);
+      }
+    #endif
+
     // Perform a PEEK request so we don't remove data from L4 yet, but can fill in missing msg params if they exist
     recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
+
+    if(recvmsg_return < 0)
+    {
+      #ifdef DEBUG1
+        trace_printk("L4.5: Error on recvmsg peek: return value=%d, pid %d, sk %lu\n", recvmsg_return, task->pid, (unsigned long)sk);
+      #endif
+      return recvmsg_return;
+    }
+
+    // We need to reset msg->msg_flags b/c TRUNC flag could be set and cause odd application behavior (mainly for UDP; ex: dnsmasq drops message)
+    msg->msg_flags = 0;
 
     cust_socket = create_cust_socket(task, sk, msg);
     if(cust_socket == NULL)
@@ -393,64 +434,47 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
       #endif
 			return recvmsg_return;
     }
+
+    // allow logging for TARGET_APP regardless of customization status
+    #ifdef APP
+      if(found)
+      {
+        trace_printk("L4.5: %s cust socket created, pid %d, sk %lu\n", TARGET_APP, task->pid, (unsigned long)sk);
+        trace_printk("L4.5: recvmsg was %d, pid %d, sk %lu\n", recvmsg_return, task->pid, (unsigned long)sk);
+        trace_print_cust_socket(cust_socket, "target app recvmsg");
+      }
+    #endif
+
     #ifdef DEBUG
+      if(cust_socket->customization != NULL)
+      {
+        // Socket added to tracking table, dump socket info to log
+        trace_print_cust_socket(cust_socket, "recvmsg");
+      }
+      // skip is more likely, so we may want to limit logging it
+      #ifdef DEBUG1
       else
       {
-        if(cust_socket->customization != NULL)
-        {
-          // Socket added to tracking table, dump socket info to log
-          trace_print_cust_socket(cust_socket, "recvmsg");
-        }
-        #ifdef DEBUG1
-        else
-        {
-          trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
-          // Socket added to tracking table, dump socket info to log
-          trace_print_cust_socket(cust_socket, "sendmsg");
-        }
-        #endif
+        trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
+        // Socket added to tracking table, dump socket info to log
+        trace_print_cust_socket(cust_socket, "recvmsg");
       }
+      #endif
     #endif
 	}
 
   // if tracking was set to SKIP at some point, stop trying to modify messages
   if(cust_socket->customize_recv_or_skip == SKIP)
   {
+    // most sockets have this set, so only log if really necessary
     #ifdef DEBUG3
       trace_printk("L4.5: cust_socket recv set to skip, pid %d\n", task->pid);
     #endif
-    //undo the PEEK, then do real recvmsg
-    // iov_iter_revert(&msg->msg_iter, recvmsg_return);
-    // if(recvmsg_return ==0)
-    // {
-    //   recvmsg_return = recvmsg(sk, msg, len, nonblock, flags, addr_len);
-    // }
-    // return recvmsg_return;
+
     return recvmsg(sk, msg, len, nonblock, flags, addr_len);
   }
 
-  // // need to check if kmsg has been allocatted yet
-  // if(cust_socket->temp_buf_st.kmsg_ptr == NULL)
-  // {
-  //   cust_socket->temp_buf_st.kmsg = *msg;
-  //   cust_socket->temp_buf_st.kmsg_ptr = msg;
-  //   //setup kmsg
-  //   iov_iter_kvec(&cust_socket->temp_buf_st.kmsg.msg_iter, READ | ITER_KVEC, &cust_socket->temp_buf_st.iov, 1, cust_socket->temp_buf_st.available_bytes);
-  //
-  // }
-  // // fill the customization buffer instead of msg buffer with desired amount of data to allow customization to process data correctly prior to filling msghdr
-  // recvmsg_return = recvmsg(sk, &cust_socket->temp_buf_st.kmsg, cust_socket->temp_buf_st.available_bytes, nonblock, flags, addr_len);
-  //
-  // // even if recvmsg_return = 0, we still want to do cust b/c of the buffering
-  // if(recvmsg_return < 0)
-  // {
-  //   // an error message has no need for customization removal
-  //   #ifdef DEBUG1
-  //     trace_printk("L4.5: received %d length message, pid %d\n", recvmsg_return, task->pid);
-  //   #endif
-  //   return recvmsg_return;
-  // }
-
+  // at this point we are customizing the socket, so let dca recvmsg handle retrieving message and giving to app
   return dca_recvmsg(cust_socket, sk, msg, len, nonblock, flags, addr_len, recvmsg);
 }
 
