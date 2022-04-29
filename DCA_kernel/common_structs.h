@@ -62,6 +62,9 @@ struct customization_buffer
 	struct iov_iter *src_iter;  // source buffer to work from
 	size_t length; // send=amount of data in src_iter, recv=max amount to return
 	size_t recv_return; // amount of data L4 returned from recvmsg call
+
+	bool skip_cust;
+	bool no_cust;
 };
 
 

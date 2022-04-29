@@ -71,6 +71,9 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 	new_cust_socket->send_buf_st.buf = NULL;
 	new_cust_socket->recv_buf_st.buf = NULL;
 
+	new_cust_socket->recv_buf_st.no_cust = false;
+	new_cust_socket->recv_buf_st.skip_cust = false;
+
 	// set default time values to indicate no packets seen yet
 	new_cust_socket->last_cust_send_time_struct.tv_sec = 0;
 	new_cust_socket->last_cust_send_time_struct.tv_nsec = 0;
