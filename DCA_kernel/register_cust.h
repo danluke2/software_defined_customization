@@ -41,9 +41,10 @@ struct customization_node *get_customization(struct customization_socket *cust_s
 // Registers a new protocol customization module available
 // Layer 4.5 makes a copy of module_cust and stores a local id in cust
 // @param[I] module_cust Pre-filled customization node
+// @param[I] applyNow Request customization to apply to all applicable sockets, not just new sockets 
 // @return int for success/failure
 // @post Customization node with all variables set added to customization list
-int register_customization(struct customization_node *module_cust);
+int register_customization(struct customization_node *module_cust, bool applyNow);
 
 
 // Removes the registered protocol customization module from list and any

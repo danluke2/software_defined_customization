@@ -107,7 +107,7 @@ struct customization_node *get_customization(struct customization_socket *cust_s
 
 
 
-int register_customization(struct customization_node *module_cust)
+int register_customization(struct customization_node *module_cust, bool applyNow)
 {
   struct customization_node *cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
   struct customization_node *test_cust = NULL;
@@ -174,8 +174,13 @@ int register_customization(struct customization_node *module_cust)
 	list_add(&cust->cust_list_member, &active_customization_list);
 	spin_unlock(&active_customization_list_lock);
 
-  // now reset sockets in normal table so they check again
-  reset_cust_socket_status();
+
+  if(applyNow)
+  {
+    // now reset sockets in normal table so they check again
+    reset_cust_socket_status();
+  }
+
 
 	return 0;
 }
