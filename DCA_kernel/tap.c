@@ -294,6 +294,24 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size, int (*sendm
     return sendmsg(sk, msg, size);
   }
 
+  //if tracking was set to UNKNOWN due to new cust module, then need to check if socket should be customized now
+  if(cust_socket->customize_send_or_skip == UNKNOWN)
+  {
+    #ifdef DEBUG3
+      trace_printk("L4.5: cust recheck triggered, pid %d\n", task->pid);
+    #endif
+    update_cust_status(cust_socket, task, sk);
+
+    // check if should skip
+    if(cust_socket->customize_send_or_skip == SKIP)
+    {
+      #ifdef DEBUG3
+        trace_printk("L4.5: cust_socket send set to skip, pid %d\n", task->pid);
+      #endif
+      return sendmsg(sk, msg, size);
+    }
+  }
+
   return dca_sendmsg(cust_socket, sk, msg, size, sendmsg);
 
 }
@@ -419,6 +437,24 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
       trace_printk("L4.5: cust_socket recv set to skip, pid %d\n", task->pid);
     #endif
     return recvmsg_return;
+  }
+
+  //if tracking was set to UNKNOWN due to new cust module, then need to check if socket should be customized now
+  if(cust_socket->customize_recv_or_skip == UNKNOWN)
+  {
+    #ifdef DEBUG3
+      trace_printk("L4.5: cust recheck triggered, pid %d\n", task->pid);
+    #endif
+    update_cust_status(cust_socket, task, sk);
+
+    // check if should skip
+    if(cust_socket->customize_recv_or_skip == SKIP)
+    {
+      #ifdef DEBUG3
+        trace_printk("L4.5: cust_socket send set to skip, pid %d\n", task->pid);
+      #endif
+      return recvmsg_return;
+    }
   }
 
   return dca_recvmsg(cust_socket, sk, msg, len, recvmsg_return);

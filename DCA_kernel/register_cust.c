@@ -173,6 +173,10 @@ int register_customization(struct customization_node *module_cust)
 	spin_lock(&active_customization_list_lock);
 	list_add(&cust->cust_list_member, &active_customization_list);
 	spin_unlock(&active_customization_list_lock);
+
+  // now reset sockets in normal table so they check again
+  reset_cust_socket_status();
+
 	return 0;
 }
 

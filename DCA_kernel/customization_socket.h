@@ -25,12 +25,27 @@ void init_socket_tables(void);
 struct customization_socket *create_cust_socket(struct task_struct *task, struct sock *sk, struct msghdr *msg);
 
 
+// Checks if the customizable socket now matches a new cust module and transfers
+// it to the cust table if necessary
+// @param[I] cust_socket The customizable socket
+// @param[I] task current task pointer
+// @param[I] sk A pointer to socket struct for the connection
+void update_cust_status(struct customization_socket *cust_socket, struct task_struct *task, struct sock *sk);
+
+
+
 // Finds a customizable socket in the hash table
 // Starts with search of normal table b/c more likely to find there
 // @param[I] pid The desired connection's Process ID.
 // @param[I] sk A pointer to socket struct for the connection.
 // @return The customizable socket
 struct customization_socket *get_cust_socket(struct task_struct *task, struct sock *sk);
+
+
+
+// Ssts customization status to UNKNOWN for each socket in normal table
+// Called when new cust socket registered
+void reset_cust_socket_status(void);
 
 
 // Look at each socket and see if the stored customization matches cust_id

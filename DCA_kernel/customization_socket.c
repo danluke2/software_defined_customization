@@ -122,6 +122,42 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 }
 
 
+void update_cust_status(struct customization_socket *cust_socket, struct task_struct *task, struct sock *sk)
+{
+	struct customization_node *cust_node = NULL;
+
+	cust_node = get_customization(cust_socket);
+	if(cust_node == NULL)
+	{
+		#ifdef DEBUG3
+			trace_printk("L4.5: cust update lookup NULL, proto=%u, pid task=%s, tgid task=%s, uid = %d\n", cust_socket->socket_flow.protocol, cust_socket->socket_flow.task_name_pid, cust_socket->socket_flow.task_name_tgid, cust_socket->uid);
+		#endif
+		cust_socket->customize_send_or_skip = SKIP;
+		cust_socket->customize_recv_or_skip = SKIP;
+	}
+	else
+	{
+		#ifdef DEBUG
+			trace_printk("L4.5: Assigning cust to socket, pid %d\n", task->pid);
+		#endif
+		assign_customization(cust_socket, cust_node);
+	}
+
+	// if we are now customizing the socket, we must move the socket to cust table
+	if(cust_socket->customization != NULL)
+	{
+		#ifdef DEBUG2
+			trace_printk("L4.5: Adding pid %d to customization table\n", task->pid);
+		#endif
+		spin_lock(&cust_socket_lock);
+		hash_add(cust_socket_table, &cust_socket->socket_hash, cust_socket->hash_key);
+		spin_unlock(&cust_socket_lock);
+
+		delete_cust_socket(task, sk);
+	}
+}
+
+
 // Hash for each possible b/c we know hash key and can limit search
 struct customization_socket *get_cust_socket(struct task_struct *task, struct sock *sk)
 {
@@ -161,6 +197,30 @@ struct customization_socket *get_cust_socket(struct task_struct *task, struct so
 		spin_unlock(&cust_socket_lock);
 	}
 	return cust_socket;
+}
+
+
+// Called when new cust socket registered
+//only updates normal table for now, but should also update cust table with sockets that have one direction not customized
+void reset_cust_socket_status(void)
+{
+	int bucket;
+	struct customization_socket *cust_socket;
+	struct hlist_node tmp;
+	struct hlist_node* tmpptr = &tmp;
+
+
+	spin_lock(&normal_socket_lock);
+	hash_for_each_safe(normal_socket_table, bucket, tmpptr, cust_socket, socket_hash)
+	{
+		#ifdef DEBUG
+			trace_printk("L4.5 Normal Socket: Resetting things in bucket [%d] with pid value %d and socket value %p\n",bucket, cust_socket->pid, cust_socket->sk);
+	  #endif
+		cust_socket->customize_send_or_skip = UNKNOWN;
+		cust_socket->customize_recv_or_skip = UNKNOWN;
+	}
+	spin_unlock(&normal_socket_lock);
+	return;
 }
 
 
