@@ -45,9 +45,9 @@ static unsigned int protocol = 6; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-static unsigned int posit = 1000;
-module_param(posit, uint, 0600);
-MODULE_PARM_DESC(posit, "Byte offset to insert/remove tags");
+static unsigned int BYTE_POSIT = 1000;
+module_param(BYTE_POSIT, uint, 0600);
+MODULE_PARM_DESC(BYTE_POSIT, "Byte offset to insert/remove tags");
 
 static bool applyNow = false;
 module_param(applyNow, bool, 0600);
@@ -59,8 +59,6 @@ size_t tag_bytes_removed_last_round = 0;
 size_t total_bytes_from_server = 0;
 size_t app_bytes_from_server = 0;
 size_t total_tags = 0;
-
-size_t BYTE_POSIT = posit;
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
 size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test)-1; // i.e., 32 bytes
