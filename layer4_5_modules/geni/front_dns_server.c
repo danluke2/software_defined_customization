@@ -44,7 +44,6 @@ static unsigned int protocol = 17; // UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-
 static bool applyNow = false;
 module_param(applyNow, bool, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
