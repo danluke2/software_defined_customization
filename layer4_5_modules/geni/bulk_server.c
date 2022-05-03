@@ -46,14 +46,13 @@ static unsigned int protocol = 6; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-static unsigned int posit = 1000;
-module_param(posit, uint, 0600);
-MODULE_PARM_DESC(posit, "Byte offset to insert/remove tags");
+static unsigned int BYTE_POSIT = 1000;
+module_param(BYTE_POSIT, uint, 0600);
+MODULE_PARM_DESC(BYTE_POSIT, "Byte offset to insert/remove tags");
 
 struct customization_node *server_cust;
 
 size_t extra_bytes_copied_from_last_send = 0;
-size_t BYTE_POSIT = posit;
 
 size_t total_bytes_from_app = 0;
 size_t total_tags = 0;
