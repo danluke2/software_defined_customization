@@ -23,7 +23,7 @@ struct list_head retired_customization_list;
 static DEFINE_SPINLOCK(retired_customization_list_lock);
 
 
-int register_customization(struct customization_node *module_cust);
+int register_customization(struct customization_node *module_cust, bool applyNow);
 EXPORT_SYMBOL_GPL(register_customization);
 
 int unregister_customization(struct customization_node *module_cust);

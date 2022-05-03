@@ -18,7 +18,7 @@ static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
 
 
-extern int register_customization(struct customization_node *cust);
+extern int register_customization(struct customization_node *cust, bool applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -46,14 +46,17 @@ static unsigned int protocol = 6; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-static unsigned int posit = 1000;
-module_param(posit, uint, 0600);
-MODULE_PARM_DESC(posit, "Byte offset to insert/remove tags");
+static unsigned int BYTE_POSIT = 1000;
+module_param(BYTE_POSIT, uint, 0600);
+MODULE_PARM_DESC(BYTE_POSIT, "Byte offset to insert/remove tags");
+
+static bool applyNow = false;
+module_param(applyNow, bool, 0600);
+MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
 struct customization_node *server_cust;
 
 size_t extra_bytes_copied_from_last_send = 0;
-size_t BYTE_POSIT = posit;
 
 size_t total_bytes_from_app = 0;
 size_t total_tags = 0;
@@ -224,7 +227,7 @@ int __init sample_client_start(void)
   server_cust->send_buffer_size = 65536 * 2; // bufer
   server_cust->recv_buffer_size = 0; // accept default buffer size
 
-	result = register_customization(server_cust);
+	result = register_customization(server_cust, applyNow);
 
   if(result != 0)
   {

@@ -19,9 +19,14 @@
 #include "../common_structs.h"
 
 
-extern int register_customization(struct customization_node *cust);
+extern int register_customization(struct customization_node *cust, bool applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
+
+
+static bool applyNow = false;
+module_param(applyNow, bool, 0600);
+MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
 //test message for this plugin
 char cust_test[12] = "testCustMod";
@@ -46,8 +51,7 @@ struct skcipher_def {
 
 
 
-
-// Line 52 should be blank b/c NCO will write the module_id variable to that line
+// Line 54 should be blank b/c NCO will write the module_id variable to that line
 // followed by any other variables we determine NCO should declare when building
 
 
@@ -349,7 +353,7 @@ int __init sample_client_start(void)
 	python_cust->retired_time_struct.tv_sec = 0;
   python_cust->retired_time_struct.tv_nsec = 0;
 
-	result = register_customization(python_cust);
+	result = register_customization(python_cust, applyNow);
 
   if(result != 0)
   {

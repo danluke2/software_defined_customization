@@ -14,7 +14,7 @@
 
 
 
-extern int register_customization(struct customization_node *cust);
+extern int register_customization(struct customization_node *cust, bool applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -39,8 +39,12 @@ static unsigned int protocol = 256; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
+static bool applyNow = false;
+module_param(applyNow, bool, 0600);
+MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
-//test message for this plugin
+
+//test message for this module
 char cust_test[12] = "testCustMod";
 size_t cust_test_size = (size_t)sizeof(cust_test)-1;
 
@@ -181,7 +185,7 @@ int __init sample_client_start(void)
 	python_cust->retired_time_struct.tv_sec = 0;
   python_cust->retired_time_struct.tv_nsec = 0;
 
-	result = register_customization(python_cust);
+	result = register_customization(python_cust, applyNow);
 
   if(result != 0)
   {

@@ -14,7 +14,7 @@
 
 
 
-extern int register_customization(struct customization_node *cust);
+extern int register_customization(struct customization_node *cust, bool applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -41,6 +41,10 @@ MODULE_PARM_DESC(source_port, "SPORT to match");
 static unsigned int protocol = 17; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
+
+static bool applyNow = false;
+module_param(applyNow, bool, 0600);
+MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
@@ -132,7 +136,7 @@ int __init sample_client_start(void)
   dns_cust->send_buffer_size = 0; // accept default buffer size
   dns_cust->recv_buffer_size = 2048; // we don't need a full buffer
 
-	result = register_customization(dns_cust);
+	result = register_customization(dns_cust, applyNow);
 
   if(result != 0)
   {

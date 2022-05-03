@@ -18,7 +18,7 @@ static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
 
 
-extern int register_customization(struct customization_node *cust);
+extern int register_customization(struct customization_node *cust, bool applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -48,6 +48,10 @@ MODULE_PARM_DESC(protocol, "L4 protocol to match");
 static unsigned int posit = 1000;
 module_param(posit, uint, 0600);
 MODULE_PARM_DESC(posit, "Byte offset to insert/remove tags");
+
+static bool applyNow = false;
+module_param(applyNow, bool, 0600);
+MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
 size_t extra_bytes_copied_from_last_send = 0;
 size_t tag_bytes_removed_last_round = 0;
@@ -305,7 +309,7 @@ int __init sample_client_start(void)
   client_cust->send_buffer_size = 0; //  normal buffer size
   client_cust->recv_buffer_size = 65536 * 2; //accept default buffer size
 
-	result = register_customization(client_cust);
+	result = register_customization(client_cust, applyNow);
 
   if(result != 0)
   {

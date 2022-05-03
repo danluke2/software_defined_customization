@@ -13,7 +13,7 @@
 #include "/home/vagrant/software_defined_customization/DCA_kernel/common_structs.h"
 #include "/home/vagrant/software_defined_customization/DCA_kernel/util/printing.h"
 
-extern int register_customization(struct customization_node *cust);
+extern int register_customization(struct customization_node *cust, bool applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -40,6 +40,10 @@ MODULE_PARM_DESC(source_port, "SPORT to match");
 static unsigned int protocol = 17; //  UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
+
+static bool applyNow = false;
+module_param(applyNow, bool, 0600);
+MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
 
 u16 module_id=2;
@@ -184,7 +188,7 @@ int __init sample_client_start(void)
   dns_cust->send_buffer_size = 0; // accept default buffer size
   dns_cust->recv_buffer_size = 0; // accept default buffer size
 
-	result = register_customization(dns_cust);
+	result = register_customization(dns_cust, applyNow);
 
   if(result != 0)
   {

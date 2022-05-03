@@ -17,7 +17,7 @@
 static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
 
-extern int register_customization(struct customization_node *cust);
+extern int register_customization(struct customization_node *cust, bool applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -47,6 +47,10 @@ MODULE_PARM_DESC(protocol, "L4 protocol to match");
 static unsigned int tag_count = 1;
 module_param(tag_count, uint, 0600);
 MODULE_PARM_DESC(tag_count, "Number of customization tags to insert");
+
+static bool applyNow = false;
+module_param(applyNow, bool, 0600);
+MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
 char cust_tag_test[9] = "XTAGXdig";
 size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test)-1; // i.e., 8 bytes
@@ -142,7 +146,7 @@ int __init sample_client_start(void)
   dns_cust->send_buffer_size = 0; // accept default buffer size
   dns_cust->recv_buffer_size = 0; // accept default buffer size
 
-	result = register_customization(dns_cust);
+	result = register_customization(dns_cust, applyNow);
 
   if(result != 0)
   {
