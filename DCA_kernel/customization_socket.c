@@ -149,11 +149,16 @@ void update_cust_status(struct customization_socket *cust_socket, struct task_st
 		#ifdef DEBUG2
 			trace_printk("L4.5: Adding pid %d to customization table\n", task->pid);
 		#endif
+		// remove from normal table
+		spin_lock(&normal_socket_lock);
+		hash_del(&cust_socket->socket_hash);
+
+		// add to cust table before releasing normal lock?
 		spin_lock(&cust_socket_lock);
 		hash_add(cust_socket_table, &cust_socket->socket_hash, cust_socket->hash_key);
 		spin_unlock(&cust_socket_lock);
 
-		delete_cust_socket(task, sk);
+		spin_unlock(&normal_socket_lock);
 	}
 }
 
