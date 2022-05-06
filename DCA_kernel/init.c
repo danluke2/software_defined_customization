@@ -40,6 +40,7 @@ static void nl_receive_request(struct sk_buff *skb) {
 	size_t message_size = NETLINK_REPORT_SIZE;
 	char failure[32]= "Failed to create cust report";
 
+
 	message = kmalloc(NETLINK_REPORT_SIZE, GFP_KERNEL);
 	if(message == NULL)
 	{
@@ -59,6 +60,10 @@ static void nl_receive_request(struct sk_buff *skb) {
 	{
 		// Do challenge query
 		netlink_challenge_cust(message, &message_size, data);
+	}
+	else if(strncmp(data, "DEACTIVATE", 10) == 0)
+	{
+		netlink_deactivate_cust(message, &message_size, data);
 	}
 	else
 	{

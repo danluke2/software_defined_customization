@@ -252,6 +252,7 @@ void remove_customization_from_each_socket(struct customization_node *cust)
 					trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
 				#endif
 				spin_lock(&cust_socket_iterator->active_customization_lock);
+				// unassign will also set customization status to UNKNOWN to force another cust lookup
 				unassign_customization(cust_socket_iterator);
 				spin_unlock(&cust_socket_iterator->active_customization_lock);
 
@@ -260,6 +261,7 @@ void remove_customization_from_each_socket(struct customization_node *cust)
 
 				// Now add to the normal list
 				spin_lock(&normal_socket_lock);
+
 				hash_add(normal_socket_table, &cust_socket_iterator->socket_hash, cust_socket_iterator->hash_key);
 				spin_unlock(&normal_socket_lock);
 			}
@@ -499,8 +501,8 @@ static void unassign_customization(struct customization_socket *cust_sock)
 		trace_printk("L4.5: Cust removed, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
 	#endif
 
-	cust_sock->customize_send_or_skip = SKIP;
-	cust_sock->customize_recv_or_skip = SKIP;
+	cust_sock->customize_send_or_skip = UNKNOWN;
+	cust_sock->customize_recv_or_skip = UNKNOWN;
 	cust_sock->customization = NULL;
 
 	return;

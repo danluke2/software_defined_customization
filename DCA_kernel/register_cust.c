@@ -18,9 +18,15 @@
 struct list_head active_customization_list;
 static DEFINE_SPINLOCK(active_customization_list_lock);
 
+
+// this should be a short list that holds cust in transition state
+struct list_head inactive_customization_list;
+static DEFINE_SPINLOCK(inactive_customization_list_lock);
+
+
 // this should be a short list that is purged often
-struct list_head retired_customization_list;
-static DEFINE_SPINLOCK(retired_customization_list_lock);
+struct list_head revoked_customization_list;
+static DEFINE_SPINLOCK(revoked_customization_list_lock);
 
 
 int register_customization(struct customization_node *module_cust, bool applyNow);
@@ -34,7 +40,8 @@ EXPORT_SYMBOL_GPL(unregister_customization);
 void init_customization_list(void)
 {
   INIT_LIST_HEAD(&active_customization_list);
-  INIT_LIST_HEAD(&retired_customization_list);
+  INIT_LIST_HEAD(&inactive_customization_list);
+  INIT_LIST_HEAD(&revoked_customization_list);
 	return;
 }
 
@@ -54,17 +61,32 @@ void free_customization_list(void)
 }
 
 
-void free_retired_customization_list(void)
+void free_inactive_customization_list(void)
 {
 	struct customization_node *cust;
 	struct customization_node *cust_next;
 
-	spin_lock(&retired_customization_list_lock);
-	list_for_each_entry_safe(cust, cust_next, &retired_customization_list, retired_cust_list_member)
+	spin_lock(&inactive_customization_list_lock);
+	list_for_each_entry_safe(cust, cust_next, &inactive_customization_list, inactive_cust_list_member)
 	{
-     list_del(&cust->retired_cust_list_member);
+     list_del(&cust->inactive_cust_list_member);
   }
-	spin_unlock(&retired_customization_list_lock);
+	spin_unlock(&inactive_customization_list_lock);
+	return;
+}
+
+
+void free_revoked_customization_list(void)
+{
+	struct customization_node *cust;
+	struct customization_node *cust_next;
+
+	spin_lock(&revoked_customization_list_lock);
+	list_for_each_entry_safe(cust, cust_next, &revoked_customization_list, revoked_cust_list_member)
+	{
+     list_del(&cust->revoked_cust_list_member);
+  }
+	spin_unlock(&revoked_customization_list_lock);
 	return;
 }
 
@@ -155,8 +177,8 @@ int register_customization(struct customization_node *module_cust, bool applyNow
   cust->challenge_function = module_cust->challenge_function;
 
   ktime_get_real_ts64(&cust->registration_time_struct);
-	cust->retired_time_struct.tv_sec = 0;
-  cust->retired_time_struct.tv_nsec = 0;
+	cust->revoked_time_struct.tv_sec = 0;
+  cust->revoked_time_struct.tv_nsec = 0;
 
   cust->send_buffer_size = module_cust->send_buffer_size;
   cust->recv_buffer_size = module_cust->recv_buffer_size;
@@ -185,7 +207,7 @@ int register_customization(struct customization_node *module_cust, bool applyNow
 	return 0;
 }
 
-
+// called by the module to completely remove it from use
 int unregister_customization(struct customization_node *module_cust)
 {
 	int found = 0;
@@ -212,22 +234,108 @@ int unregister_customization(struct customization_node *module_cust)
   }
 	spin_unlock(&active_customization_list_lock);
 
+
+  if(found ==0)
+  {
+    // cust may have been moved to the inactive list
+    spin_lock(&inactive_customization_list_lock);
+    list_for_each_entry_safe(matching_cust, cust_next, &inactive_customization_list, inactive_cust_list_member)
+   	{
+        if(matching_cust->cust_id == module_cust->cust_id)
+  			{
+          #ifdef DEBUG1
+            trace_print_module_params(matching_cust);
+          #endif
+  				list_del(&matching_cust->inactive_cust_list_member);
+  				found = 1;
+  				break;
+  			}
+    }
+  	spin_unlock(&inactive_customization_list_lock);
+  }
+
+  if(found == 0)
+  {
+    //if still 0, then we have a problem
+    #ifdef DEBUG
+      trace_printk("L4.5 ALERT: No customization found with id = %u", module_cust->cust_id);
+    #endif
+    return found;
+  }
+
   // Second: remove customization from active sockets
 	if(found == 1 && matching_cust->sock_count != 0)
 	{
 		remove_customization_from_each_socket(matching_cust);
 	}
 
-  // Last: store customization in retired list and set retired time
-  ktime_get_real_ts64(&matching_cust->retired_time_struct);
+  // Last: store customization in revoked list and set revoked time
+  ktime_get_real_ts64(&matching_cust->revoked_time_struct);
 
   #ifdef DEBUG1
-    trace_printk("L4.5: Retire time %llu\n", matching_cust->retired_time_struct.tv_sec);
+    trace_printk("L4.5: Revoked time %llu\n", matching_cust->revoked_time_struct.tv_sec);
   #endif
 
-  spin_lock(&retired_customization_list_lock);
-	list_add(&matching_cust->retired_cust_list_member, &retired_customization_list);
-	spin_unlock(&retired_customization_list_lock);
+  spin_lock(&revoked_customization_list_lock);
+	list_add(&matching_cust->revoked_cust_list_member, &revoked_customization_list);
+	spin_unlock(&revoked_customization_list_lock);
+
+	return found;
+}
+
+
+// remove cust from active list
+// called by DCA to stop new sockets from using the registered module
+// but DCA only has the module ID, not the struct pointer
+int remove_customization_from_active_list(u16 cust_id)
+{
+	int found = 0;
+  struct customization_node *module_cust = NULL;
+  struct customization_node *matching_cust;
+	struct customization_node *cust_next;
+
+  // First: find cust node matching given cust_id
+  module_cust = get_cust_by_id(cust_id);
+
+  if(module_cust == NULL)
+  {
+    #ifdef DEBUG
+      trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
+    #endif
+    return found;
+  }
+
+  found = 1;
+
+  #ifdef DEBUG
+    trace_printk("L4.5: Removing module from use by new sockets\n");
+  #endif
+
+  // Second: delete from list so no new sockets can claim it
+	spin_lock(&active_customization_list_lock);
+  list_for_each_entry_safe(matching_cust, cust_next, &active_customization_list, cust_list_member)
+ 	{
+    if(matching_cust->cust_id == module_cust->cust_id)
+		{
+      #ifdef DEBUG1
+        trace_print_module_params(matching_cust);
+      #endif
+			list_del(&matching_cust->cust_list_member);
+			break;
+		}
+  }
+	spin_unlock(&active_customization_list_lock);
+
+  // Last: store customization in inactive list and set inactive time
+  ktime_get_real_ts64(&matching_cust->inactive_time_struct);
+
+  #ifdef DEBUG1
+    trace_printk("L4.5: Inactive time %llu\n", matching_cust->inactive_time_struct.tv_sec);
+  #endif
+
+  spin_lock(&inactive_customization_list_lock);
+	list_add(&matching_cust->inactive_cust_list_member, &inactive_customization_list);
+	spin_unlock(&inactive_customization_list_lock);
 
 	return found;
 }
@@ -259,23 +367,40 @@ void netlink_cust_report(char *message, size_t *length)
   message = json_arrClose(message, &rem_length);
 
 
-  message = json_arrOpen(message, "Retired", &rem_length);
-  list_for_each_entry_safe(cust_temp, cust_next, &retired_customization_list, retired_cust_list_member)
+  message = json_arrOpen(message, "Inactive", &rem_length);
+
+  // trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
+  list_for_each_entry_safe(cust_temp, cust_next, &inactive_customization_list, inactive_cust_list_member)
  	{
     message = json_objOpen(message, NULL, &rem_length);
     message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
     // trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
-    message = json_ulong(message, "ts", cust_temp->retired_time_struct.tv_sec, &rem_length);
+    message = json_uint(message, "Count", cust_temp->sock_count, &rem_length);
+    message = json_ulong(message, "ts", cust_temp->inactive_time_struct.tv_sec, &rem_length);
     message = json_objClose(message, &rem_length);
   }
-  //close Retired array
+  // close Active array
+  message = json_arrClose(message, &rem_length);
+
+
+
+  message = json_arrOpen(message, "Revoked", &rem_length);
+  list_for_each_entry_safe(cust_temp, cust_next, &revoked_customization_list, revoked_cust_list_member)
+ 	{
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
+    // trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
+    message = json_ulong(message, "ts", cust_temp->revoked_time_struct.tv_sec, &rem_length);
+    message = json_objClose(message, &rem_length);
+  }
+  //close revoked array
   message = json_arrClose(message, &rem_length);
   //close all
   message = json_objClose(message, &rem_length);
   message = json_end_message(message, &rem_length);
 
   // only report this once for now, but need to find better way to clear list after send
-  free_retired_customization_list();
+  free_revoked_customization_list();
 
   #ifdef DEBUG2
     trace_printk("L4.5: rem_length = %lu\n", rem_length);
@@ -364,6 +489,66 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
 
     message = json_nstr(message, "IV", response, HEX_IV_LENGTH, &rem_length);
     message = json_nstr(message, "Response", response + HEX_IV_LENGTH , HEX_RESPONSE_LENGTH - HEX_IV_LENGTH, &rem_length);
+
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+
+    *length = *length - rem_length;
+  }
+
+  return;
+}
+
+
+
+void netlink_deactivate_cust(char *message, size_t *length, char *request)
+{
+  u16 cust_id = 0;
+  char *found = NULL;
+  int result;
+  size_t rem_length = *length;
+
+  // request format: DEACTIVATE cust_id END
+  // strsep should turn this into:
+  // DEACTIVATE
+  // cust_id
+  // END
+
+  // NOTE: this needs to be cleaned up
+  if((found = strsep(&request," ")) != NULL )
+  {
+    // DEACTIVATE
+    #ifdef DEBUG2
+      trace_printk("Found = %s\n",found);
+      trace_printk("Remaining = %s\n", request);
+    #endif
+
+    if((found = strsep(&request," ")) != NULL )
+    {
+      // cust_id
+      #ifdef DEBUG2
+        trace_printk("Found = %s\n",found);
+        trace_printk("Remaining = %s\n", request);
+      #endif
+
+      result = kstrtou16(found, 10, &cust_id);
+      if (result != 0)
+      {
+        #ifdef DEBUG
+          trace_printk("Error getting cust_id from request\n");
+        #endif
+      }
+    }
+  }
+
+  if (cust_id != 0)
+  {
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_uint(message, "ID", cust_id, &rem_length);
+
+    result = remove_customization_from_active_list(cust_id);
+
+    message = json_uint(message, "Result", result, &rem_length);
 
     message = json_objClose(message, &rem_length);
     message = json_end_message(message, &rem_length);

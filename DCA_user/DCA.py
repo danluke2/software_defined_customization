@@ -105,6 +105,13 @@ def send_challenge_report(conn_socket, cust_id, iv, msg):
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 
+def send_deactivate_report(conn_socket, cust_id):
+    logging.info(f"Deactive message {msg}")
+    send_dict = deactivate_module_layer4_5(cust_id)
+    send_string = json.dumps(send_dict, indent=4)
+    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+
+
 def query_layer4_5():
     sock = Connection()
 
@@ -144,7 +151,32 @@ def challenge_layer4_5(cust_id, iv, msg):
     payload = report.payload.decode("utf-8")
     logging.info(f"Challenge Response {payload}")
 
-    if payload == "Failed to create cust report":
+    if payload == "Failed to create challenge report":
+        payload = "{};"
+
+    # need to stip padded 00's from message before convert to json
+    payload = payload.split(";")[0]
+
+    return json.loads(payload)
+
+
+
+def deactivate_module_layer4_5(cust_id):
+    sock = Connection()
+
+    deactivate =f'DEACTIVATE {cust_id} END'
+    msg = Message(3,0,-1,deactivate)
+
+    sock.send(msg)
+
+    report = sock.recve()
+
+    sock.fd.close()
+
+    payload = report.payload.decode("utf-8")
+    logging.info(f"Deactivate Response {payload}")
+
+    if payload == "Failed to create deactivate report":
         payload = "{};"
 
     # need to stip padded 00's from message before convert to json
@@ -299,6 +331,10 @@ while True:
                     revoke_module(s, recv_dict["name"])
 
 
+                elif recv_dict["cmd"] == "deactivate_module":
+                    logging.info(f"deactivate request")
+                    send_deactivate_report(s, recv_dict["id"])
+
 
                 elif recv_dict["cmd"] == "run_report":
                     logging.info(f"report request received")
@@ -313,6 +349,8 @@ while True:
                 elif recv_dict["cmd"] == "challenge":
                     logging.info(f"challenge request")
                     send_challenge_report(s, recv_dict["id"], recv_dict["iv"], recv_dict["msg"])
+
+
 
             except Exception as e:
                 logging.info(f"Command parsing error, {e}")
