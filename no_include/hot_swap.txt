@@ -1,0 +1,275 @@
+# tracer: nop
+#
+# entries-in-buffer/entries-written: 264/264   #P:2
+#
+#                                _-----=> irqs-off
+#                               / _----=> need-resched
+#                              | / _---=> hardirq/softirq
+#                              || / _--=> preempt-depth
+#                              ||| /     delay
+#           TASK-PID     CPU#  ||||   TIMESTAMP  FUNCTION
+#              | |         |   ||||      |         |
+          insmod-2602    [001] ....    41.370057: register_tcp_taps: L4.5: address of tcp_prot is 00000000ac88b213
+          insmod-2602    [001] ....    41.370058: register_udp_taps: L4.5: address of udp_prot is 000000008c021421
+          insmod-2602    [001] ....    41.370058: 0xffffffffc083005b: L4.5: TCP/UDP taps registered
+         systemd-1       [000] ....    42.669894: new_udp_close: L4.5: socket close call, pid=1, sk=18446622438201844736
+         systemd-1       [000] ....    42.669895: new_udp_close: L4.5: socket not found; pid=1, sk=18446622438201844736
+         systemd-1       [000] ....    42.669962: new_udp_close: L4.5: socket close call, pid=1, sk=18446622438201844736
+         systemd-1       [000] ....    42.669963: new_udp_close: L4.5: socket not found; pid=1, sk=18446622438201844736
+    avahi-daemon-587     [000] ....    43.693984: new_udp_sendmsg: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 587
+    avahi-daemon-587     [000] ....    43.693988: create_cust_socket: L4.5: cust request lookup NULL, proto=17, pid task=avahi-daemon, tgid task=avahi-daemon, uid = 115
+    avahi-daemon-587     [000] ....    43.693988: create_cust_socket: L4.5: Adding pid 587 to normal table
+    avahi-daemon-587     [000] ....    43.693989: new_udp_sendmsg: L4.5: Customization skipped for pid 587, sk 18446622438270851840
+    avahi-daemon-587     [000] ....    43.693991: trace_print_cust_socket: L4.5 sendmsg: dest_ip:port=224.0.0.251:5353, source_ip:port=0.0.0.0:5353, cust_send=0, cust_recv=0
+    avahi-daemon-587     [000] ....    43.693992: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....    43.694077: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    43.694078: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....    43.694113: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    43.694114: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....    43.694153: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    43.694153: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+    avahi-daemon-587     [000] ....    43.694161: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    43.694161: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+    avahi-daemon-587     [000] ....    43.694168: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    43.694168: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+    kworker/u4:1-88      [000] ....    45.234681: new_udp_close: L4.5: socket close call, pid=88, sk=18446622438137507072
+    kworker/u4:1-88      [000] ....    45.234682: new_udp_close: L4.5: socket not found; pid=88, sk=18446622438137507072
+    kworker/u4:1-88      [000] ....    45.426996: new_udp_close: L4.5: socket close call, pid=88, sk=18446622438229580544
+    kworker/u4:1-88      [000] ....    45.426997: new_udp_close: L4.5: socket not found; pid=88, sk=18446622438229580544
+          vminfo-985     [000] ....    45.834422: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201845888
+          vminfo-985     [000] ....    45.834423: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201845888
+          vminfo-985     [000] ....    50.835130: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201845888
+          vminfo-985     [000] ....    50.835131: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201845888
+          vminfo-985     [000] ....    55.836277: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201845888
+          vminfo-985     [000] ....    55.836278: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201845888
+          vminfo-985     [000] ....    60.850810: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201836672
+          vminfo-985     [000] ....    60.850811: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201836672
+          vminfo-985     [000] ....    65.901832: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201843584
+          vminfo-985     [000] ....    65.901833: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201843584
+ systemd-timesyn-555     [000] ....    66.835280: new_udp_sendmsg: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 555
+ systemd-timesyn-555     [000] ....    66.835282: create_cust_socket: L4.5: cust request lookup NULL, proto=17, pid task=systemd-timesyn, tgid task=systemd-timesyn, uid = 102
+ systemd-timesyn-555     [000] ....    66.835282: create_cust_socket: L4.5: Adding pid 555 to normal table
+ systemd-timesyn-555     [000] ....    66.835283: new_udp_sendmsg: L4.5: Customization skipped for pid 555, sk 18446622438201843584
+ systemd-timesyn-555     [000] ....    66.835285: trace_print_cust_socket: L4.5 sendmsg: dest_ip:port=91.189.91.157:123, source_ip:port=0.0.0.0:58598, cust_send=0, cust_recv=0
+ systemd-timesyn-555     [000] ....    66.835285: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 555
+ systemd-timesyn-555     [000] ....    66.908822: get_cust_socket: L4.5: cust socket found in normal table, current pid 555, cust_pid 555
+ systemd-timesyn-555     [000] ....    66.908823: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 555
+ systemd-timesyn-555     [000] ....    66.908835: get_cust_socket: L4.5: cust socket found in normal table, current pid 555, cust_pid 555
+ systemd-timesyn-555     [000] ....    66.908836: new_udp_close: L4.5: socket close call, pid=555, sk=18446622438201843584
+    avahi-daemon-587     [000] ....    67.927139: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    67.927140: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....    67.927273: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    67.927274: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....    67.927398: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    67.927399: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....    67.927559: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    67.927560: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+    avahi-daemon-587     [000] ....    67.927570: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    67.927570: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+    avahi-daemon-587     [000] ....    67.927580: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....    67.927580: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+         python3-2674    [000] ....    69.599379: create_cust_socket: L4.5: cust request lookup NULL, proto=6, pid task=python3, tgid task=python3, uid = 1000
+         python3-2674    [000] ....    69.599380: create_cust_socket: L4.5: Adding pid 2674 to normal table
+         python3-2674    [000] ....    69.599381: new_tcp_v4_connect: L4.5: Customization skipped for pid 2674, sk 18446622438291902848
+         python3-2674    [000] ....    69.599382: trace_print_cust_socket: L4.5 tcp_connect: dest_ip:port=127.0.0.1:65432, source_ip:port=127.0.0.1:38962, cust_send=0, cust_recv=0
+         python3-2659    [000] ....    69.599403: create_cust_socket: L4.5: cust request lookup NULL, proto=6, pid task=python3, tgid task=python3, uid = 1000
+         python3-2659    [000] ....    69.599404: create_cust_socket: L4.5: Adding pid 2659 to normal table
+         python3-2659    [000] ....    69.599404: trace_print_cust_socket: L4.5 tcp_accept: dest_ip:port=127.0.0.1:38962, source_ip:port=127.0.0.1:65432, cust_send=0, cust_recv=0
+         python3-2659    [000] ....    69.599405: new_inet_csk_accept: L4.5: Customization skipped for pid 2659, sk 18446622438291925248
+         python3-2659    [000] ....    69.599405: trace_print_cust_socket: L4.5 tcp_accept: dest_ip:port=127.0.0.1:38962, source_ip:port=127.0.0.1:65432, cust_send=0, cust_recv=0
+         python3-2674    [000] ....    69.599514: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....    69.599514: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2674
+         python3-2659    [000] ....    69.599534: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....    69.599534: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2659
+         python3-2659    [000] ....    69.599551: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....    69.599551: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2659
+         python3-2674    [000] ....    69.599601: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....    69.599602: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2674
+          vminfo-985     [000] ....    70.917868: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201844736
+          vminfo-985     [000] ....    70.917869: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201844736
+         python3-2674    [000] ....    75.808302: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....    75.808303: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2674
+         python3-2659    [000] ....    75.808353: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....    75.808354: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2659
+         python3-2659    [000] ....    75.808401: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....    75.808401: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2659
+         python3-2674    [000] ....    75.808429: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....    75.808430: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2674
+          vminfo-985     [000] ....    75.929220: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201844736
+          vminfo-985     [000] ....    75.929221: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201844736
+           fuser-2732    [000] ....    78.091613: new_udp_close: L4.5: socket close call, pid=2732, sk=18446622438201844736
+           fuser-2732    [000] ....    78.091614: new_udp_close: L4.5: socket not found; pid=2732, sk=18446622438201844736
+           fuser-2732    [000] ....    78.092869: new_udp_close: L4.5: socket close call, pid=2732, sk=18446622438201844736
+           fuser-2732    [000] ....    78.092869: new_udp_close: L4.5: socket not found; pid=2732, sk=18446622438201844736
+           fuser-2733    [000] ....    78.132637: new_udp_close: L4.5: socket close call, pid=2733, sk=18446622438201844736
+           fuser-2733    [000] ....    78.132637: new_udp_close: L4.5: socket not found; pid=2733, sk=18446622438201844736
+           fuser-2733    [000] ....    78.133901: new_udp_close: L4.5: socket close call, pid=2733, sk=18446622438201844736
+           fuser-2733    [000] ....    78.133902: new_udp_close: L4.5: socket not found; pid=2733, sk=18446622438201844736
+           fuser-2734    [000] ....    78.172443: new_udp_close: L4.5: socket close call, pid=2734, sk=18446622438201844736
+           fuser-2734    [000] ....    78.172444: new_udp_close: L4.5: socket not found; pid=2734, sk=18446622438201844736
+           fuser-2734    [000] ....    78.174194: new_udp_close: L4.5: socket close call, pid=2734, sk=18446622438201844736
+           fuser-2734    [000] ....    78.174195: new_udp_close: L4.5: socket not found; pid=2734, sk=18446622438201844736
+          vminfo-985     [000] ....    80.929994: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201847040
+          vminfo-985     [000] ....    80.929995: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201847040
+          vminfo-985     [000] ....    85.933629: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201847040
+          vminfo-985     [000] ....    85.933630: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201847040
+          vminfo-985     [000] ....    90.935371: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201847040
+          vminfo-985     [000] ....    90.935372: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201847040
+          vminfo-985     [000] ....    95.936705: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201844736
+          vminfo-985     [000] ....    95.936705: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201844736
+          vminfo-985     [000] ....   100.937473: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201847040
+          vminfo-985     [000] ....   100.937474: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201847040
+          vminfo-985     [000] ....   105.963548: new_udp_close: L4.5: socket close call, pid=985, sk=18446622438201840128
+          vminfo-985     [000] ....   105.963549: new_udp_close: L4.5: socket not found; pid=985, sk=18446622438201840128
+          insmod-3179    [000] ....   108.553011: register_customization: L4.5: Registering module
+          insmod-3179    [000] ....   108.553012: trace_print_module_params: Node protocol = 256
+          insmod-3179    [000] ....   108.553012: trace_print_module_params: Node pid task = python3
+          insmod-3179    [000] ....   108.553012: trace_print_module_params: Node tgid task = python3
+          insmod-3179    [000] ....   108.553013: trace_print_module_params: Node id = 42
+          insmod-3179    [000] ....   108.553013: trace_print_module_params: Node dest port = 65432
+          insmod-3179    [000] ....   108.553013: trace_print_module_params: Node source port = 0
+          insmod-3179    [000] ....   108.553014: trace_print_module_params: Node dest_ip = 127.0.0.1
+          insmod-3179    [000] ....   108.553014: trace_print_module_params: Node src_ip = 0.0.0.0
+          insmod-3179    [000] ....   108.553014: register_customization: L4.5: Registration time: 1651600351
+          insmod-3179    [000] ....   108.553014: 0xffffffffc07c7114: L4.5: client module loaded, id=42
+          vminfo-985     [001] ....   110.964327: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881218816
+          vminfo-985     [001] ....   110.964328: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881218816
+          vminfo-985     [001] ....   115.965250: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881218816
+          vminfo-985     [001] ....   115.965251: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881218816
+          vminfo-985     [001] ....   120.967725: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881218816
+          vminfo-985     [001] ....   120.967726: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881218816
+         python3-2674    [000] ....   125.735051: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....   125.735052: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2674
+         python3-2659    [000] ....   125.735101: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....   125.735101: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2659
+         python3-2659    [000] ....   125.735146: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....   125.735146: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2659
+         python3-2674    [000] ....   125.735171: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....   125.735172: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2674
+          vminfo-985     [001] ....   125.971492: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881218816
+          vminfo-985     [001] ....   125.971493: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881218816
+          vminfo-985     [001] ....   130.989333: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881219968
+          vminfo-985     [001] ....   130.989334: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881219968
+ systemd-timesyn-555     [000] ....   131.113716: new_udp_sendmsg: L4.5: NULL cust socket in sendmsg, creating cust socket for pid 555
+ systemd-timesyn-555     [000] ....   131.113719: create_cust_socket: L4.5: cust request lookup NULL, proto=17, pid task=systemd-timesyn, tgid task=systemd-timesyn, uid = 102
+ systemd-timesyn-555     [000] ....   131.113719: create_cust_socket: L4.5: Adding pid 555 to normal table
+ systemd-timesyn-555     [000] ....   131.113720: new_udp_sendmsg: L4.5: Customization skipped for pid 555, sk 18446622438201840128
+ systemd-timesyn-555     [000] ....   131.113722: trace_print_cust_socket: L4.5 sendmsg: dest_ip:port=91.189.91.157:123, source_ip:port=0.0.0.0:57501, cust_send=0, cust_recv=0
+ systemd-timesyn-555     [000] ....   131.113723: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 555
+ systemd-timesyn-555     [000] ....   131.187867: get_cust_socket: L4.5: cust socket found in normal table, current pid 555, cust_pid 555
+ systemd-timesyn-555     [000] ....   131.187868: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 555
+ systemd-timesyn-555     [000] ....   131.187880: get_cust_socket: L4.5: cust socket found in normal table, current pid 555, cust_pid 555
+ systemd-timesyn-555     [000] ....   131.187881: new_udp_close: L4.5: socket close call, pid=555, sk=18446622438201840128
+           rmmod-3250    [000] ....   131.594533: unregister_customization: L4.5: Unregistering module
+           rmmod-3250    [000] ....   131.594535: trace_print_module_params: Node protocol = 256
+           rmmod-3250    [000] ....   131.594536: trace_print_module_params: Node pid task = python3
+           rmmod-3250    [000] ....   131.594536: trace_print_module_params: Node tgid task = python3
+           rmmod-3250    [000] ....   131.594536: trace_print_module_params: Node id = 42
+           rmmod-3250    [000] ....   131.594537: trace_print_module_params: Node dest port = 65432
+           rmmod-3250    [000] ....   131.594537: trace_print_module_params: Node source port = 0
+           rmmod-3250    [000] ....   131.594538: trace_print_module_params: Node dest_ip = 127.0.0.1
+           rmmod-3250    [000] ....   131.594539: trace_print_module_params: Node src_ip = 0.0.0.0
+           rmmod-3250    [000] ....   131.594539: unregister_customization: L4.5: Retire time 1651600374
+           rmmod-3250    [000] ....   131.594539: cleanup_module: L4.5: client module unloaded
+    avahi-daemon-587     [000] ....   131.920221: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....   131.920222: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....   131.920341: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....   131.920341: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....   131.920455: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....   131.920455: new_udp_sendmsg: L4.5: cust_socket send set to skip, pid 587
+    avahi-daemon-587     [000] ....   131.920591: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....   131.920591: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+    avahi-daemon-587     [000] ....   131.920601: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....   131.920601: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+    avahi-daemon-587     [000] ....   131.920610: get_cust_socket: L4.5: cust socket found in normal table, current pid 587, cust_pid 587
+    avahi-daemon-587     [000] ....   131.920611: new_udp_recvmsg: L4.5: cust_socket recv set to skip, pid 587
+          vminfo-985     [001] ....   135.990062: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881219968
+          vminfo-985     [001] ....   135.990063: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881219968
+         python3-2674    [000] ....   137.514939: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....   137.514939: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2674
+         python3-2659    [000] ....   137.514983: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....   137.514983: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2659
+         python3-2659    [000] ....   137.515020: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....   137.515020: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2659
+         python3-2674    [000] ....   137.515040: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....   137.515040: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2674
+          vminfo-985     [001] ....   140.991150: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881219968
+          vminfo-985     [001] ....   140.991151: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881219968
+          vminfo-985     [001] ....   145.991852: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881216512
+          vminfo-985     [001] ....   145.991853: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881216512
+          insmod-3257    [000] ....   147.907474: register_customization: L4.5: Registering module
+          insmod-3257    [000] ....   147.907476: trace_print_module_params: Node protocol = 256
+          insmod-3257    [000] ....   147.907476: trace_print_module_params: Node pid task = python3
+          insmod-3257    [000] ....   147.907477: trace_print_module_params: Node tgid task = python3
+          insmod-3257    [000] ....   147.907477: trace_print_module_params: Node id = 42
+          insmod-3257    [000] ....   147.907477: trace_print_module_params: Node dest port = 65432
+          insmod-3257    [000] ....   147.907477: trace_print_module_params: Node source port = 0
+          insmod-3257    [000] ....   147.907478: trace_print_module_params: Node dest_ip = 127.0.0.1
+          insmod-3257    [000] ....   147.907478: trace_print_module_params: Node src_ip = 0.0.0.0
+          insmod-3257    [000] ....   147.907479: register_customization: L4.5: Registration time: 1651600390
+          insmod-3257    [000] ....   147.907480: reset_cust_socket_status: L4.5 Normal Socket: Resetting things in bucket [649] with pid value 2659 and socket value 00000000f42392b6
+          insmod-3257    [000] ....   147.907481: reset_cust_socket_status: L4.5 Normal Socket: Resetting things in bucket [840] with pid value 2674 and socket value 00000000d2eff126
+          insmod-3257    [000] ....   147.907481: reset_cust_socket_status: L4.5 Normal Socket: Resetting things in bucket [988] with pid value 587 and socket value 00000000c1f49642
+          insmod-3257    [000] ....   147.907482: 0xffffffffc07c7114: L4.5: client module loaded, id=42
+          vminfo-985     [001] ....   150.992432: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881216512
+          vminfo-985     [001] ....   150.992433: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881216512
+          vminfo-985     [001] ....   155.993654: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   155.993655: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   160.994324: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   160.994324: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   165.995345: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   165.995346: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   170.997019: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   170.997020: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881215360
+         python3-2674    [000] ....   173.289660: get_cust_socket: L4.5: cust socket found in normal table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....   173.289661: new_tcp_sendmsg: L4.5: cust recheck triggered, pid 2674
+         python3-2674    [000] ....   173.289662: customization_compare: Application pid name check passed, cust_id=42
+         python3-2674    [000] ....   173.289662: customization_compare: Application tgid name check passed, cust_id=42
+         python3-2674    [000] ....   173.289662: customization_compare: Protocol check passed, cust_id=42
+         python3-2674    [000] ....   173.289663: customization_compare: Dest check passed, cust_id=42
+         python3-2674    [000] ....   173.289663: customization_compare: Src check passed, cust_id=42
+         python3-2674    [000] ....   173.289663: get_customization: L4.5: cust socket match to registered module, pid = 2674
+         python3-2674    [000] ....   173.289663: update_cust_status: L4.5: Assigning cust to socket, pid 2674
+         python3-2674    [000] ....   173.289664: assign_customization: L4.5: Send buffer size = 65536
+         python3-2674    [000] ....   173.289664: assign_customization: L4.5: Recv buffer size = 65536
+         python3-2674    [000] ....   173.289885: assign_customization: L4.5 Assigned send buffer, pid=2674, name=python3
+         python3-2674    [000] ....   173.289885: assign_customization: L4.5: Cust recv null, pid=2674, name=python3
+         python3-2674    [000] ....   173.289886: assign_customization: L4.5: Socket count = 1
+         python3-2674    [000] ....   173.289886: update_cust_status: L4.5: Adding pid 2674 to customization table
+         python3-2674    [000] ....   173.289887: dca_sendmsg: L4.5: Start of DCA sendmsg, given size = 8
+         python3-2674    [000] ....   173.289887: trace_print_msg_params: msg control len = 0
+         python3-2674    [000] ....   173.289887: trace_print_msg_params: msg flags as integer= 64
+         python3-2674    [000] ....   173.289887: trace_print_msg_params: msg iter type = 5
+         python3-2674    [000] ....   173.289888: trace_print_msg_params: msg iov len = 8
+         python3-2674    [000] ....   173.289888: trace_print_msg_params: msg iov offset = 0
+         python3-2674    [000] ....   173.289889: trace_print_msg_params: Total amount of data pointed to by the iovec array (count) = 8
+         python3-2674    [000] ....   173.289889: trace_print_msg_params: Number of iovec structures (nr_segs) = 1
+         python3-2674    [000] ....   173.289890: dca_sendmsg: L4.5: After cust send module return
+         python3-2674    [000] ....   173.289890: trace_print_iov_params: msg iov len = 8; offset = 0
+         python3-2674    [000] ....   173.289890: trace_print_iov_params: Total amount of data pointed to by the iovec array (count) = 8
+         python3-2674    [000] ....   173.289891: trace_print_iov_params: Number of iovec structures (nr_segs) = 1
+         python3-2674    [000] ....   173.289891: dca_sendmsg: L4.5: Module adjusted send size = 19
+         python3-2674    [000] ....   173.289917: dca_sendmsg: L4.5: Last send time 1651600415
+         python3-2659    [000] ....   173.289938: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....   173.289939: new_tcp_recvmsg: L4.5: cust recheck triggered, pid 2659
+         python3-2659    [000] ....   173.289939: customization_compare: Application pid name check passed, cust_id=42
+         python3-2659    [000] ....   173.289939: customization_compare: Application tgid name check passed, cust_id=42
+         python3-2659    [000] ....   173.289939: customization_compare: Protocol check passed, cust_id=42
+         python3-2659    [000] ....   173.289940: update_cust_status: L4.5: cust update lookup NULL, proto=6, pid task=python3, tgid task=python3, uid = 1000
+         python3-2659    [000] ....   173.289940: new_tcp_recvmsg: L4.5: cust_socket send set to skip, pid 2659
+         python3-2659    [000] ....   173.289975: get_cust_socket: L4.5: cust socket found in normal table, current pid 2659, cust_pid 2659
+         python3-2659    [000] ....   173.289976: new_tcp_sendmsg: L4.5: cust_socket send set to skip, pid 2659
+         python3-2674    [000] ....   173.290003: get_cust_socket: L4.5: cust socket found in customization table, current pid 2674, cust_pid 2674
+         python3-2674    [000] ....   173.290004: new_tcp_recvmsg: L4.5: cust_socket recv set to skip, pid 2674
+          vminfo-985     [001] ....   175.998191: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   175.998192: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881215360
+          vminfo-985     [001] ....   180.999510: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   180.999510: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   186.000457: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   186.000458: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   191.001959: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   191.001960: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   196.003842: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   196.003844: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   201.005249: new_udp_close: L4.5: socket close call, pid=985, sk=18446622439881225728
+          vminfo-985     [001] ....   201.005250: new_udp_close: L4.5: socket not found; pid=985, sk=18446622439881225728
