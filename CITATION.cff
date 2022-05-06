@@ -11,3 +11,8 @@ authors:
   - given-names: Daniel Łukaszewski
     email: danluke2@yahoo.com
     orcid: 'https://orcid.org/0000-0002-8762-9164'
+repository-code: "https://github.com/danluke2/software_defined_customization"
+keywords:
+  - "software defined customization"
+  - "Layer 4.5"
+  - research
