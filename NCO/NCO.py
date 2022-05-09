@@ -159,6 +159,12 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     revoke_module(conn, db_connection, host_id, revoke_id_list[i], revoke_name_list[i])
 
 
+            #Revoke requirement: get deactivate list before getting report
+            deactivate_id_list = retrieve_deactivate_list(db_connection, host_id)
+            if len(deactivate_id_list) > 0:
+                for i in range(len(deactivate_id_list)):
+                    deactivate_module(conn, db_connection, host_id, deactivate_id_list[i])
+
             #Monitor requirement: get a full report from host and update CIB
             request_report(conn, host_id)
             err = process_report(conn, db_connection, host_id, buffer_size)

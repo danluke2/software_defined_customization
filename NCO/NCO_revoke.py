@@ -63,3 +63,32 @@ def revoke_module(conn_socket, db_connection, host_id, mod_id, name = ''):
         now = int(time.time())
         insert_revoked(db_connection, host_id, mod_id, now)
         return 0
+
+
+
+# Handle deactivation of modules part of staged transition
+def retrieve_deactivate_list(db_connection, host_id):
+    deactivate_list = select_all_req_deactivate(db_connection, host_id)
+    if deactivate_list == cfg.DB_ERROR:
+        return -1
+    mod_id = [x[0] for x in deactivate_list]
+    return mod_id
+
+
+
+# def deactivate_module(conn_socket, db_connection, host_id, mod_id):
+#     logger.info(f"Deactivating module {mod_id} for host {host_id}")
+#     # send deactivate command
+#     command = {"cmd": "deactivate_module", "id": mod_id}
+#     send_string = json.dumps(command, indent=4)
+#     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+#     data = conn_socket.recv(1024)
+#     data = data.decode("utf-8")
+#     if data != 'success':
+#         logger.info(f"Device error: {data}")
+#         return cfg.REVOKE_ERROR
+#     else:
+#         # update deactivation status of deployed module
+#         now = int(time.time())
+#         insert_revoked(db_connection, host_id, mod_id, now)
+#         return 0

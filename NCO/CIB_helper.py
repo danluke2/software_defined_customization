@@ -33,6 +33,8 @@ def init_db_tables(con):
 
     init_deployed_table(con)
 
+    init_require_deactivate_table(con)
+
     init_require_revocation_table(con)
 
     init_revoked_table(con)
@@ -147,16 +149,15 @@ def init_deployed_table(con):
     con.execute('''CREATE TABLE deployed
                    (host_id integer NOT NULL, module_id integer NOT NULL,
                    sock_count integer, registered_ts integer,
-                   security_window integer, last_security_ts integer,
-                   host_error_ts integer,
+                   security_window integer, last_security_ts integer, inactive_ts integer, host_error_ts integer,
                    PRIMARY KEY (host_id, module_id))''')
 
 
-def insert_deployed(con, host_id, module_id, count, registered_ts, sec_window, sec_ts, host_error_ts):
+def insert_deployed(con, host_id, module_id, count, registered_ts, sec_window, sec_ts, inactive_ts, host_error_ts):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO deployed VALUES (?, ?, ?, ?, ?, ?, ?)", (host_id, module_id, count, registered_ts, sec_window, sec_ts, host_error_ts))
+            con.execute("INSERT INTO deployed VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (host_id, module_id, count, registered_ts, sec_window, sec_ts, inactive_ts, host_error_ts))
     except sl.Error as er:
         print(f"Error inserting module into deployed, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
@@ -177,6 +178,7 @@ def update_deployed(con, host_id, module_id, count, registered_ts):
         print(f"Error = {er}")
         result = DB_ERROR
     return result
+
 
 def update_deployed_sec_window(con, host_id, module_id, sec_window):
     result = 0
@@ -208,6 +210,21 @@ def update_deployed_sec_ts(con, host_id, module_id, sec_ts):
     return result
 
 
+def update_deployed_inactive_ts(con, host_id, module_id, inactive_ts):
+    result = 0
+    try:
+        with con:
+            con.execute('''UPDATE deployed
+            SET inactive_ts = :ts
+            WHERE host_id = :host AND module_id =:module;''',
+            {"ts": inactive_ts, "host": host_id, "module": module_id})
+    except sl.Error as er:
+        print(f"Error updating deployed inactive ts, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
 def update_deployed_host_error(con, host_id, module_id, host_error_ts):
     result = 0
     try:
@@ -221,6 +238,7 @@ def update_deployed_host_error(con, host_id, module_id, host_error_ts):
         print(f"Error = {er}")
         result = DB_ERROR
     return result
+
 
 
 def delete_deployed(con, host_id, module_id):
@@ -262,6 +280,54 @@ def select_all_deployed_rows(con, host_id):
     return result
 
 
+
+
+
+# ***************** DEACTIVATE TABLE ***********************
+
+def init_require_deactivate_table(con):
+    # each id and module pair must be unique
+    con.execute('''CREATE TABLE req_deactivate
+                   (host_id integer NOT NULL, module_id integer NOT NULL,
+                   PRIMARY KEY (host_id, module_id))''')
+
+
+def insert_req_deactivate(con, host_id, module_id):
+    result = 0
+    try:
+        with con:
+            con.execute("INSERT INTO req_deactivate VALUES (?, ?)", (host_id, module_id))
+    except sl.Error as er:
+        print(f"Error inserting module into req_deactivate, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def delete_req_deactivate_by_id(con, host_id, module_id):
+    result = 0
+    try:
+        with con:
+            con.execute("DELETE FROM req_deactivate WHERE host_id = :id AND module_id =:module;", {"id": host_id, "module": module_id})
+    except sl.Error as er:
+        print(f"Error deleting req_deactivate row, module={module_id}, host={host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_all_req_deactivate(con, host_id):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM req_deactivate WHERE host_id = :id;", {"id": host_id})
+            result = cur.fetchall()
+    except sl.Error as er:
+        print(f"Error slecting all req_deactivate for host {host_id}")
+        print(f"Error = {er}")
+        result = DB_ERROR
+    return result
 
 
 # ***************** REQ REVOCATION TABLE ***********************
