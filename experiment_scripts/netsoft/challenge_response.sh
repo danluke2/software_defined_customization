@@ -69,8 +69,9 @@ sleep $3
 echo "*************** finished  ***************"
 
 
-echo "removing challenge module"
+# Revoke client module in DB host_id = 2
+echo "*************** Revoke Challenge Module ***************"
+python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1
 
-rmmod nco_challenge_response
 
-sleep $2
+sleep $3

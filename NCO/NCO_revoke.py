@@ -59,7 +59,6 @@ def revoke_module(conn_socket, db_connection, host_id, mod_id, name = ''):
         logger.info(f"Device error: {data}")
         return cfg.REVOKE_ERROR
     else:
-        # add module to revoked table
-        now = int(time.time())
-        insert_revoked(db_connection, host_id, mod_id, now)
+        # remove module from require revoke table; next report will handle revoked table update
+        delete_req_revocation_by_id(db_connection, host_id, mod_id)
         return 0
