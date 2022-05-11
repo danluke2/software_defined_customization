@@ -103,6 +103,14 @@ struct customization_node *get_cust_by_id(u16 cust_id)
       return cust_temp;
     }
   }
+  // cust may be in the inactive table, but still attached to a relevant socket
+  list_for_each_entry_safe(cust_temp, cust_next, &inactive_customization_list, inactive_cust_list_member)
+ 	{
+		if(cust_temp->cust_id == cust_id)
+    {
+      return cust_temp;
+    }
+  }
   return NULL;
 }
 
@@ -177,6 +185,8 @@ int register_customization(struct customization_node *module_cust, bool applyNow
   cust->challenge_function = module_cust->challenge_function;
 
   ktime_get_real_ts64(&cust->registration_time_struct);
+  cust->inactive_time_struct.tv_sec = 0;
+  cust->inactive_time_struct.tv_nsec = 0;
 	cust->revoked_time_struct.tv_sec = 0;
   cust->revoked_time_struct.tv_nsec = 0;
 

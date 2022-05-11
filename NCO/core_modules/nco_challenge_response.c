@@ -348,10 +348,6 @@ int __init sample_client_start(void)
 
   // Cust ID set by customization controller, network uniqueness required
 	python_cust->cust_id = module_id;
-  python_cust->registration_time_struct.tv_sec = 0;
-  python_cust->registration_time_struct.tv_nsec = 0;
-	python_cust->retired_time_struct.tv_sec = 0;
-  python_cust->retired_time_struct.tv_nsec = 0;
 
 	result = register_customization(python_cust, applyNow);
 

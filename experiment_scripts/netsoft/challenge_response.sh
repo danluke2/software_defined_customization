@@ -69,8 +69,17 @@ sleep $3
 echo "*************** finished  ***************"
 
 
-echo "removing challenge module"
+# Deactivate client module in DB host_id = 2
+echo "*************** Deactivate Challenge Module ***************"
+python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1 --deactivate
 
-rmmod nco_challenge_response
+# Note: challenge/response still happening for deactivated module since still active on the socket
 
-sleep $2
+sleep $3
+
+# Revoke client module in DB host_id = 2
+echo "*************** Revoke Challenge Module ***************"
+python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1 
+
+
+sleep $3

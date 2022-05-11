@@ -130,10 +130,7 @@ int __init sample_client_start(void)
 
   // Cust ID set by customization controller, network uniqueness required
 	dns_cust->cust_id = module_id;
-  dns_cust->registration_time_struct.tv_sec = 0;
-  dns_cust->registration_time_struct.tv_nsec = 0;
-  dns_cust->retired_time_struct.tv_sec = 0;
-  dns_cust->retired_time_struct.tv_nsec = 0;
+
 
   dns_cust->send_buffer_size = 0; // accept default buffer size
   dns_cust->recv_buffer_size = 0; // accept default buffer size

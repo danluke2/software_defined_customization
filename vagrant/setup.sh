@@ -11,7 +11,7 @@ systemctl stop avahi-daemon
 systemctl disable avahi-daemon
 
 apt update
-# apt -y upgrade
+apt install trace-cmd
 
 timedatectl set-ntp on
 timedatectl
@@ -43,7 +43,7 @@ alias desk='cd /home/vagrant/Desktop'
 alias modules='cd /usr/lib/modules/$(uname -r)/'
 
 alias tracelog='sudo gedit /sys/kernel/tracing/trace'
-alias cyclelog="sudo bash -c '> /sys/kernel/tracing/trace'"
+alias cyclelog="sudo trace-cmd clear && sudo bash -c 'echo 1 > /sys/kernel/tracing/tracing_on'"
 
 alias installer='clear && sudo $DCA_KERNEL_DIR/bash/installer.sh'
 
@@ -54,7 +54,8 @@ alias clean_layer='sudo rm -rf /usr/lib/modules/$(uname -r)/layer4_5'
 
 tracecopy () {
     sudo cp /sys/kernel/tracing/trace $GIT_DIR/\$1
-    sudo bash -c '> /sys/kernel/tracing/trace'
+    sudo trace-cmd clear
+    sudo bash -c 'echo 1 > /sys/kernel/tracing/tracing_on'
 }
 EOT
 

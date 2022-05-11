@@ -180,10 +180,7 @@ int __init sample_client_start(void)
 
   // Cust ID normally set by NCO, uniqueness required
 	python_cust->cust_id = 42;
-  python_cust->registration_time_struct.tv_sec = 0;
-  python_cust->registration_time_struct.tv_nsec = 0;
-	python_cust->retired_time_struct.tv_sec = 0;
-  python_cust->retired_time_struct.tv_nsec = 0;
+
 
 	result = register_customization(python_cust, applyNow);
 

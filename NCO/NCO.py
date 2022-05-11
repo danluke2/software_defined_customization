@@ -23,7 +23,7 @@ from NCO_security import check_challenge, request_challenge_response
 from NCO_construct import request_symver_file, construction_process
 from NCO_monitor import handle_host_insert, process_report, request_report
 from NCO_deploy import send_install_modules, retrieve_install_list, check_install_requirement_or_max_time
-from NCO_revoke import retrieve_revoke_list, revoke_module
+from NCO_revoke import retrieve_revoke_list, revoke_module, retrieve_deactivate_list, deactivate_module
 from NCO_middlebox import update_inverse_module_requirements, middlebox_process
 
 
@@ -165,6 +165,7 @@ def device_thread(conn, ip, port, buffer_size, interval):
                 for i in range(len(deactivate_id_list)):
                     deactivate_module(conn, db_connection, host_id, deactivate_id_list[i])
 
+
             #Monitor requirement: get a full report from host and update CIB
             request_report(conn, host_id)
             err = process_report(conn, db_connection, host_id, buffer_size)
@@ -224,8 +225,8 @@ def device_thread(conn, ip, port, buffer_size, interval):
                 end_time = start_time + host["interval"]
                 interval = int(host["interval"] / 5)
                 check_install_requirement_or_max_time(db_connection, host_id, end_time, interval)
-    except:
-        logger.info("Device thread exception")
+    except Exception as e:
+        logger.info(f"Device thread exception: {e}")
         traceback.print_exc()
         conn.close()
 

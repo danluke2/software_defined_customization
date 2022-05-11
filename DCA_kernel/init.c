@@ -85,7 +85,9 @@ static void nl_receive_request(struct sk_buff *skb) {
 		trace_print_hex_dump("message b4 send: ", DUMP_PREFIX_ADDRESS, 16, 1, nlmsg_data(nlh), 32, true);
 	#endif
 	result = nlmsg_unicast(socket, skb_out, pid);
-	trace_printk("L4.5: NL result = %d\n", result);
+	#ifdef DEBUG2
+		trace_printk("L4.5: NL result = %d\n", result);
+	#endif
 }
 
 

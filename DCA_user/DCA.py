@@ -106,7 +106,7 @@ def send_challenge_report(conn_socket, cust_id, iv, msg):
 
 
 def send_deactivate_report(conn_socket, cust_id):
-    logging.info(f"Deactive message {msg}")
+    logging.info(f"Deactive cust id {cust_id}")
     send_dict = deactivate_module_layer4_5(cust_id)
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
@@ -249,11 +249,14 @@ def install_ko_file(conn_socket, filename, filesize):
 
 # read in list of modules to remove, then finish
 def revoke_module(conn_socket, filename):
-    logging.info(f"revoke module = {cfg.download_dir}/{filename}")
+    full_path = cfg.download_dir + "/" + filename + ".ko"
+    logging.info(f"revoke module = {full_path}")
     result = 0
     try:
         # now we need to remove the module
         subprocess.run(["rmmod", filename], check=True)
+        # now remove the module so it won't be loaded on reboot
+        subprocess.run(["rm", full_path], check=True)
         conn_socket.sendall(b'success')
     except subprocess.CalledProcessError as e:
         result = -1

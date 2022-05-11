@@ -94,7 +94,7 @@ sleep $SLEEP_INT
 sleep $SLEEP_INT
 
 # Insert client module in DB for deployment to host_id = 2
-echo "*************** Deploy Client Module and Inverse  ***************"
+echo "*************** Deploy Client Module  ***************"
 python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 2
 
 sleep $SLEEP_INT
@@ -124,19 +124,34 @@ sleep $SLEEP_INT
 
 echo "*************** finished  ***************"
 
+# Revoke client module in DB host_id = 2
+echo "*************** Revoke Client Module   ***************"
+python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_client_app_tag" --host 2
 
-echo "removing dns modules and layer 4.5"
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "pkill python; rmmod demo_dns_client_app_tag; rmmod layer4_5; cd $CUST_LOCATION; rm demo_dns*.ko; ifconfig enp0s3 up"
+sleep $SLEEP_INT
+sleep $SLEEP_INT
+
+
+# Revoke client module in DB host_id = 2
+echo "*************** Revoke Server Module   ***************"
+python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_server_app_tag" --host 1
+
+sleep $SLEEP_INT
+sleep $SLEEP_INT
+
+
+echo "removing layer 4.5"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "pkill python; rmmod layer4_5; ifconfig enp0s3 up"
+
 
 sleep $SLEEP_INT
 
-pkill python3
+
 pkill tcpdump
 pkill dnsmasq
-rmmod demo_dns_server_app_tag
+pkill python3
+
 rmmod layer4_5
-cd $CUST_LOCATION
-rm demo_dns_*.ko
 
 
 echo "Opening Wireshark PCAP"

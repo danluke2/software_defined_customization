@@ -38,12 +38,13 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
         return cfg.CLOSE_SOCK
     # TODO: check report mac matches host_id and update DB?
     deployed_list = json_data["Active"]
-    revoked_list = json_data["Retired"]
+    inactive_list = json_data["Inactive"]
+    revoked_list = json_data["Revoked"]
 
     # update deployed table based on revoked list
     handle_revoke_update(db_connection, host_id, revoked_list)
     # update deployed table based on active list
-    handle_deployed_update(db_connection, host_id, deployed_list)
+    handle_deployed_update(db_connection, host_id, deployed_list, inactive_list)
     return 0
 
 
