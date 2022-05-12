@@ -32,9 +32,9 @@ struct sock *socket;
 
 static void nl_receive_request(struct sk_buff *skb) {
 	int result = 0;
-  struct nlmsghdr *nlh = (struct nlmsghdr *) skb->data;
+  	struct nlmsghdr *nlh = (struct nlmsghdr *) skb->data;
 	struct sk_buff *skb_out;
-  pid_t pid = nlh->nlmsg_pid; // pid of the sending process
+  	pid_t pid = nlh->nlmsg_pid; // pid of the sending process
 	char *data = (char*)NLMSG_DATA(nlh);
 	char *message = NULL;
 	size_t message_size = NETLINK_REPORT_SIZE;
@@ -101,14 +101,14 @@ static void nl_receive_request(struct sk_buff *skb) {
 int __init layer4_5_start(void)
 {
 	struct netlink_kernel_cfg config = {
-    .input = nl_receive_request,
-  };
+    	.input = nl_receive_request,
+  	};
 
 	// if netlink socket fails, then exit before inserting taps
 	socket = netlink_kernel_create(&init_net, NETLINK_TESTFAMILY, &config);
-  if (socket == NULL) {
-    return -1;
-  }
+	if (socket == NULL) {
+		return -1;
+	}
 
 	register_tcp_taps();
 	register_udp_taps();
@@ -139,8 +139,8 @@ void __exit layer4_5_end(void)
 	free_customization_list();
 
 	if (socket) {
-    netlink_kernel_release(socket);
-  }
+    	netlink_kernel_release(socket);
+  	}
 	return;
 }
 
