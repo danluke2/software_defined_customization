@@ -15,14 +15,14 @@ void init_customization_list(void);
 void free_customization_list(void);
 
 
-// Removes each entry in the inactive list while holding lock to prevent access from other functions
+// Removes each entry in the deprecated list while holding lock to prevent access from other functions
 // @see list.h for list functions
-void free_retired_customization_list(void);
+void free_deprecated_customization_list(void);
 
 
-// Removes each entry in the retired list while holding lock to prevent access from other functions
+// Removes each entry in the revoked list while holding lock to prevent access from other functions
 // @see list.h for list functions
-void free_retired_customization_list(void);
+void free_revoked_customization_list(void);
 
 
 // Finds a customization present in the linked list that matches the cust_id
@@ -79,11 +79,11 @@ void netlink_challenge_cust(char *message, size_t *length, char *request);
 
 
 
-// NETLINK support function reporting deactivate request reply to DCA
+// NETLINK support function reporting deprecate request reply to DCA
 // @param[I] message The allocated message buffer to hold standard report
 // @param[I] length The size of the message buffer
 // @param[I] request The message sent by NCO to DCA for challenging [requires parsing]
-void netlink_deactivate_cust(char *message, size_t *length, char *request);
+void netlink_deprecate_cust(char *message, size_t *length, char *request);
 
 
 #endif

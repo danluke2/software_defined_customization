@@ -45,7 +45,7 @@ alias modules='cd /usr/lib/modules/$(uname -r)/'
 alias tracelog='sudo gedit /sys/kernel/tracing/trace'
 alias cyclelog="sudo trace-cmd clear && sudo bash -c 'echo 1 > /sys/kernel/tracing/tracing_on'"
 
-alias installer='clear && sudo $DCA_KERNEL_DIR/bash/installer.sh'
+alias installer="clear && sudo $DCA_KERNEL_DIR/bash/installer.sh && sudo bash -c 'echo 1 > /sys/kernel/tracing/tracing_on'"
 
 alias server_echo='python3 $SIMPLE_SERVER_DIR/echo_server.py'
 alias client_echo='python3 $SIMPLE_SERVER_DIR/echo_client.py'

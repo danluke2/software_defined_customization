@@ -23,7 +23,7 @@ from NCO_security import check_challenge, request_challenge_response
 from NCO_construct import request_symver_file, construction_process
 from NCO_monitor import handle_host_insert, process_report, request_report
 from NCO_deploy import send_install_modules, retrieve_install_list, check_install_requirement_or_max_time
-from NCO_revoke import retrieve_revoke_list, revoke_module, retrieve_deactivate_list, deactivate_module
+from NCO_revoke import retrieve_revoke_list, revoke_module, retrieve_deprecated_list, deprecate_module
 from NCO_middlebox import update_inverse_module_requirements, middlebox_process
 
 
@@ -159,11 +159,11 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     revoke_module(conn, db_connection, host_id, revoke_id_list[i], revoke_name_list[i])
 
 
-            #Revoke requirement: get deactivate list before getting report
-            deactivate_id_list = retrieve_deactivate_list(db_connection, host_id)
-            if len(deactivate_id_list) > 0:
-                for i in range(len(deactivate_id_list)):
-                    deactivate_module(conn, db_connection, host_id, deactivate_id_list[i])
+            #Revoke requirement: get deprecate list before getting report
+            deprecate_id_list = retrieve_deprecated_list(db_connection, host_id)
+            if len(deprecate_id_list) > 0:
+                for i in range(len(deprecate_id_list)):
+                    deprecate_module(conn, db_connection, host_id, deprecate_id_list[i])
 
 
             #Monitor requirement: get a full report from host and update CIB

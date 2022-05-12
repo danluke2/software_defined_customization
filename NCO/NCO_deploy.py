@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)  # use module name
 
 # Host reported deployed_list, which we compare to the deployed rows in our DB
 # We also compare the deployed_list to the install rows and update both tables as necessary
-def handle_deployed_update(db_connection, host_id, deployed_list, inactive_list):
+def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_list):
     result = 0
     deployed_db = select_deployed_modules(db_connection, host_id)
     install_db = select_modules_to_install(db_connection, host_id, 1)
@@ -42,7 +42,7 @@ def handle_deployed_update(db_connection, host_id, deployed_list, inactive_list)
                 # TODO: handle this case; maybe trigger revocation call
                 logger.info(f"host has deployed module not in deployed or Install DB, module =", module["ID"])
 
-    for module in inactive_list:
+    for module in deprecated_list:
         if module["ID"] in deployed_db:
             update_deployed(db_connection, host_id, module["ID"], module["Count"], module["ts"])
             # we remove here to make list smaller and determine mismatches

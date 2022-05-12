@@ -61,9 +61,9 @@ static void nl_receive_request(struct sk_buff *skb) {
 		// Do challenge query
 		netlink_challenge_cust(message, &message_size, data);
 	}
-	else if(strncmp(data, "DEACTIVATE", 10) == 0)
+	else if(strncmp(data, "DEPRECATE", 9) == 0)
 	{
-		netlink_deactivate_cust(message, &message_size, data);
+		netlink_deprecate_cust(message, &message_size, data);
 	}
 	else
 	{

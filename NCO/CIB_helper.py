@@ -33,7 +33,7 @@ def init_db_tables(con):
 
     init_deployed_table(con)
 
-    init_require_deactivate_table(con)
+    init_require_deprecate_table(con)
 
     init_require_revocation_table(con)
 
@@ -283,48 +283,48 @@ def select_all_deployed_rows(con, host_id):
 
 
 
-# ***************** DEACTIVATE TABLE ***********************
+# ***************** DEPRECATE TABLE ***********************
 
-def init_require_deactivate_table(con):
+def init_require_deprecate_table(con):
     # each id and module pair must be unique
-    con.execute('''CREATE TABLE req_deactivate
+    con.execute('''CREATE TABLE req_deprecate
                    (host_id integer NOT NULL, module_id integer NOT NULL,
                    PRIMARY KEY (host_id, module_id))''')
 
 
-def insert_req_deactivate(con, host_id, module_id):
+def insert_req_deprecate(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO req_deactivate VALUES (?, ?)", (host_id, module_id))
+            con.execute("INSERT INTO req_deprecate VALUES (?, ?)", (host_id, module_id))
     except sl.Error as er:
-        print(f"Error inserting module into req_deactivate, module_id = {module_id}, host_id = {host_id}")
+        print(f"Error inserting module into req_deprecate, module_id = {module_id}, host_id = {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def delete_req_deactivate_by_id(con, host_id, module_id):
+def delete_req_deprecate_by_id(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM req_deactivate WHERE host_id = :id AND module_id =:module;", {"id": host_id, "module": module_id})
+            con.execute("DELETE FROM req_deprecate WHERE host_id = :id AND module_id =:module;", {"id": host_id, "module": module_id})
     except sl.Error as er:
-        print(f"Error deleting req_deactivate row, module={module_id}, host={host_id}")
+        print(f"Error deleting req_deprecate row, module={module_id}, host={host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def select_all_req_deactivate(con, host_id):
+def select_all_req_deprecate(con, host_id):
     result = 0
     try:
         with con:
             cur = con.cursor()
-            cur.execute("SELECT * FROM req_deactivate WHERE host_id = :id;", {"id": host_id})
+            cur.execute("SELECT * FROM req_deprecate WHERE host_id = :id;", {"id": host_id})
             result = cur.fetchall()
     except sl.Error as er:
-        print(f"Error slecting all req_deactivate for host {host_id}")
+        print(f"Error slecting all req_deprecate for host {host_id}")
         print(f"Error = {er}")
         result = DB_ERROR
     return result

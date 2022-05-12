@@ -65,20 +65,20 @@ def revoke_module(conn_socket, db_connection, host_id, mod_id, name = ''):
 
 
 
-# Handle deactivation of modules part of staged transition
-def retrieve_deactivate_list(db_connection, host_id):
-    deactivate_list = select_all_req_deactivate(db_connection, host_id)
-    if deactivate_list == cfg.DB_ERROR:
+# Handle deprecation of modules; part of staged transition to new module
+def retrieve_deprecated_list(db_connection, host_id):
+    deprecate_list = select_all_req_deprecate(db_connection, host_id)
+    if deprecate_list == cfg.DB_ERROR:
         return -1
-    mod_id = [x[1] for x in deactivate_list]
+    mod_id = [x[1] for x in deprecate_list]
     return mod_id
 
 
 
-def deactivate_module(conn_socket, db_connection, host_id, mod_id):
-    logger.info(f"Deactivating module {mod_id} for host {host_id}")
-    # send deactivate command
-    command = {"cmd": "deactivate_module", "id": mod_id}
+def deprecate_module(conn_socket, db_connection, host_id, mod_id):
+    logger.info(f"Deprecating module {mod_id} for host {host_id}")
+    # send deprecate command
+    command = {"cmd": "deprecate_module", "id": mod_id}
     send_string = json.dumps(command, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
     try:
@@ -86,7 +86,7 @@ def deactivate_module(conn_socket, db_connection, host_id, mod_id):
         data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
         json_data = json.loads(data)
     except json.decoder.JSONDecodeError as e:
-        logger.info(f"Error on deactivate recv call\n {e}")
+        logger.info(f"Error on deprecate recv call\n {e}")
         return
 
     try:
@@ -97,8 +97,8 @@ def deactivate_module(conn_socket, db_connection, host_id, mod_id):
             logger.info(f"Device error: {data}")
             return cfg.REVOKE_ERROR
         else:
-            # remove module from require deactivate table; next report will handle  table updates
-            delete_req_deactivate_by_id(db_connection, host_id, id)
+            # remove module from require deprecate table; next report will handle  table updates
+            delete_req_deprecate_by_id(db_connection, host_id, id)
             return 0
     except Exception as e:
-        logger.info(f"Deactivate exception: {e}")
+        logger.info(f"Deprecate exception: {e}")

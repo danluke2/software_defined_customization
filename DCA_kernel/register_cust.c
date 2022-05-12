@@ -20,8 +20,8 @@ static DEFINE_SPINLOCK(active_customization_list_lock);
 
 
 // this should be a short list that holds cust in transition state
-struct list_head inactive_customization_list;
-static DEFINE_SPINLOCK(inactive_customization_list_lock);
+struct list_head deprecated_customization_list;
+static DEFINE_SPINLOCK(deprecated_customization_list_lock);
 
 
 // this should be a short list that is purged often
@@ -40,7 +40,7 @@ EXPORT_SYMBOL_GPL(unregister_customization);
 void init_customization_list(void)
 {
   INIT_LIST_HEAD(&active_customization_list);
-  INIT_LIST_HEAD(&inactive_customization_list);
+  INIT_LIST_HEAD(&deprecated_customization_list);
   INIT_LIST_HEAD(&revoked_customization_list);
 	return;
 }
@@ -61,17 +61,17 @@ void free_customization_list(void)
 }
 
 
-void free_inactive_customization_list(void)
+void free_deprecated_customization_list(void)
 {
 	struct customization_node *cust;
 	struct customization_node *cust_next;
 
-	spin_lock(&inactive_customization_list_lock);
-	list_for_each_entry_safe(cust, cust_next, &inactive_customization_list, inactive_cust_list_member)
+	spin_lock(&deprecated_customization_list_lock);
+	list_for_each_entry_safe(cust, cust_next, &deprecated_customization_list, deprecated_cust_list_member)
 	{
-     list_del(&cust->inactive_cust_list_member);
+     list_del(&cust->deprecated_cust_list_member);
   }
-	spin_unlock(&inactive_customization_list_lock);
+	spin_unlock(&deprecated_customization_list_lock);
 	return;
 }
 
@@ -103,8 +103,8 @@ struct customization_node *get_cust_by_id(u16 cust_id)
       return cust_temp;
     }
   }
-  // cust may be in the inactive table, but still attached to a relevant socket
-  list_for_each_entry_safe(cust_temp, cust_next, &inactive_customization_list, inactive_cust_list_member)
+  // cust may be in the deprecated table, but still attached to a relevant socket
+  list_for_each_entry_safe(cust_temp, cust_next, &deprecated_customization_list, deprecated_cust_list_member)
  	{
 		if(cust_temp->cust_id == cust_id)
     {
@@ -185,8 +185,8 @@ int register_customization(struct customization_node *module_cust, bool applyNow
   cust->challenge_function = module_cust->challenge_function;
 
   ktime_get_real_ts64(&cust->registration_time_struct);
-  cust->inactive_time_struct.tv_sec = 0;
-  cust->inactive_time_struct.tv_nsec = 0;
+  cust->deprecated_time_struct.tv_sec = 0;
+  cust->deprecated_time_struct.tv_nsec = 0;
 	cust->revoked_time_struct.tv_sec = 0;
   cust->revoked_time_struct.tv_nsec = 0;
 
@@ -247,21 +247,21 @@ int unregister_customization(struct customization_node *module_cust)
 
   if(found ==0)
   {
-    // cust may have been moved to the inactive list
-    spin_lock(&inactive_customization_list_lock);
-    list_for_each_entry_safe(matching_cust, cust_next, &inactive_customization_list, inactive_cust_list_member)
+    // cust may have been moved to the deprecated list
+    spin_lock(&deprecated_customization_list_lock);
+    list_for_each_entry_safe(matching_cust, cust_next, &deprecated_customization_list, deprecated_cust_list_member)
    	{
         if(matching_cust->cust_id == module_cust->cust_id)
   			{
           #ifdef DEBUG1
             trace_print_module_params(matching_cust);
           #endif
-  				list_del(&matching_cust->inactive_cust_list_member);
+  				list_del(&matching_cust->deprecated_cust_list_member);
   				found = 1;
   				break;
   			}
     }
-  	spin_unlock(&inactive_customization_list_lock);
+  	spin_unlock(&deprecated_customization_list_lock);
   }
 
   if(found == 0)
@@ -336,16 +336,16 @@ int remove_customization_from_active_list(u16 cust_id)
   }
 	spin_unlock(&active_customization_list_lock);
 
-  // Last: store customization in inactive list and set inactive time
-  ktime_get_real_ts64(&matching_cust->inactive_time_struct);
+  // Last: store customization in deprecated list and set deprecated time
+  ktime_get_real_ts64(&matching_cust->deprecated_time_struct);
 
   #ifdef DEBUG1
-    trace_printk("L4.5: Inactive time %llu\n", matching_cust->inactive_time_struct.tv_sec);
+    trace_printk("L4.5: Deprecated time %llu\n", matching_cust->deprecated_time_struct.tv_sec);
   #endif
 
-  spin_lock(&inactive_customization_list_lock);
-	list_add(&matching_cust->inactive_cust_list_member, &inactive_customization_list);
-	spin_unlock(&inactive_customization_list_lock);
+  spin_lock(&deprecated_customization_list_lock);
+	list_add(&matching_cust->deprecated_cust_list_member, &deprecated_customization_list);
+	spin_unlock(&deprecated_customization_list_lock);
 
 	return found;
 }
@@ -377,16 +377,16 @@ void netlink_cust_report(char *message, size_t *length)
   message = json_arrClose(message, &rem_length);
 
 
-  message = json_arrOpen(message, "Inactive", &rem_length);
+  message = json_arrOpen(message, "Deprecated", &rem_length);
 
   // trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
-  list_for_each_entry_safe(cust_temp, cust_next, &inactive_customization_list, inactive_cust_list_member)
+  list_for_each_entry_safe(cust_temp, cust_next, &deprecated_customization_list, deprecated_cust_list_member)
  	{
     message = json_objOpen(message, NULL, &rem_length);
     message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
     // trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
     message = json_uint(message, "Count", cust_temp->sock_count, &rem_length);
-    message = json_ulong(message, "ts", cust_temp->inactive_time_struct.tv_sec, &rem_length);
+    message = json_ulong(message, "ts", cust_temp->deprecated_time_struct.tv_sec, &rem_length);
     message = json_objClose(message, &rem_length);
   }
   // close Active array
@@ -511,23 +511,23 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
 
 
 
-void netlink_deactivate_cust(char *message, size_t *length, char *request)
+void netlink_deprecate_cust(char *message, size_t *length, char *request)
 {
   u16 cust_id = 0;
   char *found = NULL;
   int result;
   size_t rem_length = *length;
 
-  // request format: DEACTIVATE cust_id END
+  // request format: DEPRECATE cust_id END
   // strsep should turn this into:
-  // DEACTIVATE
+  // DEPRECATE
   // cust_id
   // END
 
   // NOTE: this needs to be cleaned up
   if((found = strsep(&request," ")) != NULL )
   {
-    // DEACTIVATE
+    // DEPRECATE
     #ifdef DEBUG2
       trace_printk("Found = %s\n",found);
       trace_printk("Remaining = %s\n", request);

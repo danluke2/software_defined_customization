@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Purpose: attach module, deactivate it and ensure stay active on current socket but not on new sockets
+#Purpose: attach module, deprecate it and ensure stay active on current socket but not on new sockets
 # $1 = number of trials
 # $2 = number of DNS requests per batch
 # $3 = sleep time between each DNS request
@@ -119,7 +119,7 @@ sleep 2
 
 # start middlebox collection process
 echo "*************** Starting Middlebox DCA on Client  ***************"
-gnome-terminal -- bash -c  "echo '*************** Starting TCPDUMP  ***************'; tcpdump port 53 -i any -w $GIT_DIR/deactivate.pcap"
+gnome-terminal -- bash -c  "echo '*************** Starting TCPDUMP  ***************'; tcpdump port 53 -i any -w $GIT_DIR/deprecate.pcap"
 
 sleep 5
 
@@ -145,9 +145,9 @@ done
 echo "*************** finished cust both ***************"
 
 
-# Deactivate server module in DB host_id = 2
-echo "*************** Deactivate Server Module ***************"
-python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_server_app_tag" --host 2 --deactivate
+# deprecate server module in DB host_id = 2
+echo "*************** Deprecate Server Module ***************"
+python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_server_app_tag" --host 2 --deprecate
 
 sleep 15
 
@@ -173,9 +173,9 @@ done
 echo "*************** finished inactive test  ***************"
 
 
-# Deactivate server module in DB host_id = 2
-echo "*************** Deactivate Client Module ***************"
-python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_client_app_tag" --host 1 --deactivate
+# deprecate server module in DB host_id = 2
+echo "*************** Deprecate Client Module ***************"
+python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_client_app_tag" --host 1 --deprecate
 
 sleep 15
 

@@ -105,9 +105,9 @@ def send_challenge_report(conn_socket, cust_id, iv, msg):
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
 
-def send_deactivate_report(conn_socket, cust_id):
+def send_deprecate_report(conn_socket, cust_id):
     logging.info(f"Deactive cust id {cust_id}")
-    send_dict = deactivate_module_layer4_5(cust_id)
+    send_dict = deprecate_module_layer4_5(cust_id)
     send_string = json.dumps(send_dict, indent=4)
     conn_socket.sendall(bytes(send_string,encoding="utf-8"))
 
@@ -161,11 +161,11 @@ def challenge_layer4_5(cust_id, iv, msg):
 
 
 
-def deactivate_module_layer4_5(cust_id):
+def deprecate_module_layer4_5(cust_id):
     sock = Connection()
 
-    deactivate =f'DEACTIVATE {cust_id} END'
-    msg = Message(3,0,-1,deactivate)
+    deprecate =f'DEPRECATE {cust_id} END'
+    msg = Message(3,0,-1,deprecate)
 
     sock.send(msg)
 
@@ -174,9 +174,9 @@ def deactivate_module_layer4_5(cust_id):
     sock.fd.close()
 
     payload = report.payload.decode("utf-8")
-    logging.info(f"Deactivate Response {payload}")
+    logging.info(f"Deprecate Response {payload}")
 
-    if payload == "Failed to create deactivate report":
+    if payload == "Failed to create deprecate report":
         payload = "{};"
 
     # need to stip padded 00's from message before convert to json
@@ -334,9 +334,9 @@ while True:
                     revoke_module(s, recv_dict["name"])
 
 
-                elif recv_dict["cmd"] == "deactivate_module":
-                    logging.info(f"deactivate request")
-                    send_deactivate_report(s, recv_dict["id"])
+                elif recv_dict["cmd"] == "deprecate_module":
+                    logging.info(f"deprecate request")
+                    send_deprecate_report(s, recv_dict["id"])
 
 
                 elif recv_dict["cmd"] == "run_report":

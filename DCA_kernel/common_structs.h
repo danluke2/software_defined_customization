@@ -112,7 +112,7 @@ struct customization_node
 	u32 recv_buffer_size;
 
 	struct timespec64 registration_time_struct;
-	struct timespec64 inactive_time_struct;
+	struct timespec64 deprecated_time_struct;
 	struct timespec64 revoked_time_struct;
 
   void (*send_function)(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow);
@@ -123,7 +123,7 @@ struct customization_node
   void (*challenge_function)(char *response_buffer, char *iv, char *challenge_message);
 
   struct list_head cust_list_member;
-	struct list_head inactive_cust_list_member;
+	struct list_head deprecated_cust_list_member;
 	struct list_head revoked_cust_list_member;
 };
 
