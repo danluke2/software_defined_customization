@@ -39,6 +39,10 @@ static unsigned int protocol = 256; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
+static bool all_sockets = false;
+module_param(all_sockets, bool, 0600);
+MODULE_PARM_DESC(all_sockets, "Sets all parameters to wildcard value to match all sockets");
+
 
 //test message for this plugin
 char cust_test[12] = "testCustMod";
@@ -146,6 +150,19 @@ int __init sample_client_start(void)
 	char thread_name[16] = "python3";
   char application_name[16] = "python3";
   int result;
+
+  // If setting this, then your send/recv function is called for all sockets
+  if(all_sockets)
+  {
+    thread_name = "*";
+    application_name = "*";
+    protocol = 256;
+    destination_ip = "0.0.0.0";
+    destination_port = 0;
+    source_ip = "0.0.0.0";
+    source_port = 0;
+  }
+
 
 	python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
 	if(python_cust == NULL)
