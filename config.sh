@@ -23,6 +23,7 @@ GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
 SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
 
 LAYER_MOD_DIR=$GIT_DIR/layer4_5_modules
+NCO_MOD_DIR=$LAYER_MOD_DIR/nco_modules
 NETSOFT_MOD_DIR=$LAYER_MOD_DIR/netsoft
 GENI_MOD_DIR=$LAYER_MOD_DIR/geni
 
@@ -312,6 +313,9 @@ LINE=12
 FILE=$NCO_DIR/builder.sh
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
+((LINE=LINE+1))
+sed -i "${LINE}d" $FILE
+sed -i "${LINE}i\NCO_MOD_DIR=$NCO_MOD_DIR" $FILE
 
 # *************** NCO Builder update ***************
 
@@ -327,6 +331,12 @@ sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
 ((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\nco_dir='$NCO_DIR/'" $FILE
+((LINE=LINE+1))
+sed -i "${LINE}d" $FILE
+sed -i "${LINE}i\nco_mod_dir=$NCO_MOD_DIR" $FILE
+((LINE=LINE+1))
+sed -i "${LINE}d" $FILE
+sed -i "${LINE}i\common_struct_dir=$DCA_KERNEL_DIR" $FILE
 # *************** NCO cfg update ***************
 
 

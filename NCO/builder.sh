@@ -12,6 +12,7 @@
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
 
 
+
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
 
@@ -32,13 +33,12 @@ CURDIR="$( pwd )"
 
 line=$3;
 
-core_mod_dir=$NCO_DIR/core_modules
 symvers_dir=$NCO_DIR/device_modules/host_$4
 mod_dir=$symvers_dir/modules
 
 
 #copy module from core dir to the host module dir before changing it
-cp $core_mod_dir/$1.c  $mod_dir
+cp $NCO_MOD_DIR/$1.c  $mod_dir
 
 #open module and insert u16 module_id = XX; with NCO assigned value
 sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c

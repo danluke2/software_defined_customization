@@ -3,3 +3,5 @@
 *.pcapng
 notes*
 no_include*
+.vscode*
+linux*
