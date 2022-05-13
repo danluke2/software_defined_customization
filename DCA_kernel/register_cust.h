@@ -78,12 +78,18 @@ void netlink_cust_report(char *message, size_t *length);
 void netlink_challenge_cust(char *message, size_t *length, char *request);
 
 
-
 // NETLINK support function reporting deprecate request reply to DCA
 // @param[I] message The allocated message buffer to hold standard report
 // @param[I] length The size of the message buffer
 // @param[I] request The message sent by NCO to DCA for challenging [requires parsing]
 void netlink_deprecate_cust(char *message, size_t *length, char *request);
+
+
+// NETLINK support function reporting toggle request reply to DCA
+// @param[I] message The allocated message buffer to hold standard report
+// @param[I] length The size of the message buffer
+// @param[I] request The message sent by NCO to DCA for challenging [requires parsing]
+void netlink_toggle_cust(char *message, size_t *length, char *request);
 
 
 #endif

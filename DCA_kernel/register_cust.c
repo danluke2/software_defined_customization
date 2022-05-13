@@ -360,8 +360,6 @@ int toggle_customization(u16 cust_id, u16 mode)
 {
     int found = 0;
     struct customization_node *module_cust = NULL;
-    struct customization_node *matching_cust;
-    struct customization_node *cust_next;
 
     // First: find cust node matching given cust_id
     module_cust = get_cust_by_id(cust_id);
@@ -379,6 +377,17 @@ int toggle_customization(u16 cust_id, u16 mode)
     return found;
 }
 
+
+int split_message(char *request, char **words, u16 number_of_words)
+{
+    int word_index = 0;
+
+    while ((*(words + word_index) = strsep(&request, " ")) != NULL)
+    {
+        word_index++;
+    }
+    return word_index;
+}
 
 
 
@@ -455,7 +464,9 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
 {
     struct customization_node *cust_node = NULL;
     u16 cust_id = 0;
-    char *found = NULL;
+    char **words;
+    int word_count = 0;
+    int expected_words = 5;
     char *msg = NULL;
     char response[HEX_RESPONSE_LENGTH] = "";
     char *iv = NULL;
@@ -470,71 +481,54 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
     // encrypted_msg (as hex)
     // END
 
-    // NOTE: this needs to be cleaned up
-    if ((found = strsep(&request, " ")) != NULL)
+    words = (char **)kmalloc(sizeof(void *) * expected_words, GFP_KERNEL);
+    if (words == NULL)
     {
-// CHALLENGE
-#ifdef DEBUG2
-        trace_printk("Found = %s\n", found);
-        trace_printk("Remaining = %s\n", request);
-#endif
-
-        if ((found = strsep(&request, " ")) != NULL)
-        {
-// cust_id
-#ifdef DEBUG2
-            trace_printk("Found = %s\n", found);
-            trace_printk("Remaining = %s\n", request);
-#endif
-
-            result = kstrtou16(found, 10, &cust_id);
-            if (result != 0)
-            {
 #ifdef DEBUG
-                trace_printk("Error getting cust_id from request\n");
+        trace_printk("L4.5: kmalloc failed when creating word array\n");
 #endif
-            }
-            else
-            {
-                if ((iv = strsep(&request, " ")) != NULL)
-                {
-// iv
-#ifdef DEBUG2
-                    trace_printk("IV = %s\n", iv);
-                    trace_printk("Remaining = %s\n", request);
-#endif
-
-                    if ((msg = strsep(&request, " ")) != NULL)
-                    {
-// encrypted message
-#ifdef DEBUG2
-                        trace_printk("MSG = %s\n", msg);
-                        trace_printk("Remaining = %s\n", request);
-#endif
-                    }
-                }
-            }
-        }
+        goto error_msg;
     }
 
-    if (cust_id != 0 && iv != NULL && msg != NULL)
+    word_count = split_message(request, words, expected_words);
+    if (word_count != expected_words)
     {
-        message = json_objOpen(message, NULL, &rem_length);
-        message = json_uint(message, "ID", cust_id, &rem_length);
-
-        cust_node = get_cust_by_id(cust_id);
-        cust_node->challenge_function(response, iv, msg);
-
-        message = json_nstr(message, "IV", response, HEX_IV_LENGTH, &rem_length);
-        message =
-            json_nstr(message, "Response", response + HEX_IV_LENGTH, HEX_RESPONSE_LENGTH - HEX_IV_LENGTH, &rem_length);
-
-        message = json_objClose(message, &rem_length);
-        message = json_end_message(message, &rem_length);
-
-        *length = *length - rem_length;
+        // we did not get a valid message, so return error message
+        goto error_msg;
     }
 
+    result = kstrtou16((*words + 1), 10, &cust_id);
+    if (result == 0)
+    {
+        // cust id string to u16 failed, so return error message
+        goto error_msg;
+    }
+
+    iv = *words + 2;
+    msg = *words + 3;
+
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_uint(message, "ID", cust_id, &rem_length);
+
+    cust_node = get_cust_by_id(cust_id);
+    cust_node->challenge_function(response, iv, msg);
+
+    message = json_nstr(message, "IV", response, HEX_IV_LENGTH, &rem_length);
+    message =
+        json_nstr(message, "Response", response + HEX_IV_LENGTH, HEX_RESPONSE_LENGTH - HEX_IV_LENGTH, &rem_length);
+
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+
+    *length = *length - rem_length;
+    return;
+
+error_msg:
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+    *length = *length - rem_length;
     return;
 }
 
@@ -602,7 +596,8 @@ void netlink_deprecate_cust(char *message, size_t *length, char *request)
 void netlink_toggle_cust(char *message, size_t *length, char *request)
 {
     u16 cust_id = 0;
-    u16 mode char *found = NULL;
+    u16 mode;
+    char *found = NULL;
     int result;
     size_t rem_length = *length;
 
@@ -616,46 +611,33 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
     // NOTE: this needs to be cleaned up
     if ((found = strsep(&request, " ")) != NULL)
     {
-// TOGGLE
-#ifdef DEBUG2
-        trace_printk("Found = %s\n", found);
-        trace_printk("Remaining = %s\n", request);
-#endif
-
+        // TOGGLE found
         if ((found = strsep(&request, " ")) != NULL)
         {
-// cust_id
-#ifdef DEBUG2
-            trace_printk("Found = %s\n", found);
-            trace_printk("Remaining = %s\n", request);
-#endif
+            // cust_id found, but need to convert to u16
             result = kstrtou16(found, 10, &cust_id);
+#ifdef DEBUG
             if (result != 0)
             {
-#ifdef DEBUG
+
                 trace_printk("Error getting cust_id from request\n");
-#endif
             }
-            else
+#endif
+            else if ((found = strsep(&request, " ")) != NULL)
             {
-                if ((mode = strsep(&request, " ")) != NULL)
-                {
-// mode
-#ifdef DEBUG2
-                    trace_printk("IV = %s\n", iv);
-                    trace_printk("Remaining = %s\n", request);
-#endif
-                    result = kstrtou16(found, 10, &mode);
-                    if (result != 0)
-                    {
+                // mode found, but need to convert to u16
+                result = kstrtou16(found, 10, &mode);
 #ifdef DEBUG
-                        trace_printk("Error getting cust_id from request\n");
-#endif
-                    }
+                if (result != 0)
+                {
+
+                    trace_printk("Error getting cust_id from request\n");
                 }
+#endif
             }
         }
     }
+
 
     if (cust_id != 0 && result != 0)
     {
