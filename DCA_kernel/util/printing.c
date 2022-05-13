@@ -82,20 +82,6 @@ void trace_print_msg_params(struct msghdr *msg)
     trace_printk("Total amount of data pointed to by the iovec array (count) = %lu\n", msg->msg_iter.count);
     trace_printk("Number of iovec structures (nr_segs) = %lu\n", msg->msg_iter.nr_segs);
 
-    // dump the contol buffer if data present
-    // if (msg->msg_controllen > 0)
-    // {
-    //   if (msg->msg_control_is_user)
-    //   {
-    //     trace_print_hex_dump("User control buffer: ", DUMP_PREFIX_ADDRESS, 16, 1, msg->msg_control_user,
-    //     msg->msg_controllen, true);
-    //   }
-    //   else
-    //   {
-    //     trace_print_hex_dump("Kernel control buffer: ", DUMP_PREFIX_ADDRESS, 16, 1, msg->msg_control,
-    //     msg->msg_controllen, true);
-    //   }
-    // }
 }
 
 void trace_print_iov_params(struct iov_iter *src_iter)
