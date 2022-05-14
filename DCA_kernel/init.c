@@ -56,7 +56,7 @@ static void nl_receive_request(struct sk_buff *skb)
 #ifdef DEBUG
     trace_printk("L4.5: NLMSG_DATA = %s\n", data);
 #endif
-    if (strncmp(data, "CUST_REPORT", 11))
+    if (strncmp(data, "CUST_REPORT", 11) == 0)
     {
         // rewrite message size to number of bytes in message that have data
         netlink_cust_report(message, &message_size);

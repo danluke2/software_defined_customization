@@ -333,10 +333,10 @@ sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\nco_dir='$NCO_DIR/'" $FILE
 ((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
-sed -i "${LINE}i\nco_mod_dir=$NCO_MOD_DIR" $FILE
+sed -i "${LINE}i\nco_mod_dir='$NCO_MOD_DIR/'" $FILE
 ((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
-sed -i "${LINE}i\common_struct_dir=$DCA_KERNEL_DIR" $FILE
+sed -i "${LINE}i\common_struct_dir='$DCA_KERNEL_DIR/'" $FILE
 # *************** NCO cfg update ***************
 
 

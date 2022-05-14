@@ -378,14 +378,25 @@ int toggle_customization(u16 cust_id, u16 mode)
 }
 
 
-int split_message(char *request, char **words, u16 number_of_words)
+// number_of_words >= 1
+int split_message(char *request, char *words[], u16 number_of_words)
 {
     int word_index = 0;
+    char *aPtr;
 
-    while ((*(words + word_index) = strsep(&request, " ")) != NULL)
+    do
     {
-        word_index++;
-    }
+        aPtr = strsep(&request, " ");
+        if (aPtr != NULL)
+        {
+#ifdef DEBUG2
+            trace_printk("Found = %s\n", aPtr);
+#endif
+            words[word_index] = aPtr;
+            word_index += 1;
+        }
+    } while (aPtr != NULL && word_index < number_of_words);
+
     return word_index;
 }
 
@@ -464,9 +475,9 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
 {
     struct customization_node *cust_node = NULL;
     u16 cust_id = 0;
-    char **words;
     int word_count = 0;
     int expected_words = 5;
+    char *words[5]; // hold expected_words pointers to char pointers
     char *msg = NULL;
     char response[HEX_RESPONSE_LENGTH] = "";
     char *iv = NULL;
@@ -481,31 +492,26 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
     // encrypted_msg (as hex)
     // END
 
-    words = (char **)kmalloc(sizeof(void *) * expected_words, GFP_KERNEL);
-    if (words == NULL)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5: kmalloc failed when creating word array\n");
-#endif
-        goto error_msg;
-    }
 
     word_count = split_message(request, words, expected_words);
+
     if (word_count != expected_words)
     {
+        trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
         // we did not get a valid message, so return error message
         goto error_msg;
     }
 
-    result = kstrtou16((*words + 1), 10, &cust_id);
-    if (result == 0)
+    result = kstrtou16((words[1]), 10, &cust_id);
+    if (result != 0)
     {
+        trace_printk("L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
         // cust id string to u16 failed, so return error message
         goto error_msg;
     }
 
-    iv = *words + 2;
-    msg = *words + 3;
+    iv = words[2];
+    msg = words[3];
 
     message = json_objOpen(message, NULL, &rem_length);
     message = json_uint(message, "ID", cust_id, &rem_length);
@@ -537,7 +543,9 @@ error_msg:
 void netlink_deprecate_cust(char *message, size_t *length, char *request)
 {
     u16 cust_id = 0;
-    char *found = NULL;
+    int word_count = 0;
+    int expected_words = 3;
+    char *words[3]; // hold expected_words pointers to char pointers
     int result;
     size_t rem_length = *length;
 
@@ -547,48 +555,43 @@ void netlink_deprecate_cust(char *message, size_t *length, char *request)
     // cust_id
     // END
 
-    // NOTE: this needs to be cleaned up
-    if ((found = strsep(&request, " ")) != NULL)
+    word_count = split_message(request, words, expected_words);
+
+    if (word_count != expected_words)
     {
-// DEPRECATE
-#ifdef DEBUG2
-        trace_printk("Found = %s\n", found);
-        trace_printk("Remaining = %s\n", request);
-#endif
-
-        if ((found = strsep(&request, " ")) != NULL)
-        {
-// cust_id
-#ifdef DEBUG2
-            trace_printk("Found = %s\n", found);
-            trace_printk("Remaining = %s\n", request);
-#endif
-
-            result = kstrtou16(found, 10, &cust_id);
-            if (result != 0)
-            {
-#ifdef DEBUG
-                trace_printk("Error getting cust_id from request\n");
-#endif
-            }
-        }
+        trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
+        // we did not get a valid message, so return error message
+        goto error_msg;
     }
 
-    if (cust_id != 0)
+    result = kstrtou16((words[1]), 10, &cust_id);
+    if (result != 0)
     {
-        message = json_objOpen(message, NULL, &rem_length);
-        message = json_uint(message, "ID", cust_id, &rem_length);
-
-        result = remove_customization_from_active_list(cust_id);
-
-        message = json_uint(message, "Result", result, &rem_length);
-
-        message = json_objClose(message, &rem_length);
-        message = json_end_message(message, &rem_length);
-
-        *length = *length - rem_length;
+        trace_printk("L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
+        // cust id string to u16 failed, so return error message
+        goto error_msg;
     }
 
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_uint(message, "ID", cust_id, &rem_length);
+
+    result = remove_customization_from_active_list(cust_id);
+
+    message = json_uint(message, "Result", result, &rem_length);
+
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+
+    *length = *length - rem_length;
+
+    return;
+
+error_msg:
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+    *length = *length - rem_length;
     return;
 }
 
@@ -596,8 +599,10 @@ void netlink_deprecate_cust(char *message, size_t *length, char *request)
 void netlink_toggle_cust(char *message, size_t *length, char *request)
 {
     u16 cust_id = 0;
+    int word_count = 0;
+    int expected_words = 4;
+    char *words[4]; // hold expected_words pointers to char pointers
     u16 mode;
-    char *found = NULL;
     int result;
     size_t rem_length = *length;
 
@@ -608,51 +613,51 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
     // mode = 0 or 1
     // END
 
-    // NOTE: this needs to be cleaned up
-    if ((found = strsep(&request, " ")) != NULL)
+    word_count = split_message(request, words, expected_words);
+
+    if (word_count != expected_words)
     {
-        // TOGGLE found
-        if ((found = strsep(&request, " ")) != NULL)
-        {
-            // cust_id found, but need to convert to u16
-            result = kstrtou16(found, 10, &cust_id);
-#ifdef DEBUG
-            if (result != 0)
-            {
+        trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
+        // we did not get a valid message, so return error message
+        goto error_msg;
+    }
 
-                trace_printk("Error getting cust_id from request\n");
-            }
-#endif
-            else if ((found = strsep(&request, " ")) != NULL)
-            {
-                // mode found, but need to convert to u16
-                result = kstrtou16(found, 10, &mode);
-#ifdef DEBUG
-                if (result != 0)
-                {
+    result = kstrtou16((words[1]), 10, &cust_id);
+    if (result != 0)
+    {
+        trace_printk("L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
+        // cust id string to u16 failed, so return error message
+        goto error_msg;
+    }
 
-                    trace_printk("Error getting cust_id from request\n");
-                }
-#endif
-            }
-        }
+    result = kstrtou16((words[2]), 10, &mode);
+    if (result != 0)
+    {
+        trace_printk("L4.5 ALERT: challenge mode %s, error = %d\n", words[2], result);
+        // cust id string to u16 failed, so return error message
+        goto error_msg;
     }
 
 
-    if (cust_id != 0 && result != 0)
-    {
-        message = json_objOpen(message, NULL, &rem_length);
-        message = json_uint(message, "ID", cust_id, &rem_length);
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_uint(message, "ID", cust_id, &rem_length);
 
-        result = toggle_customization(cust_id, mode);
+    result = toggle_customization(cust_id, mode);
 
-        message = json_uint(message, "Result", result, &rem_length);
+    message = json_uint(message, "Result", result, &rem_length);
 
-        message = json_objClose(message, &rem_length);
-        message = json_end_message(message, &rem_length);
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
 
-        *length = *length - rem_length;
-    }
+    *length = *length - rem_length;
 
+    return;
+
+error_msg:
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+    *length = *length - rem_length;
     return;
 }

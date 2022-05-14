@@ -1,9 +1,13 @@
 #ifndef _CUSTOMIZATION_STRUCTS_H
 #define _CUSTOMIZATION_STRUCTS_H
 
+#include <linux/ktime.h>
 #include <linux/list.h>
+#include <linux/time64.h>
 #include <linux/timekeeping.h>
 #include <net/sock.h>
+
+
 
 #define TASK_NAME_LEN 16 // defined in sched.h as TASK_COMM_LEN 16
 #define SEND_BUF_SIZE 65536
