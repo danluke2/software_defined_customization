@@ -29,7 +29,7 @@ struct list_head revoked_customization_list;
 static DEFINE_SPINLOCK(revoked_customization_list_lock);
 
 
-int register_customization(struct customization_node *module_cust, bool applyNow);
+int register_customization(struct customization_node *module_cust, u16 applyNow);
 EXPORT_SYMBOL_GPL(register_customization);
 
 int unregister_customization(struct customization_node *module_cust);
@@ -136,7 +136,7 @@ struct customization_node *get_customization(struct customization_socket *cust_s
 
 
 
-int register_customization(struct customization_node *module_cust, bool applyNow)
+int register_customization(struct customization_node *module_cust, u16 applyNow)
 {
     struct customization_node *cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
     struct customization_node *test_cust = NULL;
@@ -353,9 +353,7 @@ int remove_customization_from_active_list(u16 cust_id)
 
 
 
-// remove cust from active list
-// called by DCA to stop new sockets from using the registered module
-// but DCA only has the module ID, not the struct pointer
+// set customization standby mode
 int toggle_customization(u16 cust_id, u16 mode)
 {
     int found = 0;
@@ -378,6 +376,9 @@ int toggle_customization(u16 cust_id, u16 mode)
 }
 
 
+
+
+// Split request string into word array of char pointers
 // number_of_words >= 1
 int split_message(char *request, char *words[], u16 number_of_words)
 {
@@ -459,10 +460,6 @@ void netlink_cust_report(char *message, size_t *length)
 
     // only report this once for now, but need to find better way to clear list after send
     free_revoked_customization_list();
-
-#ifdef DEBUG2
-    trace_printk("L4.5: rem_length = %lu\n", rem_length);
-#endif
 
     *length = *length - rem_length;
 
@@ -617,7 +614,7 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
 
     if (word_count != expected_words)
     {
-        trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
+        trace_printk("L4.5 ALERT: toggle word count error = %d\n", word_count);
         // we did not get a valid message, so return error message
         goto error_msg;
     }
@@ -625,7 +622,7 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
     result = kstrtou16((words[1]), 10, &cust_id);
     if (result != 0)
     {
-        trace_printk("L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
+        trace_printk("L4.5 ALERT: toggle cust_id %s, error = %d\n", words[1], result);
         // cust id string to u16 failed, so return error message
         goto error_msg;
     }
@@ -633,7 +630,7 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
     result = kstrtou16((words[2]), 10, &mode);
     if (result != 0)
     {
-        trace_printk("L4.5 ALERT: challenge mode %s, error = %d\n", words[2], result);
+        trace_printk("L4.5 ALERT: toggle mode %s, error = %d\n", words[2], result);
         // cust id string to u16 failed, so return error message
         goto error_msg;
     }

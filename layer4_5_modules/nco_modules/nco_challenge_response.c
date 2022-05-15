@@ -19,7 +19,7 @@
 #include "../common_structs.h"
 
 
-extern int register_customization(struct customization_node *cust, bool applyNow);
+extern int register_customization(struct customization_node *cust, u16 applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 

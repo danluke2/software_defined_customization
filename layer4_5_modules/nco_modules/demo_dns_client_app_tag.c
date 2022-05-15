@@ -14,7 +14,7 @@
 static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
 
-extern int register_customization(struct customization_node *cust, bool applyNow);
+extern int register_customization(struct customization_node *cust, u16 applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -58,9 +58,12 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 {
     bool copy_success;
     send_buf_st->copy_length = 0;
+    send_buf_st->no_cust = false;
+    send_buf_st->skip_cust = false;
 
     if (*dns_cust->standby_mode)
     {
+        send_buf_st->no_cust = true;
         return;
     }
 
@@ -106,7 +109,7 @@ int __init sample_client_start(void)
     }
 
     // provide pointer for DCA to toggle standby mode instead of new function
-    python_cust->standby_mode = &standby;
+    dns_cust->standby_mode = &standby;
 
     dns_cust->target_flow.protocol = protocol;
     memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);

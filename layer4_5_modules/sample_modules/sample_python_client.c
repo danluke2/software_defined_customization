@@ -14,7 +14,7 @@
 
 
 
-extern int register_customization(struct customization_node *cust, bool applyNow);
+extern int register_customization(struct customization_node *cust, u16 applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -39,12 +39,12 @@ static unsigned int protocol = 256; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-static bool applyNow = false;
-module_param(applyNow, bool, 0600);
+static unsigned short applyNow = 0;
+module_param(applyNow, ushort, 0600);
 MODULE_PARM_DESC(applyNow, "Apply customization lookup to all sockets, not just new sockets");
 
-bool standby = false;
-module_param(standby, bool, 0600);
+unsigned short standby = 0;
+module_param(standby, ushort, 0600);
 MODULE_PARM_DESC(standby, "Place customization in standby mode, which bypasses customization");
 
 // test message for this module

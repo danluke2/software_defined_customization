@@ -141,7 +141,7 @@ sleep $SLEEP_INT
 
 
 echo "removing layer 4.5"
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "pkill python; rmmod layer4_5; ifconfig enp0s3 up"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "pkill python3; rmmod layer4_5; ifconfig enp0s3 up"
 
 
 sleep $SLEEP_INT

@@ -14,7 +14,7 @@
 static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
 
-extern int register_customization(struct customization_node *cust, bool applyNow);
+extern int register_customization(struct customization_node *cust, u16 applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
@@ -68,9 +68,12 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     bool copy_success;
     char tag[5] = "XTAG";
     recv_buf_st->copy_length = 0;
+    recv_buf_st->no_cust = false;
+    recv_buf_st->skip_cust = false;
 
     if (*dns_cust->standby_mode)
     {
+        recv_buf_st->no_cust = true;
         return;
     }
 

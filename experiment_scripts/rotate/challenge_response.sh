@@ -69,7 +69,15 @@ sleep $3
 echo "*************** finished  ***************"
 
 
-# Revoke client module in DB host_id = 1
+# deprecate client module in DB host_id = 2
+echo "*************** Deprecate Challenge Module ***************"
+python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1 --deprecate
+
+# Note: challenge/response still happening for deprecated module since still active on the socket
+
+sleep $3
+
+# Revoke client module in DB host_id = 2
 echo "*************** Revoke Challenge Module ***************"
 python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1
 

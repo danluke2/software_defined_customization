@@ -47,7 +47,7 @@ sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$5\";" $mod_dir/${1}.c
 ((line=line+1))
 sed -i "${line}i\u16 standby=${6};" $mod_dir/${1}.c
 ((line=line+1))
-sed -i "${line}i\static bool applyNow=${7};" $mod_dir/${1}.c
+sed -i "${line}i\u16 applyNow=${7};" $mod_dir/${1}.c
 
 
 #make the module based on host_id symver location

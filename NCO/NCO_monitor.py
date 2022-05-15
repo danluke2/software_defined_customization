@@ -89,3 +89,42 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release, interval):
     if (host == cfg.DB_ERROR):
         logger.info("Could not retrieve host after insert, DB_ERROR")
     return host
+
+
+# Handle toggling of modules; part of NCO controlled enabling of new module
+def retrieve_toggle_list(db_connection, host_id):
+    toggle_list = select_all_req_toggle(db_connection, host_id)
+    if toggle_list == cfg.DB_ERROR:
+        return -1
+    mod_id = [x[1] for x in toggle_list]
+    mode = [x[2] for x in toggle_list]
+    return mod_id, mode
+
+
+def toggle_module(conn_socket, db_connection, host_id, mod_id, mode):
+    logger.info(f"Toggling module {mod_id} to {mode} for host {host_id}")
+    # send toggle command
+    command = {"cmd": "toggle_module", "id": mod_id, "mode": mode}
+    send_string = json.dumps(command, indent=4)
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+    try:
+        data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
+        json_data = json.loads(data)
+    except json.decoder.JSONDecodeError as e:
+        logger.info(f"Error on toggle recv call\n {e}")
+        return
+
+    # Need to check for ERROR key if failed
+    try:
+        id = json_data["ID"]
+        success = json_data["Result"]
+
+        if success == 0:
+            logger.info(f"Device error: {data}")
+            return cfg.REVOKE_ERROR
+        else:
+            # remove module from require toggle table; next report will handle table updates
+            delete_req_toggle_by_id(db_connection, host_id, id)
+            return 0
+    except Exception as e:
+        logger.info(f"Toggle exception: {e}")

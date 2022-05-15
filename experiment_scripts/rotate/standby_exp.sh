@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Purpose: attach module, deprecate it and ensure stay active on current socket but not on new sockets
+#Purpose: attach module in standby mode and ensure it attaches to socket but not customize it
 # $1 = number of trials
 # $2 = number of DNS requests per batch
 # $3 = sleep time between each DNS request
@@ -39,7 +39,7 @@ fi
 
 echo "Installing Layer 4.5 on server and client"
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; systemctl stop dnsmasq.service; systemctl stop systemd-resolved.service; $DCA_KERNEL_DIR/bash/installer.sh; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "pkill python3; rmmod layer4_5; systemctl stop dnsmasq.service; systemctl stop systemd-resolved.service; $DCA_KERNEL_DIR/bash/installer.sh; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 sleep 1
 
@@ -49,82 +49,54 @@ $DCA_KERNEL_DIR/bash/installer.sh;
 
 sleep 2
 
-
-OUTPUT=$EXP_SCRIPT_DIR/logs/rotating_cust.txt
+OUTPUT=$EXP_SCRIPT_DIR/logs/standby_exp.txt
 touch $OUTPUT
-
-echo "*************** starting tap test ***************"
-
-
-for ((i=1;i<=$1;i++))
-do
-  echo "DNS test $i"
-  total=0;
-  for ((j=1;j<=$2;j++))
-  do
-    query="www.test_tap$i$j.com"
-    before=$(date '+%s%6N');
-    dig @$SERVER_IP -p 53 $query > /dev/null;
-    after=$(date '+%s%6N');
-    total=$((total+(after-before)));
-    sleep $3;
-  done
-  echo "$((total))" >> $OUTPUT;
-done
-
-echo "*************** finished tap test ***************"
-
 
 
 # start NCO process with command line params
 echo "*************** Starting NCO on Client  ***************"
 gnome-terminal -- bash -c  "echo '*************** Starting NCO  ***************'; python3 $NCO_DIR/NCO.py --query_interval 5 --linear --print --ip $CLIENT_IP"
 
-sleep 2
+
+sleep 5 # give plenty of time to start up
 
 # start client DCA process, which will have host_id = 1
 echo "*************** Starting DCA on Client  ***************"
 gnome-terminal -- bash -c  "echo '*************** Client DCA  ***************'; python3 $DCA_USER_DIR/DCA.py --print --logfile $DCA_USER_DIR/client_dca_messages.log --ip $CLIENT_IP"
 
-sleep 2
+sleep 5
+
+
+
+# Insert client module in DB for deployment to host_id = 1, with standby mode set
+echo "*************** Deploy Client Module  ***************"
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 1 --standby 
+
+sleep 10
 
 
 # start DCA process on server, which will have host_id = 2
 echo "*************** Starting DCA on Server  ***************"
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; python3 $DCA_USER_DIR/DCA.py --ip $CLIENT_IP --logfile $DCA_USER_DIR/server_dca_messages.log >/dev/null 2>&1 &"
-
-sleep 2
-
-
-# Insert server module in DB for deployment to host_id = 2
-echo "*************** Deploy Server Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 2
-
-sleep 15
-
-
-# Insert client module in DB for deployment to host_id = 1
-echo "*************** Deploy Client Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 1
-
-sleep 15
-
-
-cd $NETSOFT_SCRIPT_DIR
-
-echo "*************** Restarting DNSMASQ on Server  ***************"
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
-
-sleep 2
-
-# start middlebox collection process
-echo "*************** Starting Middlebox DCA on Client  ***************"
-gnome-terminal -- bash -c  "echo '*************** Starting TCPDUMP  ***************'; tcpdump port 53 -i any -w $GIT_DIR/deprecate.pcap"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "python3 $DCA_USER_DIR/DCA.py --ip $CLIENT_IP --logfile $DCA_USER_DIR/server_dca_messages.log  >/dev/null 2>&1 &"
 
 sleep 5
 
 
-echo "*************** starting cust both ***************"
+# Insert server module in DB for deployment to host_id = 2, but now in standby mode with applyNow set
+echo "*************** Deploy Server Module  ***************"
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 2 --standby --applyNow
+
+sleep 10
+
+
+# start middlebox collection process
+echo "*************** Starting Middlebox DCA on Client  ***************"
+gnome-terminal -- bash -c  "echo '*************** Starting TCPDUMP  ***************'; tcpdump port 53 -i any -w $GIT_DIR/standby.pcap"
+
+sleep 5
+
+
+echo "*************** starting applyNow and standby test ***************"
 
 for ((i=1;i<=$1;i++))
 do
@@ -132,7 +104,7 @@ do
   total=0;
   for ((j=1;j<=$2;j++))
   do
-    query="www.test_both$i$j.com"
+    query="www.test_applyNow$i$j.com"
     before=$(date '+%s%6N');
     dig @$SERVER_IP -p 53 $query > /dev/null;
     after=$(date '+%s%6N');
@@ -142,52 +114,19 @@ do
   echo "$((total))" >> $OUTPUT;
 done
 
-echo "*************** finished cust both ***************"
+echo "*************** finished applyNow and standby test ***************"
 
 
-# deprecate server module in DB host_id = 2
-echo "*************** Deprecate Server Module ***************"
-python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_server_app_tag" --host 2 --deprecate
-
-sleep 15
-
-# dnsmasq still has inactive module attached, so these should work fine
-echo "*************** starting inactive test ***************"
-
-for ((i=1;i<=$1;i++))
-do
-  echo "DNS test $i"
-  total=0;
-  for ((j=1;j<=$2;j++))
-  do
-    query="www.test_inactive$i$j.com"
-    before=$(date '+%s%6N');
-    dig @$SERVER_IP -p 53 $query > /dev/null;
-    after=$(date '+%s%6N');
-    total=$((total+(after-before)));
-    sleep $3;
-  done
-  echo "$((total))" >> $OUTPUT;
-done
-
-echo "*************** finished inactive test  ***************"
 
 
-# deprecate server module in DB host_id = 2
-echo "*************** Deprecate Client Module ***************"
-python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_client_app_tag" --host 1 --deprecate
-
-sleep 15
-
-
-# now we restart dnsmasq, which should not get the module attached since inactive
+# now we restart dnsmasq, which should still not get customized since in standby mode
 echo "*************** Restarting DNSMASQ on Server  ***************"
 sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 sleep 2
 
 
-echo "*************** starting no module test ***************"
+echo "*************** starting standby only test ***************"
 
 for ((i=1;i<=$1;i++))
 do
@@ -195,7 +134,7 @@ do
   total=0;
   for ((j=1;j<=$2;j++))
   do
-    query="www.test_no_mod$i$j.com"
+    query="www.test_standby$i$j.com"
     before=$(date '+%s%6N');
     dig @$SERVER_IP -p 53 $query > /dev/null;
     after=$(date '+%s%6N');
@@ -205,8 +144,44 @@ do
   echo "$((total))" >> $OUTPUT;
 done
 
-echo "*************** finished no module test  ***************"
+echo "*************** finished standby only test  ***************"
 
+
+
+# Now we enable the server and client modules and make sure they are applied 
+echo "*************** Toggle Server Module On ***************"
+python3 $NCO_DIR/toggle_module_helper.py --module "demo_dns_server_app_tag" --host 2 
+
+sleep 2
+
+
+echo "*************** Toggle Client Module On ***************"
+python3 $NCO_DIR/toggle_module_helper.py --module "demo_dns_client_app_tag" --host 1 
+
+sleep 15 # give plenty of time for module to reflect new standby status
+
+
+echo "*************** starting cust enabled test ***************"
+
+for ((i=1;i<=$1;i++))
+do
+  echo "DNS test $i"
+  total=0;
+  for ((j=1;j<=$2;j++))
+  do
+    query="www.test_cust$i$j.com"
+    before=$(date '+%s%6N');
+    dig @$SERVER_IP -p 53 $query > /dev/null;
+    after=$(date '+%s%6N');
+    total=$((total+(after-before)));
+    sleep $3;
+  done
+  echo "$((total))" >> $OUTPUT;
+done
+
+echo "*************** finished cust enabled test ***************"
+
+sleep 2
 
 
 # Revoke server module in DB host_id = 2
@@ -215,7 +190,7 @@ python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_server_app_tag" --ho
 
 sleep 2
 
-# REvoke client module in DB host_id = 1
+# Revoke client module in DB host_id = 1
 echo "*************** Revoke Client Module ***************"
 python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_client_app_tag" --host 1
 
@@ -227,4 +202,5 @@ echo "cleaning up"
 rmmod layer4_5
 pkill tcpdump
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; systemctl start systemd-resolved.service; rmmod layer4_5"
+
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python3; pkill dnsmasq; systemctl start systemd-resolved.service; rmmod layer4_5"

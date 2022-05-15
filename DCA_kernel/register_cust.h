@@ -47,7 +47,7 @@ struct customization_node *get_customization(struct customization_socket *cust_s
 // @param[I] applyNow Request customization to apply to all applicable sockets, not just new sockets
 // @return int for success/failure
 // @post Customization node with all variables set added to customization list
-int register_customization(struct customization_node *module_cust, bool applyNow);
+int register_customization(struct customization_node *module_cust, u16 applyNow);
 
 
 // Removes the registered protocol customization module from list and any
