@@ -81,7 +81,6 @@ void trace_print_msg_params(struct msghdr *msg)
     trace_printk("msg iov offset = %lu\n", msg->msg_iter.iov_offset);
     trace_printk("Total amount of data pointed to by the iovec array (count) = %lu\n", msg->msg_iter.count);
     trace_printk("Number of iovec structures (nr_segs) = %lu\n", msg->msg_iter.nr_segs);
-
 }
 
 void trace_print_iov_params(struct iov_iter *src_iter)

@@ -4,7 +4,6 @@
 
 import socket
 import os
-import sys
 import subprocess
 import time
 import json
@@ -20,27 +19,33 @@ import logging
 from logging import handlers
 
 
-parser = argparse.ArgumentParser(description='DCA middlebox user space program')
+parser = argparse.ArgumentParser(
+    description='DCA middlebox user space program')
 parser.add_argument('--ip', type=str, required=False, help="NCO IP")
-parser.add_argument('--port', type=int, required=False, help="NCO middlebox port")
-parser.add_argument('--dir', type=str, required=False, help="Inverse Module download dir")
-parser.add_argument('--type', type=str, required=False, help="Middlebox Type Info")
-parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
-parser.add_argument('--print', help="Enables logging to console", action="store_true" )
-parser.add_argument('--logfile', type=str, required=False, help="Full log file path to use, defaults to layer4_5 directory")
+parser.add_argument('--port', type=int, required=False,
+                    help="NCO middlebox port")
+parser.add_argument('--dir', type=str, required=False,
+                    help="Inverse Module download dir")
+parser.add_argument('--type', type=str, required=False,
+                    help="Middlebox Type Info")
+parser.add_argument('--iface', type=str, required=False,
+                    help="Interface name for MAC")
+parser.add_argument(
+    '--print', help="Enables logging to console", action="store_true")
+parser.add_argument('--logfile', type=str, required=False,
+                    help="Full log file path to use, defaults to layer4_5 directory")
 
 args = parser.parse_args()
 
 
-
 if args.ip:
-    cfg.HOST=args.ip
+    cfg.HOST = args.ip
 
 if args.port:
-    cfg.MIDDLE_PORT=args.port
+    cfg.MIDDLE_PORT = args.port
 
 if args.iface:
-    cfg.INTERFACE=args.iface
+    cfg.INTERFACE = args.iface
 
 if args.dir:
     cfg.middle_dir = args.dir
@@ -60,7 +65,8 @@ logger = logging.getLogger(__name__)  # use module name
 
 def logger_configurer():
     root = logging.getLogger()
-    file_handler = handlers.RotatingFileHandler(cfg.log_file, 'a', cfg.log_size, cfg.log_max)
+    file_handler = handlers.RotatingFileHandler(
+        cfg.log_file, 'a', cfg.log_size, cfg.log_max)
     file_formatter = logging.Formatter('%(asctime)s  %(message)s')
     file_handler.setFormatter(file_formatter)
     root.addHandler(file_handler)
@@ -75,11 +81,11 @@ def logger_configurer():
 
 def send_initial_report(conn_socket):
     send_dict = {}
-    send_dict['mac'] =  getHwAddr(cfg.INTERFACE)
+    send_dict['mac'] = getHwAddr(cfg.INTERFACE)
     send_dict['release'] = cfg.system_release
-    send_dict['type']=cfg.middle_type
+    send_dict['type'] = cfg.middle_type
     send_string = json.dumps(send_dict, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
 
 
 # def send_periodic_report(conn_socket):
@@ -93,13 +99,12 @@ def send_initial_report(conn_socket):
 #     return json.loads(payload)
 
 
-
 # each host will have a primary mac addr to report to PCC (even if multiple avail)
 def getHwAddr(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', bytes(ifname, 'utf-8')[:15]))
+    info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack(
+        '256s', bytes(ifname, 'utf-8')[:15]))
     return ':'.join('%02x' % b for b in info[18:24])
-
 
 
 def recv_inverse_module(conn_socket, filename, filesize):
@@ -112,11 +117,10 @@ def recv_inverse_module(conn_socket, filename, filesize):
             file_to_write.write(data)
             filesize -= len(data)
             # logging.info("remaining = ", filesize)
-            if filesize<=0:
+            if filesize <= 0:
                 break
         file_to_write.close()
     logging.info(f"Inverse module name = {filename} completed")
-
 
 
 # read in list of modules to remove, then finish
@@ -135,10 +139,9 @@ def revoke_inverse_module(conn_socket, filename):
     return result
 
 
-
 logger_configurer()
 
-#connect to server, send initial report and wait for server commands
+# connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again
 # while (input("DCA middlebox loop again?") == "y"):
 while True:
@@ -150,13 +153,15 @@ while True:
         while not connected:
             try:
                 s.connect((cfg.HOST, cfg.MIDDLE_PORT))
-                connected=True
+                connected = True
                 send_initial_report(s)
                 count = 0
-                logging.info(f"Connected to NCO at {cfg.HOST}:{cfg.MIDDLE_PORT}")
+                logging.info(
+                    f"Connected to NCO at {cfg.HOST}:{cfg.MIDDLE_PORT}")
             except ConnectionRefusedError:
                 if log_print:
-                    logging.info("FAILED to reach server. Sleep briefly & try again loop")
+                    logging.info(
+                        "FAILED to reach server. Sleep briefly & try again loop")
                     log_print = False
                 time.sleep(cfg.nco_connect_sleep_time)
                 continue
@@ -169,7 +174,7 @@ while True:
                 logging.info(f"Recieved message: {recv_dict}")
 
             except json.decoder.JSONDecodeError as e:
-                count +=1
+                count += 1
                 if count >= cfg.max_errors:
                     logging.info("max json errors reached")
                     stop_recv = True
@@ -180,24 +185,23 @@ while True:
 
             except Exception as e:
                 logging.info(f"Error during data reception: {e}")
-                count +=1
+                count += 1
                 if count >= cfg.max_errors:
                     logging.info("max general errors reached")
                     stop_recv = True
 
             try:
                 if recv_dict["cmd"] == "recv_inverse":
-                    logging.info(f"prepare to recv inverse module, name = {recv_dict['name']}")
-                    recv_inverse_module(s, recv_dict['name'], recv_dict['size'])
-
+                    logging.info(
+                        f"prepare to recv inverse module, name = {recv_dict['name']}")
+                    recv_inverse_module(
+                        s, recv_dict['name'], recv_dict['size'])
 
                 elif recv_dict["cmd"] == "revoke_inverse_module":
                     revoke_inverse_module(s, recv_dict["name"])
 
-
                 # elif recv_dict["cmd"] == "run_report":
                 #     send_periodic_report(s)
-
 
             except Exception as e:
                 logging.info(f"Command parsing error, {e}")

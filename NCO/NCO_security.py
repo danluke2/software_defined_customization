@@ -9,15 +9,12 @@ from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
 
 import logging
-import sys
 
 import cfg
 from CIB_helper import *
 
 
 logger = logging.getLogger(__name__)  # use module name
-
-
 
 
 ########################### SECURITY FUNCTION #################################
@@ -28,7 +25,6 @@ def generate_key():
     # key is a byte string
     key = os.urandom(cfg.KEY_SIZE)
     return key
-
 
 
 def check_challenge(db_connection, host_id):
@@ -44,8 +40,6 @@ def check_challenge(db_connection, host_id):
         if now - sec_ts[i] > sec_windows[i]:
             challenge_list.append(module_id_list[i])
     return challenge_list
-
-
 
 
 def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buffer_size):
@@ -66,9 +60,8 @@ def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buff
     command["msg"] = ct
 
     send_string = json.dumps(command, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
     logger.info(f"Sent challenge request to {host_id}, challenge: {command}")
-
 
     # process the response now
     try:
@@ -88,7 +81,8 @@ def request_challenge_response(conn_socket, db_connection, host_id, mod_id, buff
                 logger.info("Module_id matches")
                 result = 0
             else:
-                logger.info(f"Module_id string mismatch, was {temp2} and should be {mod_id}")
+                logger.info(
+                    f"Module_id string mismatch, was {temp2} and should be {mod_id}")
 
     except Exception as e:
         logger.info(f"Error processing challenge response: {e}")

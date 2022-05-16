@@ -10,13 +10,13 @@ DISTRO_DIR=/lib/modules/5.13.0-35-generic
 
 
 layer4_5-objs := init.o \
-		       tap.o \
-		       customization_socket.o \
-					 register_cust.o \
-					 send_recv_manager.o \
-		       util/printing.o \
-					 util/compare.o \
-					 util/json-maker.o
+		       	tap.o \
+		       	customization_socket.o \
+				register_cust.o \
+				send_recv_manager.o \
+		       	util/printing.o \
+				util/compare.o \
+				util/json-maker.o
 
 obj-m += layer4_5.o
 

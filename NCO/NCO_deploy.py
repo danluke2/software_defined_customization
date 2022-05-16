@@ -9,7 +9,6 @@ import cfg
 from CIB_helper import *
 
 import logging
-import sys
 
 
 logger = logging.getLogger(__name__)  # use module name

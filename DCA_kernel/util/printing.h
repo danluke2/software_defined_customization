@@ -18,8 +18,10 @@ void log_dump_msg(void *message_buf, int len, u16 proto, pid_t pid);
 // A copy of print_hex_dump but for trace_printk instead
 // Provides an alternative to log_dump_msg
 // @see print_hex_dump function for parameters
-// example:  trace_print_hex_dump("layer4.5 udp msg msg before: ", DUMP_PREFIX_ADDRESS, 16, 1, msg->msg_iter.iov->iov_base, 192, true);
-void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf, size_t len, bool ascii);
+// example:  trace_print_hex_dump("layer4.5 udp msg msg before: ", DUMP_PREFIX_ADDRESS, 16, 1,
+// msg->msg_iter.iov->iov_base, 192, true);
+void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf,
+                          size_t len, bool ascii);
 
 
 // Helper to log customization socket 4-tuple and customization status

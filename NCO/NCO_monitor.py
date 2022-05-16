@@ -12,7 +12,6 @@ from NCO_revoke import handle_revoke_update
 from NCO_deploy import handle_deployed_update
 
 import logging
-import sys
 
 logger = logging.getLogger(__name__)  # use module name
 

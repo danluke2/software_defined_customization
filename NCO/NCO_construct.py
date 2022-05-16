@@ -11,7 +11,6 @@ from CIB_helper import *
 from NCO_security import generate_key
 
 import logging
-import sys
 
 
 logger = logging.getLogger(__name__)  # use module name

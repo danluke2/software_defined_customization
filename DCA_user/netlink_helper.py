@@ -1,7 +1,6 @@
 import os
 import socket
 import struct
-import ctypes
 
 
 # types
@@ -18,7 +17,6 @@ NLM_F_REQUEST = 1
 NLM_F_MULTI = 2
 NLM_F_ACK = 4
 NLM_F_ECHO = 8
-
 
 
 class Message:
@@ -52,12 +50,13 @@ class Connection(object):
     """
     Object representing Netlink socket connection to the kernel.
     """
+
     def __init__(self, nlservice=25, groups=0):
         # nlservice = Netlink IP service
         self.fd = socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, nlservice)
         self.fd.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
         self.fd.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
-        self.fd.bind((0, groups)) # pid=0 lets kernel assign socket PID
+        self.fd.bind((0, groups))  # pid=0 lets kernel assign socket PID
         self.pid, self.groups = self.fd.getsockname()
         self.pid = os.getpid()
         self._seq = 0
@@ -70,7 +69,7 @@ class Connection(object):
             msg.pid = self.pid
             length = len(msg.payload)
             hdr = struct.pack("IHHII", length + 4 * 4, msg.type,
-                          msg.flags, msg.seq, msg.pid)
+                              msg.flags, msg.seq, msg.pid)
             msg = hdr + msg.payload.encode('utf-8')
             return self.fd.send(msg)
 
@@ -81,18 +80,19 @@ class Connection(object):
         msg = Message(msg_type, flags, seq, data[16:])
         msg.pid = pid
         # if msg_type == NLMSG_DONE:
-           # print("payload :", msg.payload)
-           # print("msg.pid :", msg.pid)
-           # print("msg.seq :", msg.seq)
+        # print("payload :", msg.payload)
+        # print("msg.pid :", msg.pid)
+        # print("msg.seq :", msg.seq)
         if msg.type == NLMSG_ERROR:
             errno = -struct.unpack("i", msg.payload[:4])[0]
             if errno != 0:
-                err = OSError("Netlink error: %s (%d)" % (os.strerror(errno), errno))
+                err = OSError("Netlink error: %s (%d)" %
+                              (os.strerror(errno), errno))
                 err.errno = errno
                 # print("err :",err)
                 raise err
 
-        #return msg.payload
+        # return msg.payload
         return msg
 
     def seq(self):
