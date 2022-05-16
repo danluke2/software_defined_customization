@@ -108,7 +108,7 @@ struct customization_node
 
     // mod_id
     u16 cust_id;
-    u16 *standby_mode;
+    u16 *bypass_mode;
     // counter to track number of sockets cust is applied to
     u16 sock_count;
 

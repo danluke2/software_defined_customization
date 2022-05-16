@@ -5,7 +5,7 @@
 #arg3 is the line number to start inserting at
 #arg4 is the host id
 #arg5 is hex encoded key
-#arg6 is standby flag
+#arg6 is bypass flag
 #arg7 is applyNow flag
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
@@ -45,7 +45,7 @@ sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c
 ((line=line+1))
 sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$5\";" $mod_dir/${1}.c
 ((line=line+1))
-sed -i "${line}i\u16 standby=${6};" $mod_dir/${1}.c
+sed -i "${line}i\u16 bypass=${6};" $mod_dir/${1}.c
 ((line=line+1))
 sed -i "${line}i\u16 applyNow=${7};" $mod_dir/${1}.c
 

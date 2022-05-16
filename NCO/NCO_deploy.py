@@ -28,7 +28,7 @@ def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_lis
     for module in deployed_list:
         if module["ID"] in deployed_db:
             update_deployed(db_connection, host_id,
-                            module["ID"], module["Count"], module["Standby"], module["ts"])
+                            module["ID"], module["Count"], module["Bypass"], module["ts"])
             # we remove here to make list smaller and determine mismatches
             deployed_db.remove(module["ID"])
         else:
@@ -38,7 +38,7 @@ def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_lis
                 update_built_module_install_requirement(
                     db_connection, host_id, module["ID"], req_install, module["ts"])
                 insert_deployed(
-                    db_connection, host_id, module["ID"], module["Count"], module["Standby"],
+                    db_connection, host_id, module["ID"], module["Count"], module["Bypass"],
                     cfg.SEC_WINDOW, 0, module["ts"], 0, 0)
 
                 result = cfg.REFRESH_INSTALL_LIST
@@ -51,7 +51,7 @@ def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_lis
     for module in deprecated_list:
         if module["ID"] in deployed_db:
             update_deployed(db_connection, host_id,
-                            module["ID"], module["Count"], module["Standby"], module["ts"])
+                            module["ID"], module["Count"], module["Bypass"], module["ts"])
             # we remove here to make list smaller and determine mismatches
             deployed_db.remove(module["ID"])
 

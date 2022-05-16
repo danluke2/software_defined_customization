@@ -17,13 +17,13 @@ parser.add_argument('--inverse', type=str, required=False,
 parser.add_argument('--type', type=str, required=False,
                     help="type of middlebox for dependency")
 parser.add_argument(
-    '--standby', help="Sets module to standby mode", action="store_true")
+    '--bypass', help="Sets module to bypass mode", action="store_true")
 parser.add_argument(
     '--applyNow', help="Apply module check to all sockets, including previously checked", action="store_true")
 
 args = parser.parse_args()
 
-standby = cfg.standby  # default value
+bypass = cfg.bypass  # default value
 applyNow = cfg.applyNow  # default value
 
 
@@ -34,8 +34,8 @@ if args.inverse:
         insert_inverse_module(db_connection, args.module,
                               args.inverse, args.type)
 
-if args.standby:
-    standby = 1  # overwrite default
+if args.bypass:
+    bypass = 1  # overwrite default
 
 if args.applyNow:
     applyNow = 1  # overwrite default
@@ -43,4 +43,4 @@ if args.applyNow:
 time.sleep(5)
 
 insert_req_build_module(db_connection, args.host,
-                        args.module, standby, applyNow)
+                        args.module, bypass, applyNow)

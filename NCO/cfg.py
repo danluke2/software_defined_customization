@@ -24,7 +24,7 @@ random_hosts = True
 next_module_id = 1
 
 # default values that builder can overwrite
-standby = 0
+bypass = 0
 applyNow = 0
 
 symvers_dir = "device_modules/host_"  # + host_id

@@ -71,7 +71,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     recv_buf_st->no_cust = false;
     recv_buf_st->skip_cust = false;
 
-    if (*dns_cust->standby_mode)
+    if (*dns_cust->bypass_mode)
     {
         recv_buf_st->no_cust = true;
         return;
@@ -124,8 +124,8 @@ int __init sample_client_start(void)
         return -1;
     }
 
-    // provide pointer for DCA to toggle standby mode instead of new function
-    dns_cust->standby_mode = &standby;
+    // provide pointer for DCA to toggle bypass mode instead of new function
+    dns_cust->bypass_mode = &bypass;
 
     dns_cust->target_flow.protocol = protocol;
     memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);

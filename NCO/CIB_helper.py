@@ -155,18 +155,18 @@ def init_deployed_table(con):
     # each id and module pair must be unique
     con.execute('''CREATE TABLE deployed
                    (host_id integer NOT NULL, module_id integer NOT NULL,
-                   sock_count integer, standby_mode integer,
+                   sock_count integer, bypass_mode integer,
                    security_window integer, last_security_ts integer,
                    registered_ts integer, deprecated_ts integer, host_error_ts integer,
                    PRIMARY KEY (host_id, module_id))''')
 
 
-def insert_deployed(con, host_id, module_id, count, standby, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts):
+def insert_deployed(con, host_id, module_id, count, bypass, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts):
     result = 0
     try:
         with con:
             con.execute("INSERT INTO deployed VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (host_id,
-                        module_id, count, standby, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts))
+                        module_id, count, bypass, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts))
     except sl.Error as er:
         logger.info(
             f"Error inserting module into deployed, module_id = {module_id}, host_id = {host_id}")
@@ -175,14 +175,14 @@ def insert_deployed(con, host_id, module_id, count, standby, sec_window, sec_ts,
     return result
 
 
-def update_deployed(con, host_id, module_id, count, standby, registered_ts):
+def update_deployed(con, host_id, module_id, count, bypass, registered_ts):
     result = 0
     try:
         with con:
             con.execute('''UPDATE deployed
-            SET sock_count = :count, standby_mode = :standby, registered_ts = :reg
+            SET sock_count = :count, bypass_mode = :bypass, registered_ts = :reg
             WHERE host_id = :host AND module_id =:module;''',
-                        {"count": count, "standby": standby, "reg": registered_ts, "host": host_id, "module": module_id})
+                        {"count": count, "bypass": bypass, "reg": registered_ts, "host": host_id, "module": module_id})
     except sl.Error as er:
         logger.info(
             f"Error updating deployed row, module_id = {module_id}, host_id = {host_id}")
@@ -515,16 +515,16 @@ def delete_revoked(con, host_id, module_id):
 def init_require_build_module_table(con):
     con.execute('''CREATE TABLE req_build_modules
                    (host_id integer NOT NULL, module text NOT NULL, 
-                   standby integer NOT NULL, applyNow integer NOT NULL,
+                   bypass integer NOT NULL, applyNow integer NOT NULL,
                    PRIMARY KEY (host_id, module))''')
 
 
-def insert_req_build_module(con, host_id, module, standby, apply):
+def insert_req_build_module(con, host_id, module, bypass, apply):
     result = 0
     try:
         with con:
             con.execute(
-                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?)", (host_id, module, standby, apply))
+                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?)", (host_id, module, bypass, apply))
     except sl.Error as er:
         logger.info(
             f"Error inserting req_build_modules module = {module}, host_id = {host_id}")

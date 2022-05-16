@@ -40,10 +40,10 @@ if [ "$1" = "DEPRECATE" ]; then
 fi
 
 
-# Standby and ApplyNow experiment
-if [ "$1" = "STANDBY" ]; then
+# Bypass and ApplyNow experiment
+if [ "$1" = "BYPASS" ]; then
   cd $EXP_SCRIPT_DIR/logs
-  rm standby_exp.txt
+  rm bypass_exp.txt
   cd $NCO_DIR
   rm cib.db
   cd device_modules
@@ -59,6 +59,7 @@ if [ "$1" = "CHALLENGE" ]; then
   rm cib.db
   cd device_modules
   rm -rf host*
+
 fi
 
 

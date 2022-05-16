@@ -169,7 +169,7 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
     }
 
     cust->cust_id = module_cust->cust_id;
-    cust->standby_mode = module_cust->standby_mode;
+    cust->bypass_mode = module_cust->bypass_mode;
     cust->sock_count = 0; // init value
 
     cust->target_flow.protocol = module_cust->target_flow.protocol;
@@ -353,7 +353,7 @@ int remove_customization_from_active_list(u16 cust_id)
 
 
 
-// set customization standby mode
+// set customization bypass mode
 int toggle_customization(u16 cust_id, u16 mode)
 {
     int found = 0;
@@ -371,7 +371,7 @@ int toggle_customization(u16 cust_id, u16 mode)
     }
 
     found = 1;
-    *module_cust->standby_mode = mode;
+    *module_cust->bypass_mode = mode;
     return found;
 }
 
@@ -417,7 +417,7 @@ void netlink_cust_report(char *message, size_t *length)
     {
         message = json_objOpen(message, NULL, &rem_length);
         message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
-        message = json_uint(message, "Standby", *cust_temp->standby_mode, &rem_length);
+        message = json_uint(message, "Bypass", *cust_temp->bypass_mode, &rem_length);
         message = json_uint(message, "Count", cust_temp->sock_count, &rem_length);
         message = json_ulong(message, "ts", cust_temp->registration_time_struct.tv_sec, &rem_length);
         message = json_objClose(message, &rem_length);
@@ -433,7 +433,7 @@ void netlink_cust_report(char *message, size_t *length)
     {
         message = json_objOpen(message, NULL, &rem_length);
         message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
-        message = json_uint(message, "Standby", *cust_temp->standby_mode, &rem_length);
+        message = json_uint(message, "Bypass", *cust_temp->bypass_mode, &rem_length);
         message = json_uint(message, "Count", cust_temp->sock_count, &rem_length);
         message = json_ulong(message, "ts", cust_temp->deprecated_time_struct.tv_sec, &rem_length);
         message = json_objClose(message, &rem_length);

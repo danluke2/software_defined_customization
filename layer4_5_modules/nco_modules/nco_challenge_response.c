@@ -57,7 +57,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 {
     bool copy_success;
 
-    if (*python_cust->standby_mode)
+    if (*python_cust->bypass_mode)
     {
         return;
     }
@@ -82,7 +82,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 {
     bool copy_success;
 
-    if (*python_cust->standby_mode)
+    if (*python_cust->bypass_mode)
     {
         return;
     }
@@ -329,8 +329,8 @@ int __init sample_client_start(void)
         return -1;
     }
 
-    // provide pointer for DCA to toggle standby mode instead of new function
-    python_cust->standby_mode = &standby;
+    // provide pointer for DCA to toggle bypass mode instead of new function
+    python_cust->bypass_mode = &bypass;
 
     python_cust->target_flow.protocol = 17; // UDP
                                             // python_cust->protocol = 6; // TCP

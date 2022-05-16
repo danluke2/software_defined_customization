@@ -12,12 +12,12 @@ parser.add_argument('--module', type=str, required=True,
 parser.add_argument('--host', type=int, required=True,
                     help="Host to deploy module to")
 parser.add_argument(
-    '--standby', help="Toggle module to standby mode", action="store_true")
+    '--bypass', help="Toggle module to bypass customization", action="store_true")
 
 
 args = parser.parse_args()
 
-toggle = 0  # default toggle standby off
+toggle = 0  # default toggle bypass off
 
 db_connection = db_connect(cfg.nco_dir + 'cib.db')
 
@@ -26,7 +26,7 @@ module = select_built_module(db_connection, args.host, args.module)
 id = module[2]
 
 
-if args.standby:
+if args.bypass:
     toggle = 1
 
 

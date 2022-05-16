@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Purpose: attach module in standby mode and ensure it attaches to socket but not customize it
+#Purpose: attach module in bypass mode and ensure it attaches to socket but not customize it
 # $1 = number of trials
 # $2 = number of DNS requests per batch
 # $3 = sleep time between each DNS request
@@ -49,7 +49,7 @@ $DCA_KERNEL_DIR/bash/installer.sh;
 
 sleep 2
 
-OUTPUT=$EXP_SCRIPT_DIR/logs/standby_exp.txt
+OUTPUT=$EXP_SCRIPT_DIR/logs/bypass_exp.txt
 touch $OUTPUT
 
 
@@ -68,9 +68,9 @@ sleep 5
 
 
 
-# Insert client module in DB for deployment to host_id = 1, with standby mode set
+# Insert client module in DB for deployment to host_id = 1, with bypass mode set
 echo "*************** Deploy Client Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 1 --standby 
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 1 --bypass 
 
 sleep 10
 
@@ -82,21 +82,21 @@ sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "python3 $DCA_USER_DIR/DCA
 sleep 5
 
 
-# Insert server module in DB for deployment to host_id = 2, but now in standby mode with applyNow set
+# Insert server module in DB for deployment to host_id = 2, but now in bypass mode with applyNow set
 echo "*************** Deploy Server Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 2 --standby --applyNow
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 2 --bypass --applyNow
 
 sleep 10
 
 
 # start middlebox collection process
 echo "*************** Starting Middlebox DCA on Client  ***************"
-gnome-terminal -- bash -c  "echo '*************** Starting TCPDUMP  ***************'; tcpdump port 53 -i any -w $GIT_DIR/standby.pcap"
+gnome-terminal -- bash -c  "echo '*************** Starting TCPDUMP  ***************'; tcpdump port 53 -i any -w $GIT_DIR/bypass.pcap"
 
 sleep 5
 
 
-echo "*************** starting applyNow and standby test ***************"
+echo "*************** starting applyNow and bypass test ***************"
 
 for ((i=1;i<=$1;i++))
 do
@@ -114,19 +114,19 @@ do
   echo "$((total))" >> $OUTPUT;
 done
 
-echo "*************** finished applyNow and standby test ***************"
+echo "*************** finished applyNow and bypass test ***************"
 
 
 
 
-# now we restart dnsmasq, which should still not get customized since in standby mode
+# now we restart dnsmasq, which should still not get customized since in bypass mode
 echo "*************** Restarting DNSMASQ on Server  ***************"
 sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 sleep 2
 
 
-echo "*************** starting standby only test ***************"
+echo "*************** starting bypass only test ***************"
 
 for ((i=1;i<=$1;i++))
 do
@@ -134,7 +134,7 @@ do
   total=0;
   for ((j=1;j<=$2;j++))
   do
-    query="www.test_standby$i$j.com"
+    query="www.test_bypass$i$j.com"
     before=$(date '+%s%6N');
     dig @$SERVER_IP -p 53 $query > /dev/null;
     after=$(date '+%s%6N');
@@ -144,7 +144,7 @@ do
   echo "$((total))" >> $OUTPUT;
 done
 
-echo "*************** finished standby only test  ***************"
+echo "*************** finished bypass only test  ***************"
 
 
 
@@ -158,7 +158,7 @@ sleep 2
 echo "*************** Toggle Client Module On ***************"
 python3 $NCO_DIR/toggle_module_helper.py --module "demo_dns_client_app_tag" --host 1 
 
-sleep 15 # give plenty of time for module to reflect new standby status
+sleep 15 # give plenty of time for module to reflect new bypass status
 
 
 echo "*************** starting cust enabled test ***************"

@@ -42,9 +42,9 @@ static unsigned short applyNow = 0;
 module_param(applyNow, ushort, 0600);
 MODULE_PARM_DESC(applyNow, "Apply customization lookup to all sockets, not just new sockets");
 
-unsigned short standby = 0;
-module_param(standby, ushort, 0600);
-MODULE_PARM_DESC(standby, "Place customization in standby mode, which bypasses customization");
+unsigned short bypass = 0;
+module_param(bypass, ushort, 0600);
+MODULE_PARM_DESC(bypass, "Place customization in bypass mode, which bypasses customization");
 
 
 // test message for this module
@@ -68,9 +68,9 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 {
     bool copy_success;
 
-    // passive monitoring allowed here, but active must pass standby_mode check
+    // passive monitoring allowed here, but active must pass bypass_mode check
 
-    if (*python_cust->standby_mode)
+    if (*python_cust->bypass_mode)
     {
         return;
     }
@@ -121,9 +121,9 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 {
     bool copy_success;
 
-    // passive monitoring allowed here, but active must pass standby_mode check
+    // passive monitoring allowed here, but active must pass bypass_mode check
 
-    if (*python_cust->standby_mode)
+    if (*python_cust->bypass_mode)
     {
         return;
     }
@@ -162,16 +162,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 
 
 
-// Function to allow NCO to disable standby_mode and allow customization
-void toggle_standby_mode(bool mode)
-{
-    standby_mode = mode;
-    return;
-}
-
-
-
-
 // The init function that calls the functions to register a Layer 4.5 customization
 // Server will check parameters on first recvmsg
 // 0 used as default to skip port or IP checks
@@ -192,8 +182,8 @@ int __init sample_server_start(void)
         return -1;
     }
 
-    // provide pointer for DCA to toggle standby mode instead of new function
-    python_cust->standby_mode = &standby;
+    // provide pointer for DCA to toggle bypass mode instead of new function
+    python_cust->bypass_mode = &bypass;
 
     // python_cust->target_flow.protocol = 17; //UDP
     // python_cust->protocol = 6; //TCP
