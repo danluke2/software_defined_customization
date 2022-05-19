@@ -15,7 +15,12 @@ Common items I refer to when trying to understand code and functions in the kern
 
     * https://sysprog21.github.io/lkmpg/
 
-    * kernel module parameters:  https://tldp.org/LDP/lkmpg/2.6/html/x323.html
+    * kernel module parameters: 
+    
+        https://tldp.org/LDP/lkmpg/2.6/html/x323.html
+
+        http://books.gigatux.nl/mirror/kerneldevelopment/0672327201/ch16lev1sec6.html
+
 
     * module basics:  https://lkw.readthedocs.io/en/latest/doc/04_exporting_symbols.html#one-module-dependent-on-several-modules
 

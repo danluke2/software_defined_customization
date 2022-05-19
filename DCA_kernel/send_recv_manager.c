@@ -15,7 +15,9 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     struct kvec iov;
     struct customization_node *cust_node;
     struct iov_iter iter_temp = msg->msg_iter;
+    bool cust_performed = false;
     int sendmsg_return;
+    int i;
 
 
 #ifdef DEBUG1
@@ -24,77 +26,99 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 #endif
 
     spin_lock(&cust_sock->active_customization_lock);
-    cust_node = cust_sock->customization;
-    if (cust_node == NULL || cust_sock->customize_send_or_skip == SKIP)
-    {
-// customization could have been unregistered right before this call
-#ifdef DEBUG
-        trace_printk("L4.5 ALERT: Cust_node NULL or send SKIP set unexpectedly, pid %d\n", cust_sock->pid);
-#endif
-        goto skip_and_send;
-    }
 
-    // this case should never happen, but checking to ensure no future errors
-    if (cust_node->send_function == NULL || cust_sock->send_buf_st.buf == NULL)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5 ALERT: send function or buffer set to NULL unexpectedly, pid %d\n", cust_sock->pid);
-#endif
-        goto skip_and_send;
-    }
-
-    // store msg_iter values before cust modules does its thing
-    // cust_sock->send_buf_st.iter_copy.iov_offset = msg->msg_iter.iov_offset;
-    // cust_sock->send_buf_st.iter_copy.count = msg->msg_iter.count;
-    // cust_sock->send_buf_st.iter_copy.nr_segs = msg->msg_iter.nr_segs;
-    // cust_sock->send_buf_st.iter_copy.iov = msg->msg_iter.iov;
     cust_sock->send_buf_st.src_iter = &msg->msg_iter;
     cust_sock->send_buf_st.copy_length = 0; // default value
     cust_sock->send_buf_st.length = size;
-    // passes msg iter to customization send function
-    cust_node->send_function(&cust_sock->send_buf_st, &cust_sock->socket_flow);
 
-    // restore msg_iter values after cust module likely changed them
-    msg->msg_iter = iter_temp;
+    // loop through cust modules until one performs a customization
+    for (i = 0; i < MAX_CUST_ATTACH; i++)
+    {
+        cust_node = cust_sock->customizations[i];
+        // customization could have been unregistered right before this call
+        // or we reached the end of valid customization modules in the array
+        if (cust_node == NULL || cust_sock->customize_or_skip == SKIP)
+        {
+#ifdef DEBUG
+            trace_printk("L4.5 ALERT: Cust_node NULL or send SKIP set unexpectedly, pid %d\n", cust_sock->pid);
+#endif
+            goto skip_and_send;
+        }
 
+        // this case should never happen, but checking to ensure no future errors
+        if (cust_node->send_function == NULL || cust_sock->send_buf_st.buf == NULL)
+        {
+#ifdef DEBUG
+            trace_printk("L4.5 ALERT: send function or buffer set to NULL unexpectedly, pid %d\n", cust_sock->pid);
+#endif
+            goto skip_and_send;
+        }
+
+        // passes msg iter to customization send function
+        cust_node->send_function(&cust_sock->send_buf_st, &cust_sock->socket_flow);
+
+        // restore msg_iter values after cust module likely changed them
+        msg->msg_iter = iter_temp;
 
 #ifdef DEBUG2
-    // this is for troubleshooting; iter should be at state given to send
-    trace_printk("L4.5: After cust send module return\n");
-    trace_print_iov_params(&msg->msg_iter);
+        // this is for troubleshooting; iter should be at state given to send
+        trace_printk("L4.5: After cust send module return\n");
+        trace_print_iov_params(&msg->msg_iter);
 #endif
 
-    // handle case when cust mod wants to trigger recv failure
-    if (cust_sock->send_buf_st.copy_length < 0)
-    {
+        // handle case when cust mod wants to trigger send failure
+        if (cust_sock->send_buf_st.copy_length < 0)
+        {
 #ifdef DEBUG1
-        trace_printk("L4.5: send %lu error message from module, pid %d\n", cust_sock->send_buf_st.copy_length,
-                     cust_sock->pid);
+            trace_printk("L4.5: send %lu error message from module, pid %d\n", cust_sock->send_buf_st.copy_length,
+                         cust_sock->pid);
 #endif
-        spin_unlock(&cust_sock->active_customization_lock);
-        return cust_sock->send_buf_st.copy_length;
+            spin_unlock(&cust_sock->active_customization_lock);
+            return cust_sock->send_buf_st.copy_length;
+        }
+
+        // check if module will no longer be customizing the socket
+        if (cust_sock->send_buf_st.set_cust_to_skip == true)
+        {
+#ifdef DEBUG
+            trace_printk("L4.5: cust module send skip set, pid %d\n", cust_sock->pid);
+#endif
+            goto skip_and_send;
+        }
+
+        if (cust_sock->send_buf_st.try_next)
+        {
+            // go to the next customization node b/c current one couldn't match customization
+            continue;
+        }
+        else
+        {
+            cust_performed = true;
+            break;
+        }
     }
 
-    // check if module will no longer be customizing the socket
-    if (cust_sock->send_buf_st.skip_cust == true)
+    if (cust_performed == false)
     {
-#ifdef DEBUG
-        trace_printk("L4.5: cust module send skip set, pid %d\n", cust_sock->pid);
-#endif
-        goto skip_and_send;
-    }
-
-
-    if (cust_sock->send_buf_st.no_cust == true)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5: cust module no cust set for send, pid %d\n", cust_sock->pid);
-#endif
         spin_unlock(&cust_sock->active_customization_lock);
         return sendmsg(sk, msg, size);
     }
 
+    // if no cust set, then we don't need to copy the buffer
+    if (cust_sock->send_buf_st.no_cust == true)
+    {
+#ifdef DEBUG1
+        trace_printk("L4.5: cust module no cust performed for send, pid %d\n", cust_sock->pid);
+#endif
+
+        spin_unlock(&cust_sock->active_customization_lock);
+        return sendmsg(sk, msg, size);
+    }
+
+
+
     // if copy length = 0, then we basically refuse to send the data but still lie that we did?
+    // this allows the send side to effectively buffer data
     if (cust_sock->send_buf_st.copy_length == 0)
     {
 #ifdef DEBUG
@@ -106,31 +130,23 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
         return size;
     }
 
-    // cust module must have valid buffer pointer
-    if (cust_sock->send_buf_st.buf == NULL)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5 ALERT: send buffer set as NULL by cust module, pid %d\n", cust_sock->pid);
-#endif
-        goto skip_and_send;
-    }
 
-
-    // also make sure send can succeed
+    // make sure send can succeed
     if (cust_sock->send_buf_st.copy_length > cust_sock->send_buf_st.buf_size)
     {
 #ifdef DEBUG
         trace_printk("L4.5 ALERT Copy length problem: copy_length=%lu, buf_size=%u\n",
                      cust_sock->send_buf_st.copy_length, cust_sock->send_buf_st.buf_size);
 #endif
-        // pretend that we never did anything to the message
-        spin_unlock(&cust_sock->active_customization_lock);
-
 #ifdef DEBUG2
         // this is for troubleshooting
         trace_printk("L4.5 ALERT: Copy error, just before return where I think I am giving original buffer to L4\n");
         trace_print_iov_params(&msg->msg_iter);
 #endif
+
+        // pretend that we never did anything to the message
+        spin_unlock(&cust_sock->active_customization_lock);
+
         return sendmsg(sk, msg, size);
     }
 
@@ -171,7 +187,7 @@ skip_and_send:
 #ifdef DEBUG
     trace_printk("L4.5: skip and send triggered\n");
 #endif
-    cust_sock->customize_send_or_skip = SKIP;
+    cust_sock->customize_or_skip = SKIP;
     spin_unlock(&cust_sock->active_customization_lock);
     // trace_printk("released lock\n");
     return sendmsg(sk, msg, size);
@@ -186,6 +202,8 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     struct customization_node *cust_node;
     struct iov_iter iter_temp;
     size_t copy_success;
+    bool cust_performed = false;
+    int i;
 
 #ifdef DEBUG1
     trace_printk("L4.5 Start of DCA recvmsg\n");
@@ -202,84 +220,97 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     trace_print_iov_params(&msg->msg_iter);
 #endif
 
-    // grab this lock to prevent a cust module from unregistering and creating
-    // a NULL pointer problem
-    spin_lock(&cust_sock->active_customization_lock);
-    // trace_printk("have lock\n");
-    cust_node = cust_sock->customization;
-
-    if (cust_node == NULL || cust_sock->customize_recv_or_skip == SKIP)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5 ALERT: Cust_node NULL or recv SKIP set unexpectedly, pid %d\n", cust_sock->pid);
-#endif
-        goto skip_and_recv;
-    }
-
-    // this case should never happen, but possible if cust removed just before this call
-    if (cust_node->recv_function == NULL || cust_sock->recv_buf_st.buf == NULL)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5 ALERT: recv function or buffer set to NULL unexpectedly, pid %d\n", cust_sock->pid);
-#endif
-        goto skip_and_recv;
-    }
-
     cust_sock->recv_buf_st.src_iter = &msg->msg_iter;
     cust_sock->recv_buf_st.copy_length = 0; // just to ensure it is defined
     cust_sock->recv_buf_st.length = len;
     cust_sock->recv_buf_st.recv_return = recvmsg_ret;
-    // passes required data to cust_recv function
-    cust_node->recv_function(&cust_sock->recv_buf_st, &cust_sock->socket_flow);
 
-    // restore msg_iter values after cust module likely changed them
-    msg->msg_iter = iter_temp;
+    // grab this lock to prevent a cust module from unregistering and creating
+    // a NULL pointer problem
+    spin_lock(&cust_sock->active_customization_lock);
+
+    // loop through cust modules until one performs a customization
+    for (i = 0; i < MAX_CUST_ATTACH; i++)
+    {
+        cust_node = cust_sock->customizations[i];
+
+        if (cust_node == NULL || cust_sock->customize_or_skip == SKIP)
+        {
+#ifdef DEBUG
+            trace_printk("L4.5 ALERT: Cust_node NULL or recv SKIP set unexpectedly, pid %d\n", cust_sock->pid);
+#endif
+            goto skip_and_recv;
+        }
+
+        // this case should never happen, but possible if cust removed just before this call
+        if (cust_node->recv_function == NULL || cust_sock->recv_buf_st.buf == NULL)
+        {
+#ifdef DEBUG
+            trace_printk("L4.5 ALERT: recv function or buffer set to NULL unexpectedly, pid %d\n", cust_sock->pid);
+#endif
+            goto skip_and_recv;
+        }
+
+
+        // passes required data to cust_recv function
+        cust_node->recv_function(&cust_sock->recv_buf_st, &cust_sock->socket_flow);
+
+        // restore msg_iter values after cust module likely changed them
+        msg->msg_iter = iter_temp;
 
 
 #ifdef DEBUG2
-    trace_printk("L4.5: After cust module return\n");
-    trace_print_iov_params(&msg->msg_iter);
+        trace_printk("L4.5: After cust module return\n");
+        trace_print_iov_params(&msg->msg_iter);
 #endif
 
 
-    // handle case when cust mod wants to trigger recv failure
-    if (cust_sock->recv_buf_st.recv_return < 0)
-    {
+        // handle case when cust mod wants to trigger recv failure
+        if (cust_sock->recv_buf_st.recv_return < 0)
+        {
 #ifdef DEBUG1
-        trace_printk("L4.5: received %lu error message from module, pid %d\n", cust_sock->recv_buf_st.recv_return,
-                     cust_sock->pid);
+            trace_printk("L4.5: received %lu error message from module, pid %d\n", cust_sock->recv_buf_st.recv_return,
+                         cust_sock->pid);
 #endif
-        spin_unlock(&cust_sock->active_customization_lock);
-        return cust_sock->recv_buf_st.recv_return;
-    }
+            spin_unlock(&cust_sock->active_customization_lock);
+            return cust_sock->recv_buf_st.recv_return;
+        }
 
-    // check if module will no longer be customizing the socket
-    if (cust_sock->recv_buf_st.skip_cust == true)
-    {
+        // check if module will no longer be customizing the socket
+        if (cust_sock->recv_buf_st.set_cust_to_skip == true)
+        {
 #ifdef DEBUG
-        trace_printk("L4.5: recv cust module skip set, pid %d\n", cust_sock->pid);
+            trace_printk("L4.5: recv cust module skip set, pid %d\n", cust_sock->pid);
 #endif
-        goto skip_and_recv;
+            goto skip_and_recv;
+        }
+
+        if (cust_sock->send_buf_st.try_next)
+        {
+            // go to the next customization node b/c current one couldn't match customization
+            continue;
+        }
+        else
+        {
+            cust_performed = true;
+            break;
+        }
     }
 
+    if (cust_performed == false)
+    {
+        goto advance_and_recv;
+    }
 
+    // if cust didn't do anything, then no need to perform buffer operations
     if (cust_sock->recv_buf_st.no_cust == true)
     {
-#ifdef DEBUG
+#ifdef DEBUG1
         trace_printk("L4.5: recv cust module no cust set, pid %d\n", cust_sock->pid);
 #endif
         goto advance_and_recv;
     }
 
-
-    // cust module must have valid buffer pointer
-    if (cust_sock->recv_buf_st.buf == NULL)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5 ALERT: recv buffer set as NULL by cust module, pid %d\n", cust_sock->pid);
-#endif
-        goto skip_and_recv;
-    }
 
 
     if (cust_sock->recv_buf_st.copy_length == 0)
@@ -292,7 +323,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     }
 
 
-    // also make sure copy can succeed
+    // make sure copy can succeed
     if (cust_sock->recv_buf_st.copy_length > cust_sock->recv_buf_st.buf_size ||
         cust_sock->recv_buf_st.copy_length > len)
     {
@@ -318,19 +349,14 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 #ifdef DEBUG
         trace_printk("L4.5 ALERT Copied bytes not same as desired value, copied = %lu, desired = %lu\n", copy_success,
                      cust_sock->recv_buf_st.copy_length);
-#ifdef DEBUG2
+    #ifdef DEBUG2
         trace_print_iov_params(&msg->msg_iter);
-#endif
+    #endif
 #endif
         // TODO: somehow inform module that data not delivered to app
         //  reset iter?
         spin_unlock(&cust_sock->active_customization_lock);
         return -EAGAIN;
-
-        // Scenario 2: stop trying to customize this socket
-        //  free cust buffer
-        //  reset iter?
-        // return -EAGAIN;
     }
 
 #ifdef DEBUG2
@@ -351,11 +377,11 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 skip_and_recv:
 #ifdef DEBUG
     trace_printk("L4.5: skip and recv triggered\n");
-#ifdef DEBUG2
+    #ifdef DEBUG2
     trace_print_iov_params(&msg->msg_iter);
+    #endif
 #endif
-#endif
-    cust_sock->customize_recv_or_skip = SKIP;
+    cust_sock->customize_or_skip = SKIP;
     iov_iter_advance(&msg->msg_iter, recvmsg_ret);
     spin_unlock(&cust_sock->active_customization_lock);
     return recvmsg_ret;
@@ -363,9 +389,9 @@ skip_and_recv:
 advance_and_recv:
 #ifdef DEBUG
     trace_printk("L4.5: advance and recv triggered\n");
-#ifdef DEBUG2
+    #ifdef DEBUG2
     trace_print_iov_params(&msg->msg_iter);
-#endif
+    #endif
 #endif
     iov_iter_advance(&msg->msg_iter, recvmsg_ret);
     spin_unlock(&cust_sock->active_customization_lock);

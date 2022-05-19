@@ -25,7 +25,7 @@ USERNAME=
 PASSWORD=
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 
 # Force root

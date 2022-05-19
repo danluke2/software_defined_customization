@@ -6,14 +6,18 @@
 #arg4 is the host id
 #arg5 is hex encoded key
 #arg6 is bypass flag
-#arg7 is applyNow flag
+#arg7 is priority value
+#arg8 is applyNow flag
+
+
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
 NCO_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/nco_modules
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+
+# ************** END STANDARD PARAMS ****************
 
 
 # ----------------------------------------------------------------
@@ -47,7 +51,9 @@ sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$5\";" $mod_dir/${1}.c
 ((line=line+1))
 sed -i "${line}i\u16 bypass=${6};" $mod_dir/${1}.c
 ((line=line+1))
-sed -i "${line}i\u16 applyNow=${7};" $mod_dir/${1}.c
+sed -i "${line}i\u16 priority=${7};" $mod_dir/${1}.c
+((line=line+1))
+sed -i "${line}i\u16 applyNow=${8};" $mod_dir/${1}.c
 
 
 #make the module based on host_id symver location

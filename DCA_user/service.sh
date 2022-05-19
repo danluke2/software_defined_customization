@@ -3,16 +3,13 @@
 #Purpose:  establishes DCA service on a Layer 4.5 host or middlebox
 
 
-
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 DCA_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/DCA
 
 
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 # Force root
 if [[ "$(id -u)" != "0" ]];

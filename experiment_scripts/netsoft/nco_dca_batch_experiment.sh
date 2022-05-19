@@ -5,7 +5,6 @@
 # $2 = clear built table each round of hosts: yes/no
 
 
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
@@ -25,7 +24,9 @@ SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+
+
+# ************** END STANDARD PARAMS  ****************
 
 DEVICE_DIR=$GIT_DIR/../device_modules
 #setup device dir for experiment

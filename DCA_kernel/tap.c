@@ -4,9 +4,10 @@
 #include <linux/kernel.h>
 #include <linux/pid.h>   // For pid_t
 #include <linux/sched.h> // For current (pointer to task)
-#include <linux/tcp.h>   // For TCP structures
-#include <linux/udp.h>   // For UDP structures
-#include <net/ip.h>      // for sock structure
+#include <linux/socket.h>
+#include <linux/tcp.h> // For TCP structures
+#include <linux/udp.h> // For UDP structures
+#include <net/ip.h>    // for sock structure
 
 #include "customization_socket.h"
 #include "send_recv_manager.h"
@@ -126,19 +127,19 @@ int new_tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 #ifdef DEBUG
     if (cust_socket != NULL)
     {
-        if (cust_socket->customization != NULL)
+        if (cust_socket->customizations[0] != NULL)
         {
             // Socket added to tracking table, dump socket info to log
             trace_print_cust_socket(cust_socket, "tcp_connect");
         }
-#ifdef DEBUG1
+    #ifdef DEBUG1
         else
         {
             trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
             // Socket added to tracking table, dump socket info to log
             trace_print_cust_socket(cust_socket, "tcp_connect");
         }
-#endif
+    #endif
     }
 #endif
     return connect_return;
@@ -159,23 +160,22 @@ struct sock *new_inet_csk_accept(struct sock *sk, int flags, int *err, bool kern
 
     new_sock = ref_inet_csk_accept(sk, flags, err, kern);
     cust_socket = create_cust_socket(task, new_sock, NULL);
-    trace_print_cust_socket(cust_socket, "tcp_accept");
 #ifdef DEBUG
     if (cust_socket != NULL)
     {
-        if (cust_socket->customization != NULL)
+        if (cust_socket->customizations[0] != NULL)
         {
             // Socket added to tracking table, dump socket info to log
             trace_print_cust_socket(cust_socket, "tcp_accept");
         }
-#ifdef DEBUG1
+    #ifdef DEBUG1
         else
         {
             trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
             // Socket added to tracking table, dump socket info to log
             trace_print_cust_socket(cust_socket, "tcp_accept");
         }
-#endif
+    #endif
     }
 #endif
     return new_sock;
@@ -259,35 +259,45 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size,
         cust_socket = create_cust_socket(task, sk, msg);
         if (cust_socket == NULL)
         {
-// Adopt default kernel behavior if cust socket failure
 #ifdef DEBUG1
             trace_printk("L4.5: cust_socket NULL not expected, pid %d\n", task->pid);
 #endif
+            // Adopt default kernel behavior if cust socket failure
             return sendmsg(sk, msg, size);
         }
 #ifdef DEBUG
         else
         {
-            if (cust_socket->customization != NULL)
+            if (cust_socket->customizations[0] != NULL)
             {
                 trace_printk("L4.5: Customization assigned to pid %d, sk %lu\n", task->pid, (unsigned long)sk);
                 // Socket added to tracking table, dump socket info to log
                 trace_print_cust_socket(cust_socket, "sendmsg");
             }
-#ifdef DEBUG1
+    #ifdef DEBUG1
             else
             {
                 trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
                 // Socket added to tracking table, dump socket info to log
                 trace_print_cust_socket(cust_socket, "sendmsg");
             }
-#endif
+    #endif
         }
 #endif
     }
 
+    // if update check set due to new cust module, then need to check if socket should be customized now
+    if (cust_socket->update_cust_check)
+    {
+#ifdef DEBUG3
+        trace_printk("L4.5: cust recheck triggered, pid %d\n", task->pid);
+#endif
+        update_cust_status(cust_socket, task, sk);
+    }
+
+
     // if tracking was set to SKIP at some point, stop trying to modify messages
-    if (cust_socket->customize_send_or_skip == SKIP)
+    if (cust_socket->customize_or_skip == SKIP)
     {
 #ifdef DEBUG3
         trace_printk("L4.5: cust_socket send set to skip, pid %d\n", task->pid);
@@ -295,23 +305,7 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size,
         return sendmsg(sk, msg, size);
     }
 
-    // if tracking was set to UNKNOWN due to new cust module, then need to check if socket should be customized now
-    if (cust_socket->customize_send_or_skip == UNKNOWN)
-    {
-#ifdef DEBUG3
-        trace_printk("L4.5: cust recheck triggered, pid %d\n", task->pid);
-#endif
-        update_cust_status(cust_socket, task, sk);
 
-        // check if should skip
-        if (cust_socket->customize_send_or_skip == SKIP)
-        {
-#ifdef DEBUG3
-            trace_printk("L4.5: cust_socket send set to skip, pid %d\n", task->pid);
-#endif
-            return sendmsg(sk, msg, size);
-        }
-    }
 
     return dca_sendmsg(cust_socket, sk, msg, size, sendmsg);
 }
@@ -321,20 +315,6 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size,
 // @see tcp.h for standard parameters
 int new_tcp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 {
-    // struct task_struct *task = current;
-    // struct task_struct *task_rparent = task->real_parent;
-    // struct task_struct *task_parent = task->parent;
-    // struct task_struct *test = pid_task(find_vpid(task->tgid), PIDTYPE_PID);
-    // trace_printk("L4.5 TCP sendmsg, pid %d, tgid %d, task name = %s\n", task->pid, task->tgid, task->comm);
-    // trace_printk("L4.5 TCP sendmsg, real parent pid %d, tgid %d, task name = %s\n", task_rparent->pid,
-    // task_rparent->tgid, task_rparent->comm); trace_printk("L4.5 TCP sendmsg, parent pid %d, tgid %d, task name =
-    // %s\n", task_parent->pid, task_parent->tgid, task_parent->comm);
-    //
-    // if(test)
-    // {
-    //   trace_printk("L4.5 TCP sendmsg, test pid %d, tgid %d, task name = %s\n", test->pid, test->tgid, test->comm);
-    // }
-
     return common_sendmsg(sk, msg, size, ref_tcp_sendmsg);
 }
 
@@ -343,19 +323,6 @@ int new_tcp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 // @see udp.c for standard parameters
 int new_udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 {
-    // struct task_struct *task = current;
-    // struct task_struct *task_rparent = task->real_parent;
-    // struct task_struct *task_parent = task->parent;
-    // struct task_struct *test = pid_task(find_vpid(task->tgid), PIDTYPE_PID);
-    // trace_printk("L4.5 UDP sendmsg, pid %d, tgid %d, task name = %s\n", task->pid, task->tgid, task->comm);
-    // trace_printk("L4.5 UDP sendmsg, real parent pid %d, tgid %d, task name = %s\n", task_rparent->pid,
-    // task_rparent->tgid, task_rparent->comm); trace_printk("L4.5 UDP sendmsg, parent pid %d, tgid %d, task name =
-    // %s\n", task_parent->pid, task_parent->tgid, task_parent->comm);
-    //
-    // if(test)
-    // {
-    //   trace_printk("L4.5 UDP sendmsg, test pid %d, tgid %d, task name = %s\n", test->pid, test->tgid, test->comm);
-    // }
     return common_sendmsg(sk, msg, size, ref_udp_sendmsg);
 }
 
@@ -416,48 +383,39 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
 #ifdef DEBUG
         else
         {
-            if (cust_socket->customization != NULL)
+            if (cust_socket->customizations[0] != NULL)
             {
                 // Socket added to tracking table, dump socket info to log
                 trace_print_cust_socket(cust_socket, "recvmsg");
             }
-#ifdef DEBUG1
+    #ifdef DEBUG1
             else
             {
                 trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
                 // Socket added to tracking table, dump socket info to log
                 trace_print_cust_socket(cust_socket, "sendmsg");
             }
-#endif
+    #endif
         }
 #endif
     }
 
-    // if tracking was set to false at some point, stop trying to modify messages
-    if (cust_socket->customize_recv_or_skip == SKIP)
-    {
-#ifdef DEBUG3
-        trace_printk("L4.5: cust_socket recv set to skip, pid %d\n", task->pid);
-#endif
-        return recvmsg_return;
-    }
-
-    // if tracking was set to UNKNOWN due to new cust module, then need to check if socket should be customized now
-    if (cust_socket->customize_recv_or_skip == UNKNOWN)
+    // if update check set due to new cust module, then need to check if socket should be customized now
+    if (cust_socket->update_cust_check)
     {
 #ifdef DEBUG3
         trace_printk("L4.5: cust recheck triggered, pid %d\n", task->pid);
 #endif
         update_cust_status(cust_socket, task, sk);
+    }
 
-        // check if should skip
-        if (cust_socket->customize_recv_or_skip == SKIP)
-        {
+    // if tracking was set to SKIP at some point, stop trying to modify messages
+    if (cust_socket->customize_or_skip == SKIP)
+    {
 #ifdef DEBUG3
-            trace_printk("L4.5: cust_socket send set to skip, pid %d\n", task->pid);
+        trace_printk("L4.5: cust_socket recv set to skip, pid %d\n", task->pid);
 #endif
-            return recvmsg_return;
-        }
+        return recvmsg_return;
     }
 
     return dca_recvmsg(cust_socket, sk, msg, len, recvmsg_return);
@@ -468,17 +426,6 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
 // @see tcp.h for standard parameters
 int new_tcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock, int flags, int *addr_len)
 {
-    // struct task_struct *task = current;
-    // struct task_struct *task_rparent = task->real_parent;
-    // struct task_struct *task_parent = task->parent;
-    // struct task_struct *test = pid_task(find_vpid(task->tgid), PIDTYPE_PID);
-    // trace_printk("L4.5 TCP recvmsg, pid %d, tgid %d, task name = %s\n", task->pid, task->tgid, task->comm);
-    // trace_printk("L4.5 TCP recvmsg, real parent pid %d, tgid %d, task name = %s\n", task_rparent->pid,
-    // task_rparent->tgid, task_rparent->comm); trace_printk("L4.5 TCP recvmsg, parent pid %d, tgid %d, task name =
-    // %s\n", task_parent->pid, task_parent->tgid, task_parent->comm); if(test)
-    // {
-    //   trace_printk("L4.5 TCP recvmsg, test pid %d, tgid %d, task name = %s\n", test->pid, test->tgid, test->comm);
-    // }
     return common_recvmsg(sk, msg, len, nonblock, flags, addr_len, ref_tcp_recvmsg);
 }
 

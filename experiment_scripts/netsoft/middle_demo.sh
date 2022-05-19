@@ -4,8 +4,6 @@
 # $1 = standard report interval (ex: 5)
 
 
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
@@ -25,7 +23,9 @@ SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+
+
+# ************** END STANDARD PARAMS  ****************
 
 # Force root
 if [[ "$(id -u)" != "0" ]];

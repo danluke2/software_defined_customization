@@ -32,13 +32,14 @@ void free_revoked_customization_list(void);
 struct customization_node *get_cust_by_id(u16 cust_id);
 
 
-// Finds a customization present in the linked list that applies to socket
+// Finds up to MAX_CUST_ATTACH customizations present in the linked list that apply to socket
 // Servers call this on first message received
 // Clients call on first message sent
 // @param[I] cust_socket The desired socket to match customization to
+// @param[I] nodes[] Holds MAX_CUST_ATTACH nodes that match the socket; assumed to hold NULL ptrs
 // @see util/compare.c: compare functions
-// @return The customization node that applies to the input socket
-struct customization_node *get_customization(struct customization_socket *cust_socket);
+// @return The sorted customization node array that applies to the input socket
+size_t get_customizations(struct customization_socket *cust_socket, struct customization_node *nodes[]);
 
 
 // Registers a new protocol customization module available

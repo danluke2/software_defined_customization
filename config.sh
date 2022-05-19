@@ -60,9 +60,11 @@ GENI_PASSWORD=$2
 
 # *************** Installer Makefile update ***************
 # file line to start writing at
-LINE=2
 
 FILE=$INSTALLER_MAKEFILE_DIR/Makefile
+LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  
+((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR" $FILE
 ((LINE=LINE+1))
@@ -82,8 +84,11 @@ MAKEFILE_PATHS="$DCA_KERNEL_DIR/test_modules $LAYER_MOD_DIR/sample_modules  $GEN
 
 for x in $MAKEFILE_PATHS
 do
-  LINE=2 # file line to start writing at
   FILE=$x/Makefile
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  
+  ((LINE=LINE+1))
+
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\KBUILD_EXTRA_SYMBOLS=$KBUILD_EXTRA_SYMBOLS" $FILE
   ((LINE=LINE+1))
@@ -103,8 +108,10 @@ done
 INSTALLER_FILES="installer.sh loader.sh"
 for x in $INSTALLER_FILES
 do
-  LINE=10 # file line to start writing at
   FILE=$INSTALLER_MAKEFILE_DIR/bash/${x}
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR" $FILE
   ((LINE=LINE+1))
@@ -131,8 +138,10 @@ done
 INSTALLER_FILES="service.sh"
 for x in $INSTALLER_FILES
 do
-  LINE=10 # file line to start writing at
   FILE=$DCA_USER_DIR/$x
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\DCA_LOCATION=$DCA_LOCATION" $FILE
 done
@@ -145,8 +154,10 @@ done
 INSTALLER_FILES="service.sh"
 for x in $INSTALLER_FILES
 do
-  LINE=10 # file line to start writing at
   FILE=$NCO_DIR/$x
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
 done
@@ -159,8 +170,10 @@ done
 INSTALLER_FILES="service.sh"
 for x in $INSTALLER_FILES
 do
-  LINE=10 # file line to start writing at
   FILE=$SIMPLE_SERVER_DIR/$x
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR" $FILE
 done
@@ -171,7 +184,9 @@ done
 # *************** Vagrant Bash updates ***************
 
 FILE=$GIT_DIR/vagrant/setup.sh
-LINE=20 # file line to start writing at
+LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  
+((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
 ((LINE=LINE+1))
@@ -193,8 +208,10 @@ FILES="batch_experiment.sh bulk_experiment.sh challenge_response.sh cleanup.sh e
 
 for x in $FILES
 do
-  LINE=10 # file line to start writing at
   FILE=$NETSOFT_SCRIPT_DIR/${x}
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  
+  ((LINE=LINE+1)) 
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
   ((LINE=LINE+1))
@@ -257,8 +274,10 @@ FILES="geni_batch_all_servers.sh geni_batch_single_experiment.sh geni_bulk_singl
 
 for x in $FILES
 do
-  LINE=12 # file line to start writing at
   FILE=$GENI_SCRIPT_DIR/${x}
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
   ((LINE=LINE+1))
@@ -308,9 +327,11 @@ done
 
 # *************** NCO Builder update ***************
 # file line to start writing at
-LINE=12
 
 FILE=$NCO_DIR/builder.sh
+LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+
+((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
 ((LINE=LINE+1))
@@ -323,9 +344,11 @@ sed -i "${LINE}i\NCO_MOD_DIR=$NCO_MOD_DIR" $FILE
 
 # *************** NCO cfg update ***************
 # file line to start writing at
-LINE=2
 
 FILE=$NCO_DIR/cfg.py
+LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+
+((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
 ((LINE=LINE+1))
@@ -342,9 +365,11 @@ sed -i "${LINE}i\common_struct_dir='$DCA_KERNEL_DIR/'" $FILE
 
 # *************** DCA cfg update ***************
 # file line to start writing at
-LINE=2
 
 FILE=$DCA_USER_DIR/cfg.py
+LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+
+((LINE=LINE+1))
 sed -i "${LINE}d" $FILE
 sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
 ((LINE=LINE+1))
@@ -364,11 +389,13 @@ sed -i "${LINE}i\system_release='$distro'" $FILE
 # *************** Module Include updates ***************
 
 # sample modules
-SAMPLE_MODULE_FILES="sample_python_client.c sample_python_server.c"
+SAMPLE_MODULE_FILES="sample_python_client.c sample_python_client_alt.c sample_python_server.c"
 for x in $SAMPLE_MODULE_FILES
 do
-  LINE=12 # file line to start writing at
   FILE=$LAYER_MOD_DIR/sample_modules/${x}
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\#include \"$DCA_KERNEL_DIR/common_structs.h\"" $FILE
   ((LINE=LINE+1))
@@ -376,12 +403,15 @@ do
   sed -i "${LINE}i\#include \"$DCA_KERNEL_DIR/util/printing.h\"" $FILE
 done
 
+
 # netsoft modules
 NETSOFT_MODULE_FILES="overhead_test_batch_dns_client.c overhead_test_batch_dns_server.c overhead_test_bulk_file_client.c overhead_test_bulk_file_server.c"
 for x in $NETSOFT_MODULE_FILES
 do
-  LINE=12 # file line to start writing at
   FILE=$NETSOFT_MOD_DIR/${x}
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\#include \"$DCA_KERNEL_DIR/common_structs.h\"" $FILE
   ((LINE=LINE+1))
@@ -394,8 +424,10 @@ done
 GENI_MODULE_FILES="bulk_client.c bulk_server.c compress_dns_client.c compress_dns_server.c end_dns_client.c end_dns_server.c front_dns_client.c front_dns_server.c middle_dns_client.c middle_dns_server.c"
 for x in $GENI_MODULE_FILES
 do
-  LINE=13 # file line to start writing at
   FILE=$GENI_MOD_DIR/${x}
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\#include \"$DCA_KERNEL_DIR/common_structs.h\"" $FILE
   ((LINE=LINE+1))
@@ -408,8 +440,10 @@ done
 EXTRA_MODULE_FILES="sample_tls_client.c sample_tls_server.c"
 for x in $EXTRA_MODULE_FILES
 do
-  LINE=12 # file line to start writing at
   FILE=$LAYER_MOD_DIR/extra/${x}
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+
+  ((LINE=LINE+1))
   sed -i "${LINE}d" $FILE
   sed -i "${LINE}i\#include \"$DCA_KERNEL_DIR/common_structs.h\"" $FILE
   ((LINE=LINE+1))

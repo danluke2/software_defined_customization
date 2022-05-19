@@ -21,6 +21,8 @@ bool pid_task_compare(struct customization_node *node, struct customization_sock
 }
 
 
+
+
 bool tgid_task_compare(struct customization_node *node, struct customization_socket *socket)
 {
     bool success = false;
@@ -35,6 +37,8 @@ bool tgid_task_compare(struct customization_node *node, struct customization_soc
     }
     return success;
 }
+
+
 
 
 bool protocol_compare(struct customization_node *node, struct customization_socket *socket)
@@ -53,6 +57,8 @@ bool protocol_compare(struct customization_node *node, struct customization_sock
 }
 
 
+
+
 bool dest_compare(struct customization_node *node, struct customization_socket *socket)
 {
     bool success = false;
@@ -66,6 +72,8 @@ bool dest_compare(struct customization_node *node, struct customization_socket *
     }
     return success;
 }
+
+
 
 
 bool src_compare(struct customization_node *node, struct customization_socket *socket)
@@ -121,4 +129,43 @@ bool customization_compare(struct customization_node *node, struct customization
         }
     }
     return success;
+}
+
+
+
+
+int priority_compare(const void *lhs, const void *rhs)
+{
+    struct customization_node *lhs_node = *(struct customization_node **)(lhs);
+    struct customization_node *rhs_node = *(struct customization_node **)(rhs);
+    u16 *lhs_priority = lhs_node->cust_priority;
+    u16 *rhs_priority = rhs_node->cust_priority;
+
+#ifdef DEBUG2
+    if (lhs_priority == NULL)
+        trace_printk("L4.5:lhs null ptr\n");
+    else
+    {
+        trace_printk("L4.5:lhs value %u\n", *lhs_priority);
+    }
+
+    if (rhs_priority == NULL)
+        trace_printk("L4.5:rhs null ptr\n");
+    else
+    {
+        trace_printk("L4.5:rhs value %u\n", *rhs_priority);
+    }
+#endif
+
+    if (*lhs_priority < *rhs_priority)
+    {
+        return -1;
+    }
+
+    if (*lhs_priority > *rhs_priority)
+    {
+        return 1;
+    }
+
+    return 0;
 }

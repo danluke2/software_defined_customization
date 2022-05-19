@@ -1,11 +1,11 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
-HOST = '10.0.0.20'
-nco_dir = '/home/vagrant/software_defined_customization/NCO/'
-nco_mod_dir = '/home/vagrant/software_defined_customization/layer4_5_modules/nco_modules/'
-common_struct_dir = '/home/vagrant/software_defined_customization/DCA_kernel/'
+HOST='10.0.0.20'
+nco_dir='/home/vagrant/software_defined_customization/NCO/'
+nco_mod_dir='/home/vagrant/software_defined_customization/layer4_5_modules/nco_modules/'
+common_struct_dir='/home/vagrant/software_defined_customization/DCA_kernel/'
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS ****************
 
 
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)

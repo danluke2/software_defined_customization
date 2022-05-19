@@ -6,7 +6,7 @@ DISTRO_DIR=/lib/modules/5.13.0-35-generic
 
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 
 layer4_5-objs := init.o \

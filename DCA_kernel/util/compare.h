@@ -48,4 +48,12 @@ bool src_compare(struct customization_node *node, struct customization_socket *s
 // @return bool for pass/fail of compare check
 bool customization_compare(struct customization_node *node, struct customization_socket *socket);
 
+
+
+// Comparison function used with sort to compare cust node priority
+// @param[I] lhs pointer to left element of customization array
+// @param[I] rhs pointer to right element of customization array
+// @return Integer signaling comparison result
+int priority_compare(const void *lhs, const void *rhs);
+
 #endif

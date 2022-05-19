@@ -8,7 +8,7 @@
 #include <net/sock.h>
 
 
-
+#define MAX_CUST_ATTACH 5
 #define TASK_NAME_LEN 16 // defined in sched.h as TASK_COMM_LEN 16
 #define SEND_BUF_SIZE 65536
 #define RECV_BUF_SIZE 65536
@@ -34,8 +34,7 @@
 enum customization_state
 {
     SKIP,
-    CUSTOMIZE,
-    UNKNOWN // signal to check again for new cust modules
+    CUSTOMIZE
 };
 
 
@@ -66,9 +65,9 @@ struct customization_buffer
     struct iov_iter *src_iter; // source buffer to work from
     size_t length;             // send=amount of data in src_iter, recv=max amount to return
     size_t recv_return;        // amount of data L4 returned from recvmsg call
-
-    bool skip_cust;
-    bool no_cust;
+    bool set_cust_to_skip;     // no more cust performed on socket
+    bool no_cust;              // module didn't alter message (save a copy operation)
+    bool try_next;             // module didn't match and next module in array should be checked
 };
 
 
@@ -80,14 +79,18 @@ struct customization_socket
     struct sock *sk;
     uid_t uid; // up to modules to map ID to username if desired
 
-    // customization can be one way, so allow for send/recv differentiation
-    enum customization_state customize_send_or_skip;
-    enum customization_state customize_recv_or_skip;
+    // flag used to signal a new module registered and we should check cust matching
+    bool update_cust_check;
+
+    // customization must register both send/recv to simplify cust array processing
+    enum customization_state customize_or_skip;
 
     struct customization_flow socket_flow;
 
-    // custimation will be cast to customization node
-    void *customization;
+    // custimation pointer will be cast to customization node
+    // we now keep an array of pointers to customization nodes, sorted by priority
+    void *customizations[MAX_CUST_ATTACH];
+    // all customization modules will use the same customization buffers
     struct customization_buffer send_buf_st;
     struct customization_buffer recv_buf_st;
     struct timespec64 last_cust_send_time_struct; // last time cust was applied
@@ -111,6 +114,8 @@ struct customization_node
     u16 *bypass_mode;
     // counter to track number of sockets cust is applied to
     u16 sock_count;
+    // used to sort customizations in cust array
+    u16 *cust_priority;
 
     // cust can set these to override the defualt SEND_BUF_SIZE, RECV_BUF_SIZE
     u32 send_buffer_size;

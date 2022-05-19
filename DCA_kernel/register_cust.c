@@ -4,6 +4,7 @@
 
 #include <linux/list.h>
 #include <linux/slab.h> // For allocations
+#include <linux/sort.h>
 #include <linux/timekeeping.h>
 
 #include "customization_socket.h"
@@ -46,6 +47,8 @@ void init_customization_list(void)
 }
 
 
+
+
 void free_customization_list(void)
 {
     struct customization_node *cust;
@@ -59,6 +62,8 @@ void free_customization_list(void)
     spin_unlock(&active_customization_list_lock);
     return;
 }
+
+
 
 
 void free_deprecated_customization_list(void)
@@ -76,6 +81,8 @@ void free_deprecated_customization_list(void)
 }
 
 
+
+
 void free_revoked_customization_list(void)
 {
     struct customization_node *cust;
@@ -89,6 +96,8 @@ void free_revoked_customization_list(void)
     spin_unlock(&revoked_customization_list_lock);
     return;
 }
+
+
 
 
 struct customization_node *get_cust_by_id(u16 cust_id)
@@ -115,10 +124,14 @@ struct customization_node *get_cust_by_id(u16 cust_id)
 }
 
 
-struct customization_node *get_customization(struct customization_socket *cust_socket)
+
+
+size_t get_customizations(struct customization_socket *cust_socket, struct customization_node *nodes[MAX_CUST_ATTACH])
 {
     struct customization_node *cust_temp = NULL;
     struct customization_node *cust_next = NULL;
+    size_t counter = 0;
+    u16 priority_threshold = 65535; // max u16 value
 
     list_for_each_entry_safe(cust_temp, cust_next, &active_customization_list, cust_list_member)
     {
@@ -127,10 +140,29 @@ struct customization_node *get_customization(struct customization_socket *cust_s
 #ifdef DEBUG1
             trace_printk("L4.5: cust socket match to registered module, pid = %d\n", cust_socket->pid);
 #endif
-            return cust_temp;
+            // if cust priority lower than current threshold, then add to the array
+            if (*cust_temp->cust_priority <= priority_threshold)
+            {
+                nodes[counter] = cust_temp;
+                counter += 1;
+                if (counter == MAX_CUST_ATTACH)
+                {
+                    break;
+                }
+            }
         }
     }
-    return NULL;
+#ifdef DEBUG1
+    trace_printk("L4.5: found %lu nodes for socket\n", counter);
+#endif
+    // now sort array by priority values before returning
+    // counter holds number of modules in nodes array, so we won't reach NULL pointer
+    if (counter > 1)
+    {
+        sort(nodes, counter, sizeof(void *), &priority_compare, NULL);
+    }
+
+    return counter;
 }
 
 
@@ -149,8 +181,8 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
         return -1;
     }
 
-    // invalid customization recieved, at least one function must be valid
-    if (module_cust->send_function == NULL && module_cust->recv_function == NULL)
+    // invalid customization recieved, both function must be valid
+    if (module_cust->send_function == NULL || module_cust->recv_function == NULL)
     {
 #ifdef DEBUG
         trace_printk("L4.5 ALERT: NULL registration function check failed\n");
@@ -171,6 +203,7 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
     cust->cust_id = module_cust->cust_id;
     cust->bypass_mode = module_cust->bypass_mode;
     cust->sock_count = 0; // init value
+    cust->cust_priority = module_cust->cust_priority;
 
     cust->target_flow.protocol = module_cust->target_flow.protocol;
     memcpy(cust->target_flow.task_name_pid, module_cust->target_flow.task_name_pid, TASK_NAME_LEN);
@@ -209,13 +242,16 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
 
     if (applyNow)
     {
-        // now reset sockets in normal table so they check again
-        reset_cust_socket_status();
+        // now set update check on sockets so they check again
+        set_update_cust_check();
     }
 
 
     return 0;
 }
+
+
+
 
 // called by the module to completely remove it from use
 int unregister_customization(struct customization_node *module_cust)
@@ -266,7 +302,7 @@ int unregister_customization(struct customization_node *module_cust)
 
     if (found == 0)
     {
-// if still 0, then we have a problem
+        // if still 0, then we have a problem
 #ifdef DEBUG
         trace_printk("L4.5 ALERT: No customization found with id = %u", module_cust->cust_id);
 #endif
@@ -294,10 +330,12 @@ int unregister_customization(struct customization_node *module_cust)
 }
 
 
-// remove cust from active list
+
+
+// Deprecate will remove cust from active list
 // called by DCA to stop new sockets from using the registered module
 // but DCA only has the module ID, not the struct pointer
-int remove_customization_from_active_list(u16 cust_id)
+int deprecate_customization(u16 cust_id)
 {
     int found = 0;
     struct customization_node *module_cust = NULL;
@@ -403,6 +441,7 @@ int split_message(char *request, char *words[], u16 number_of_words)
 
 
 
+
 void netlink_cust_report(char *message, size_t *length)
 {
     struct customization_node *cust_temp = NULL;
@@ -468,6 +507,7 @@ void netlink_cust_report(char *message, size_t *length)
 
 
 
+
 void netlink_challenge_cust(char *message, size_t *length, char *request)
 {
     struct customization_node *cust_node = NULL;
@@ -496,7 +536,7 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
     {
         trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
         // we did not get a valid message, so return error message
-        goto error_msg;
+        goto parsing_error_msg;
     }
 
     result = kstrtou16((words[1]), 10, &cust_id);
@@ -504,7 +544,7 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
     {
         trace_printk("L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
         // cust id string to u16 failed, so return error message
-        goto error_msg;
+        goto parsing_error_msg;
     }
 
     iv = words[2];
@@ -514,26 +554,44 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
     message = json_uint(message, "ID", cust_id, &rem_length);
 
     cust_node = get_cust_by_id(cust_id);
-    cust_node->challenge_function(response, iv, msg);
+    // modules don't require a challenge function at registration time
+    if (cust_node->challenge_function != NULL)
+    {
+        cust_node->challenge_function(response, iv, msg);
 
-    message = json_nstr(message, "IV", response, HEX_IV_LENGTH, &rem_length);
-    message =
-        json_nstr(message, "Response", response + HEX_IV_LENGTH, HEX_RESPONSE_LENGTH - HEX_IV_LENGTH, &rem_length);
+        message = json_nstr(message, "IV", response, HEX_IV_LENGTH, &rem_length);
+        message =
+            json_nstr(message, "Response", response + HEX_IV_LENGTH, HEX_RESPONSE_LENGTH - HEX_IV_LENGTH, &rem_length);
 
-    message = json_objClose(message, &rem_length);
-    message = json_end_message(message, &rem_length);
+        message = json_objClose(message, &rem_length);
+        message = json_end_message(message, &rem_length);
 
-    *length = *length - rem_length;
+        *length = *length - rem_length;
+    }
+    else
+    {
+        goto function_error_msg;
+    }
+
     return;
 
-error_msg:
+parsing_error_msg:
     message = json_objOpen(message, NULL, &rem_length);
     message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
     message = json_objClose(message, &rem_length);
     message = json_end_message(message, &rem_length);
     *length = *length - rem_length;
     return;
+
+function_error_msg:
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_nstr(message, "ERROR", "NULL function", 13, &rem_length);
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+    *length = *length - rem_length;
+    return;
 }
+
 
 
 
@@ -572,7 +630,7 @@ void netlink_deprecate_cust(char *message, size_t *length, char *request)
     message = json_objOpen(message, NULL, &rem_length);
     message = json_uint(message, "ID", cust_id, &rem_length);
 
-    result = remove_customization_from_active_list(cust_id);
+    result = deprecate_customization(cust_id);
 
     message = json_uint(message, "Result", result, &rem_length);
 
@@ -591,6 +649,8 @@ error_msg:
     *length = *length - rem_length;
     return;
 }
+
+
 
 
 void netlink_toggle_cust(char *message, size_t *length, char *request)

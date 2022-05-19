@@ -3,16 +3,13 @@
 #Purpose:  establishes NCO service to support Layer 4.5 framework
 
 
-
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
 
 
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 # Force root
 if [[ "$(id -u)" != "0" ]];

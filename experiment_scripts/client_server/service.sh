@@ -3,16 +3,13 @@
 #Purpose:  establishes Python simple server service
 
 
-
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 
 
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 # Force root
 if [[ "$(id -u)" != "0" ]];

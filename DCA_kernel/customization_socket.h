@@ -25,7 +25,7 @@ void init_socket_tables(void);
 struct customization_socket *create_cust_socket(struct task_struct *task, struct sock *sk, struct msghdr *msg);
 
 
-// Checks if the customizable socket now matches a new cust module and transfers
+// Checks if the customizable socket now matches any new cust modules and transfers
 // it to the cust table if necessary
 // @param[I] cust_socket The customizable socket
 // @param[I] task current task pointer
@@ -43,9 +43,10 @@ struct customization_socket *get_cust_socket(struct task_struct *task, struct so
 
 
 
-// Ssts customization status to UNKNOWN for each socket in normal table
-// Called when new cust socket registered
-void reset_cust_socket_status(void);
+// Sets customization update check to true for each socket in normal table
+// For sockets in cust table, sets check if cust array not full
+// Called when new cust module registered with applyNow flag set
+void set_update_cust_check(void);
 
 
 // Look at each socket and see if the stored customization matches cust_id

@@ -25,7 +25,8 @@ USERNAME=
 PASSWORD=
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+
+# ************** END STANDARD PARAMS  ****************
 
 SERVER_IP=$4
 CLIENT_IP=$5

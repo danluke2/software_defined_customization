@@ -26,7 +26,7 @@ CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 
 #directory holding the software_defined_customization git repo

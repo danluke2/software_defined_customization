@@ -15,7 +15,7 @@ DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 # use nullglob in case there are no matching files
 shopt -s nullglob

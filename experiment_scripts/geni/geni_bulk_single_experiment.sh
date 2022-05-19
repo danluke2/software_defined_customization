@@ -6,8 +6,6 @@
 # $3 = client IP address for customization modules
 
 
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
@@ -25,8 +23,7 @@ USERNAME=
 PASSWORD=
 
 
-
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 SERVER_IP=$2
 CLIENT_IP=$3
