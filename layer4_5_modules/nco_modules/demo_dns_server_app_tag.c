@@ -44,20 +44,36 @@ MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
 
 char cust_tag_test[21] = "XTAGdig";
-size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 20 bytes
 
 struct customization_node *dns_cust;
 
 
-// Line 52 should be blank b/c NCO will write the module_id variable to that line
-// followed by any other variables we determine NCO should declare when building
+
+// NCO VARIABLES GO HERE
+u16 module_id = 1;
+char hex_key[HEX_KEY_LENGTH] = "";
+u16 bypass = 0;
+u16 priority = 0;
+u16 applyNow = 0;
+
+
+// END NCO VARIABLES
 
 
 
 
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-    send_buf_st->copy_length = 0;
+    // passive monitoring allowed here, but active must pass bypass_mode check
+
+    if (*dns_cust->bypass_mode)
+    {
+        send_buf_st->try_next = true;
+        return;
+    }
+
+
+    send_buf_st->no_cust = true;
     return;
 }
 
@@ -66,10 +82,11 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 20 bytes
     char tag[5] = "XTAG";
     recv_buf_st->copy_length = 0;
     recv_buf_st->no_cust = false;
-    recv_buf_st->skip_cust = false;
+    recv_buf_st->set_cust_to_skip = false;
 
     if (*dns_cust->bypass_mode)
     {
@@ -127,6 +144,9 @@ int __init sample_client_start(void)
     // provide pointer for DCA to toggle bypass mode instead of new function
     dns_cust->bypass_mode = &bypass;
 
+    // provide pointer for DCA to update priority instead of new function
+    dns_cust->cust_priority = &priority;
+
     dns_cust->target_flow.protocol = protocol;
     memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
     memcpy(dns_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
@@ -137,7 +157,7 @@ int __init sample_client_start(void)
     dns_cust->target_flow.source_ip = in_aton(source_ip);
     dns_cust->target_flow.source_port = (u16)source_port;
 
-    dns_cust->send_function = NULL;
+    dns_cust->send_function = modify_buffer_send;
     dns_cust->recv_function = modify_buffer_recv;
 
     // Cust ID set by customization controller, network uniqueness required

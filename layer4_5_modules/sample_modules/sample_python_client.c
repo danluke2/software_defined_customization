@@ -9,9 +9,8 @@
 #include <linux/uio.h> // For iter structures
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
-#include "/home/vagrant/software_defined_customization/DCA_kernel/common_structs.h"
-#include "/home/vagrant/software_defined_customization/DCA_kernel/util/printing.h"
-
+#include <common_structs.h>
+#include <printing.h>
 // ************** END STANDARD PARAMS ****************
 
 
@@ -54,7 +53,6 @@ MODULE_PARM_DESC(priority, "Customization priority level used when attaching mod
 
 // test message for this module
 char cust_test[12] = "testCustMod";
-size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
 
 struct customization_node *python_cust;
 
@@ -71,6 +69,7 @@ struct customization_node *python_cust;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
 
     // passive monitoring allowed here, but active must pass bypass_mode check
 

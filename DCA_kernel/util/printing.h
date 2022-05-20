@@ -1,7 +1,7 @@
 #ifndef _PRINTING_UTILS_H
 #define _PRINTING_UTILS_H
 
-#include "../common_structs.h"
+#include <common_structs.h>
 
 #define MAX_BUFFER_SIZE 64
 

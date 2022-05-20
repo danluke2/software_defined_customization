@@ -10,9 +10,8 @@
 #include <linux/version.h>
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
-#include "/home/vagrant/software_defined_customization/DCA_kernel/common_structs.h"
-#include "/home/vagrant/software_defined_customization/DCA_kernel/util/printing.h"
-
+#include <common_structs.h>
+#include <printing.h>
 // ************** END STANDARD PARAMS ****************
 
 
@@ -51,8 +50,15 @@ static bool applyNow = false;
 module_param(applyNow, bool, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
+unsigned short bypass = 0;
+module_param(bypass, ushort, 0600);
+MODULE_PARM_DESC(bypass, "Place customization in bypass mode, which bypasses customization");
+
+unsigned short priority = 65535;
+module_param(priority, ushort, 0600);
+MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
+
 char cust_tag_test[9] = "XTAGXdig";
-size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 8 bytes
 
 struct customization_node *dns_cust;
 
@@ -63,7 +69,16 @@ u16 module_id = 2;
 
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-    send_buf_st->copy_length = 0;
+    // passive monitoring allowed here, but active must pass bypass_mode check
+
+    if (*dns_cust->bypass_mode)
+    {
+        send_buf_st->try_next = true;
+        return;
+    }
+
+
+    send_buf_st->no_cust = true;
     return;
 }
 
@@ -72,6 +87,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 8 bytes
     char tag[6] = "XTAGX";
     recv_buf_st->copy_length = 0;
 
@@ -122,6 +138,12 @@ int __init sample_client_start(void)
         return -1;
     }
 
+    // provide pointer for DCA to toggle bypass mode instead of new function
+    dns_cust->bypass_mode = &bypass;
+
+    // provide pointer for DCA to update priority instead of new function
+    dns_cust->cust_priority = &priority;
+
     dns_cust->target_flow.protocol = protocol;
     memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
     memcpy(dns_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
@@ -132,15 +154,15 @@ int __init sample_client_start(void)
     dns_cust->target_flow.source_ip = in_aton(source_ip);
     dns_cust->target_flow.source_port = (u16)source_port;
 
-    dns_cust->send_function = NULL;
+    dns_cust->send_function = modify_buffer_send;
     dns_cust->recv_function = modify_buffer_recv;
 
     // Cust ID set by customization controller, network uniqueness required
     dns_cust->cust_id = module_id;
     dns_cust->registration_time_struct.tv_sec = 0;
     dns_cust->registration_time_struct.tv_nsec = 0;
-    dns_cust->retired_time_struct.tv_sec = 0;
-    dns_cust->retired_time_struct.tv_nsec = 0;
+    dns_cust->revoked_time_struct.tv_sec = 0;
+    dns_cust->revoked_time_struct.tv_nsec = 0;
 
     dns_cust->send_buffer_size = 0; // accept default buffer size
     dns_cust->recv_buffer_size = 0; // accept default buffer size

@@ -2,21 +2,16 @@
 
 #arg 1 is the module to build (without extension)
 #arg2 is the module ID to assign
-#arg3 is the line number to start inserting at
-#arg4 is the host id
-#arg5 is hex encoded key
-#arg6 is bypass flag
-#arg7 is priority value
-#arg8 is applyNow flag
-
+#arg3 is the host id
+#arg4 is hex encoded key
+#arg5 is bypass flag
+#arg6 is priority value
+#arg7 is applyNow flag
 
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
 NCO_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/nco_modules
-
-
-
 # ************** END STANDARD PARAMS ****************
 
 
@@ -28,32 +23,56 @@ NCO_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/nco_mo
 error_exit()
 {
   echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
-  exit 1
+  exit -1
 }
 
+# ----------------------------------------------------------------
+# Function for delete lines between start params and end params
+#   Accepts 1 argument:
+#     File name
+# ----------------------------------------------------------------
+delete_lines()
+{
+  START="$(grep -n "NCO VARIABLES GO HERE" $1 | head -n 1 | cut -d: -f1)"
+  END="$(grep -n "END NCO VARIABLES" $1 | head -n 1 | cut -d: -f1)"
+
+  # delete all lines between start and end
+  ((START=START+1))
+  ((END=END-1))
+  if [ $START -lt $END ]
+  then
+    sed -i "${START},${END}d" $1
+  fi
+}
 
 
 CURDIR="$( pwd )"
 
-line=$3;
-
-symvers_dir=$NCO_DIR/device_modules/host_$4
+symvers_dir=$NCO_DIR/device_modules/host_$3
 mod_dir=$symvers_dir/modules
 
 
 #copy module from core dir to the host module dir before changing it
 cp $NCO_MOD_DIR/$1.c  $mod_dir
 
-#open module and insert u16 module_id = XX; with NCO assigned value
+
+# delete all lines between start and end
+delete_lines $mod_dir/${1}.c
+
+# insert standard params
+line="$(grep -n "NCO VARIABLES GO HERE" $mod_dir/${1}.c | head -n 1 | cut -d: -f1)"
+((line=line+1))
+
+#open module and insert NCO assigned values
 sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c
 ((line=line+1))
-sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$5\";" $mod_dir/${1}.c
+sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$4\";" $mod_dir/${1}.c
 ((line=line+1))
-sed -i "${line}i\u16 bypass=${6};" $mod_dir/${1}.c
+sed -i "${line}i\u16 bypass=${5};" $mod_dir/${1}.c
 ((line=line+1))
-sed -i "${line}i\u16 priority=${7};" $mod_dir/${1}.c
+sed -i "${line}i\u16 priority=${6};" $mod_dir/${1}.c
 ((line=line+1))
-sed -i "${line}i\u16 applyNow=${8};" $mod_dir/${1}.c
+sed -i "${line}i\u16 applyNow=${7};" $mod_dir/${1}.c
 
 
 #make the module based on host_id symver location

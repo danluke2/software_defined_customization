@@ -18,15 +18,14 @@ SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_script
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
-
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
-
-
-
 # ************** END STANDARD PARAMS  ****************
+
+
+
 
 DEVICE_DIR=$GIT_DIR/../device_modules
 #setup device dir for experiment

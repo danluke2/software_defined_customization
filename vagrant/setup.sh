@@ -20,8 +20,6 @@ timedatectl
 GIT_DIR=/home/vagrant/software_defined_customization
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
-
-
 # ************** END STANDARD PARAMS  ****************
 
 

@@ -1,13 +1,13 @@
 // @file core_modules/NCO_test.c
 // @brief Test module to verify challenge-response works
 
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/slab.h>
-#include <linux/init.h>
-#include <linux/version.h>
 #include <linux/inet.h>
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/slab.h>
 #include <linux/uio.h> // For iter structures
+#include <linux/version.h>
 
 // for the overhead test, a copy of common_structs is in same location as this module
 #include "common_structs.h"
@@ -17,19 +17,18 @@ extern int register_customization(struct customization_node *cust, bool applyNow
 
 extern int unregister_customization(struct customization_node *cust);
 
-//test message for this plugin
+// test message for this plugin
 char cust_test[12] = "testCustMod";
-size_t cust_test_size = (size_t)sizeof(cust_test)-1;
 
 struct customization_node *python_cust;
 
 
 // Kernel module parameters with default values
-static char* destination_ip = "10.0.0.40";
-module_param(destination_ip, charp, 0600);  //root only access to change
+static char *destination_ip = "10.0.0.40";
+module_param(destination_ip, charp, 0600); // root only access to change
 MODULE_PARM_DESC(destination_ip, "Dest IP to match");
 
-static char* source_ip = "10.0.0.20";
+static char *source_ip = "10.0.0.20";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
@@ -49,10 +48,24 @@ static bool applyNow = false;
 module_param(applyNow, bool, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
+unsigned short bypass = 0;
+module_param(bypass, ushort, 0600);
+MODULE_PARM_DESC(bypass, "Place customization in bypass mode, which bypasses customization");
+
+unsigned short priority = 65535;
+module_param(priority, ushort, 0600);
+MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
 
-// Line 52 should be blank b/c NCO will write the module_id variable to that line
-// followed by any other variables we determine NCO should declare when building
+// NCO VARIABLES GO HERE
+u16 module_id = 1;
+char hex_key[HEX_KEY_LENGTH] = "";
+u16 bypass = 0;
+u16 priority = 0;
+u16 applyNow = 0;
+
+
+// END NCO VARIABLES
 
 
 
@@ -66,20 +79,17 @@ MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just 
 // @post src_buf holds customized message for DCA to send to Layer 4
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-  bool copy_success;
+    // passive monitoring allowed here, but active must pass bypass_mode check
 
-	send_buf_st->copy_length = cust_test_size + send_buf_st->length;
+    if (*python_cust->bypass_mode)
+    {
+        send_buf_st->try_next = true;
+        return;
+    }
 
-	memcpy(send_buf_st->buf, cust_test, cust_test_size);
-  //copy from full will revert iter back to normal if failure occurs
-	copy_success = copy_from_iter_full(send_buf_st->buf+cust_test_size, send_buf_st->length, send_buf_st->src_iter);
-  if(copy_success == false)
-  {
-    // not all bytes were copied, so pick scenario 1 or 2 below
-    trace_printk("Failed to copy all bytes to cust buffer\n");
-    send_buf_st->copy_length = 0;
-  }
-	return;
+
+    send_buf_st->no_cust = true;
+    return;
 }
 
 
@@ -90,21 +100,17 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // @post recv_buf holds customized message for DCA to send to app instead
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-  bool copy_success;
+    // passive monitoring allowed here, but active must pass bypass_mode check
 
- 	recv_buf_st->copy_length = recv_buf_st->recv_return - cust_test_size;
+    if (*python_cust->bypass_mode)
+    {
+        recv_buf_st->try_next = true;
+        return;
+    }
 
-  //adjust iter offset to start of actual message, then copy
-  iov_iter_advance(recv_buf_st->src_iter, cust_test_size);
 
-  copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->copy_length, recv_buf_st->src_iter);
-  if(copy_success == false)
-  {
-    // not all bytes were copied, so pick scenario 1 or 2 below
-    trace_printk("Failed to copy all bytes to cust buffer\n");
-    recv_buf_st->copy_length = 0;
-  }
- 	return;
+    recv_buf_st->no_cust = true;
+    return;
 }
 
 
@@ -117,56 +123,62 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 // @post Layer 4.5 customization registered
 int __init sample_client_start(void)
 {
-	char thread_name[16] = "python3";
-  char application_name[16] = "python3";
-  int result;
+    char thread_name[16] = "python3";
+    char application_name[16] = "python3";
+    int result;
 
 
-	python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
-	if(python_cust == NULL)
-	{
-		trace_printk("client kmalloc failed\n");
-		return -1;
-	}
+    python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
+    if (python_cust == NULL)
+    {
+        trace_printk("client kmalloc failed\n");
+        return -1;
+    }
 
-	python_cust->target_flow.protocol = 17; // UDP
-  // python_cust->protocol = 6; // TCP
-  // python_cust->protocol = 256; // Any since not valid IP field value
-	memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
-  memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
+    // provide pointer for DCA to toggle bypass mode instead of new function
+    python_cust->bypass_mode = &bypass;
 
-  // Client: no source IP or port set unless client called bind first
-	python_cust->target_flow.dest_port = 65432;
-  python_cust->target_flow.source_port = 0;
+    // provide pointer for DCA to update priority instead of new function
+    python_cust->cust_priority = &priority;
 
-  //IP is a __be32 value
-  python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
-  python_cust->target_flow.source_ip = 0;
+    python_cust->target_flow.protocol = 17; // UDP
+                                            // python_cust->protocol = 6; // TCP
+                                            // python_cust->protocol = 256; // Any since not valid IP field value
+    memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
+    memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
-  // These functions must be defined and will be used to modify the
-  // buffer on a send/receive call
-  // Function can be set to NULL if not modifying buffer contents
-	python_cust->send_function = modify_buffer_send;
-	python_cust->recv_function = NULL;
+    // Client: no source IP or port set unless client called bind first
+    python_cust->target_flow.dest_port = 65432;
+    python_cust->target_flow.source_port = 0;
 
-  // Cust ID set by customization controller, network uniqueness required
-	python_cust->cust_id = module_id;
-  python_cust->registration_time_struct.tv_sec = 0;
-  python_cust->registration_time_struct.tv_nsec = 0;
-	python_cust->retired_time_struct.tv_sec = 0;
-  python_cust->retired_time_struct.tv_nsec = 0;
+    // IP is a __be32 value
+    python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
+    python_cust->target_flow.source_ip = 0;
 
-	result = register_customization(python_cust, applyNow);
+    // These functions must be defined and will be used to modify the
+    // buffer on a send/receive call
+    // Function can be set to NULL if not modifying buffer contents
+    python_cust->send_function = modify_buffer_send;
+    python_cust->recv_function = modify_buffer_recv;
 
-  if(result != 0)
-  {
-    trace_printk("L4.5 AELRT: Module failed registration, check debug logs\n");
-    return -1;
-  }
+    // Cust ID set by customization controller, network uniqueness required
+    python_cust->cust_id = module_id;
+    python_cust->registration_time_struct.tv_sec = 0;
+    python_cust->registration_time_struct.tv_nsec = 0;
+    python_cust->revoked_time_struct.tv_sec = 0;
+    python_cust->revoked_time_struct.tv_nsec = 0;
 
-	trace_printk("L4.5: client module loaded, id=%d\n", python_cust->cust_id);
+    result = register_customization(python_cust, applyNow);
 
-  return 0;
+    if (result != 0)
+    {
+        trace_printk("L4.5 AELRT: Module failed registration, check debug logs\n");
+        return -1;
+    }
+
+    trace_printk("L4.5: client module loaded, id=%d\n", python_cust->cust_id);
+
+    return 0;
 }
 
 
@@ -174,18 +186,19 @@ int __init sample_client_start(void)
 // @post Layer 4.5 customization node unregistered
 void __exit sample_client_end(void)
 {
-  //NOTE: this is only valid/safe place to call unregister (deadlock scenario)
-  int ret = unregister_customization(python_cust);
+    // NOTE: this is only valid/safe place to call unregister (deadlock scenario)
+    int ret = unregister_customization(python_cust);
 
-  if(ret == 0){
-    trace_printk("L4.5 AELRT: client module unload error\n");
-  }
-  else
-  {
-    trace_printk("L4.5: client module unloaded\n");
-  }
-  kfree(python_cust);
-	return;
+    if (ret == 0)
+    {
+        trace_printk("L4.5 AELRT: client module unload error\n");
+    }
+    else
+    {
+        trace_printk("L4.5: client module unloaded\n");
+    }
+    kfree(python_cust);
+    return;
 }
 
 

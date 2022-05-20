@@ -17,15 +17,14 @@ SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_script
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
-
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
-
-
-
 # ************** END STANDARD PARAMS  ****************
+
+
+
 
 # Force root
 if [[ "$(id -u)" != "0" ]];
@@ -88,14 +87,14 @@ sleep $SLEEP_INT
 
 # Insert server module in DB for deployment to host_id = 1
 echo "*************** Deploy Server Module and Inverse  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 1 --inverse "demo_dns_tag.lua" --type "Wireshark"
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 1 --priority 42 --inverse "demo_dns_tag.lua" --type "Wireshark"
 
 sleep $SLEEP_INT
 sleep $SLEEP_INT
 
 # Insert client module in DB for deployment to host_id = 2
 echo "*************** Deploy Client Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 2
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 2 --priority 42
 
 sleep $SLEEP_INT
 

@@ -3,8 +3,6 @@ HOST='10.0.0.20'
 nco_dir='/home/vagrant/software_defined_customization/NCO/'
 nco_mod_dir='/home/vagrant/software_defined_customization/layer4_5_modules/nco_modules/'
 common_struct_dir='/home/vagrant/software_defined_customization/DCA_kernel/'
-
-
 # ************** END STANDARD PARAMS ****************
 
 

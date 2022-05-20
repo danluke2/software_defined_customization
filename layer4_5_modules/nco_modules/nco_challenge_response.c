@@ -26,7 +26,6 @@ extern int unregister_customization(struct customization_node *cust);
 
 // test message for this plugin
 char cust_test[12] = "testCustMod";
-size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
 
 
 struct customization_node *python_cust;
@@ -47,32 +46,31 @@ u8 byte_key[SYMMETRIC_KEY_LENGTH] = "";
 
 
 
-// Line 52 should be blank b/c NCO will write the module_id variable to that line
-// followed by any other variables we determine NCO should declare when building
+// NCO VARIABLES GO HERE
+u16 module_id = 1;
+char hex_key[HEX_KEY_LENGTH] = "";
+u16 bypass = 0;
+u16 priority = 0;
+u16 applyNow = 0;
+
+
+// END NCO VARIABLES
 
 
 
 
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-    bool copy_success;
+    // passive monitoring allowed here, but active must pass bypass_mode check
 
     if (*python_cust->bypass_mode)
     {
+        send_buf_st->try_next = true;
         return;
     }
 
-    send_buf_st->copy_length = cust_test_size + send_buf_st->length;
 
-    memcpy(send_buf_st->buf, cust_test, cust_test_size);
-    // copy from full will revert iter back to normal if failure occurs
-    copy_success = copy_from_iter_full(send_buf_st->buf + cust_test_size, send_buf_st->length, send_buf_st->src_iter);
-    if (copy_success == false)
-    {
-        // not all bytes were copied, so pick scenario 1 or 2 below
-        trace_printk("Failed to copy all bytes to cust buffer\n");
-        send_buf_st->copy_length = 0;
-    }
+    send_buf_st->no_cust = true;
     return;
 }
 
@@ -80,25 +78,16 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-    bool copy_success;
+    // passive monitoring allowed here, but active must pass bypass_mode check
 
     if (*python_cust->bypass_mode)
     {
+        recv_buf_st->try_next = true;
         return;
     }
 
-    recv_buf_st->copy_length = recv_buf_st->recv_return - cust_test_size;
 
-    // adjust iter offset to start of actual message, then copy
-    iov_iter_advance(recv_buf_st->src_iter, cust_test_size);
-
-    copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->copy_length, recv_buf_st->src_iter);
-    if (copy_success == false)
-    {
-        // not all bytes were copied, so pick scenario 1 or 2 below
-        trace_printk("Failed to copy all bytes to cust buffer\n");
-        recv_buf_st->copy_length = 0;
-    }
+    recv_buf_st->no_cust = true;
     return;
 }
 
@@ -332,6 +321,10 @@ int __init sample_client_start(void)
     // provide pointer for DCA to toggle bypass mode instead of new function
     python_cust->bypass_mode = &bypass;
 
+    // provide pointer for DCA to update priority instead of new function
+    python_cust->cust_priority = &priority;
+
+
     python_cust->target_flow.protocol = 17; // UDP
                                             // python_cust->protocol = 6; // TCP
                                             // python_cust->protocol = 256; // Any since not valid IP field value
@@ -350,7 +343,7 @@ int __init sample_client_start(void)
     // buffer on a send/receive call
     // Function can be set to NULL if not modifying buffer contents
     python_cust->send_function = modify_buffer_send;
-    python_cust->recv_function = NULL;
+    python_cust->recv_function = modify_buffer_recv;
     python_cust->challenge_function = challenge_response;
 
     // Cust ID set by customization controller, network uniqueness required

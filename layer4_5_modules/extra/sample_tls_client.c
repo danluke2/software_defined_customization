@@ -9,9 +9,8 @@
 #include <linux/uio.h> // For iter structures
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
-#include "/home/vagrant/software_defined_customization/DCA_kernel/common_structs.h"
-#include "/home/vagrant/software_defined_customization/DCA_kernel/util/printing.h"
-
+#include <common_structs.h>
+#include <printing.h>
 // ************** END STANDARD PARAMS ****************
 
 
@@ -44,9 +43,17 @@ static bool applyNow = false;
 module_param(applyNow, bool, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
+unsigned short bypass = 0;
+module_param(bypass, ushort, 0600);
+MODULE_PARM_DESC(bypass, "Place customization in bypass mode, which bypasses customization");
+
+unsigned short priority = 65535;
+module_param(priority, ushort, 0600);
+MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
+
+
 // test message for this module
 char cust_test[12] = "testCustMod";
-size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
 
 struct customization_node *curl_cust;
 
@@ -56,7 +63,8 @@ struct customization_node *curl_cust;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    //
+    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
+
     send_buf_st->copy_length = send_buf_st->length;
     trace_printk("L4.5: TLS send buffer size %lu\n", send_buf_st->length);
 
@@ -81,6 +89,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
 
     trace_printk("L4.5: TLS recv ret %lu, buffer limit %d\n", recv_buf_st->recv_return, recv_buf_st->length);
 
@@ -123,6 +132,12 @@ int __init sample_client_start(void)
         return -1;
     }
 
+    // provide pointer for DCA to toggle bypass mode instead of new function
+    curl_cust->bypass_mode = &bypass;
+
+    // provide pointer for DCA to update priority instead of new function
+    curl_cust->cust_priority = &priority;
+
     curl_cust->target_flow.protocol = (u16)protocol;
     memcpy(curl_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
     memcpy(curl_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
@@ -145,8 +160,8 @@ int __init sample_client_start(void)
     curl_cust->cust_id = 42;
     curl_cust->registration_time_struct.tv_sec = 0;
     curl_cust->registration_time_struct.tv_nsec = 0;
-    curl_cust->retired_time_struct.tv_sec = 0;
-    curl_cust->retired_time_struct.tv_nsec = 0;
+    curl_cust->revoked_time_struct.tv_sec = 0;
+    curl_cust->revoked_time_struct.tv_nsec = 0;
 
     result = register_customization(curl_cust, applyNow);
 

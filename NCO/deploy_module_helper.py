@@ -18,6 +18,8 @@ parser.add_argument('--type', type=str, required=False,
                     help="type of middlebox for dependency")
 parser.add_argument(
     '--bypass', help="Sets module to bypass mode", action="store_true")
+parser.add_argument('--priority', type=int, required=True,
+                    help="Module priority level")
 parser.add_argument(
     '--applyNow', help="Apply module check to all sockets, including previously checked", action="store_true")
 
@@ -43,4 +45,4 @@ if args.applyNow:
 time.sleep(5)
 
 insert_req_build_module(db_connection, args.host,
-                        args.module, bypass, applyNow)
+                        args.module, bypass, args.priority, applyNow)

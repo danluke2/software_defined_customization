@@ -19,13 +19,11 @@ SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_script
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
-
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
-
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS  ****************
 
 # Force root
 if [[ "$(id -u)" != "0" ]];
@@ -70,7 +68,7 @@ sleep 5
 
 # Insert client module in DB for deployment to host_id = 1, with bypass mode set
 echo "*************** Deploy Client Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 1 --bypass 
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 1 --priority 42 --bypass 
 
 sleep 10
 
@@ -84,7 +82,7 @@ sleep 5
 
 # Insert server module in DB for deployment to host_id = 2, but now in bypass mode with applyNow set
 echo "*************** Deploy Server Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 2 --bypass --applyNow
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 2 --priority 42 --bypass --applyNow
 
 sleep 10
 

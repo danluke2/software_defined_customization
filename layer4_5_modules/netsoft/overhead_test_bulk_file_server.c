@@ -9,9 +9,8 @@
 #include <linux/uio.h> // For iter structures
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
-#include "/home/vagrant/software_defined_customization/DCA_kernel/common_structs.h"
-#include "/home/vagrant/software_defined_customization/DCA_kernel/util/printing.h"
-
+#include <common_structs.h>
+#include <printing.h>
 // ************** END STANDARD PARAMS ****************
 
 
@@ -52,6 +51,14 @@ static bool applyNow = false;
 module_param(applyNow, bool, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
+unsigned short bypass = 0;
+module_param(bypass, ushort, 0600);
+MODULE_PARM_DESC(bypass, "Place customization in bypass mode, which bypasses customization");
+
+unsigned short priority = 65535;
+module_param(priority, ushort, 0600);
+MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
+
 
 struct customization_node *server_cust;
 
@@ -62,7 +69,6 @@ size_t total_bytes_from_app = 0;
 size_t total_tags = 0;
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
-size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1;
 
 
 
@@ -85,6 +91,7 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1;
     size_t i = 0;
     size_t remaining_length = send_buf_st->length;
     size_t loop_length = send_buf_st->length;
@@ -186,7 +193,16 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // Function to customize the msg recieved from L4 prior to delivery to application
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-    recv_buf_st->copy_length = 0;
+    // passive monitoring allowed here, but active must pass bypass_mode check
+
+    if (*server_cust->bypass_mode)
+    {
+        recv_buf_st->try_next = true;
+        return;
+    }
+
+
+    recv_buf_st->no_cust = true;
     return;
 }
 
@@ -207,6 +223,12 @@ int __init sample_client_start(void)
         return -1;
     }
 
+    // provide pointer for DCA to toggle bypass mode instead of new function
+    server_cust->bypass_mode = &bypass;
+
+    // provide pointer for DCA to update priority instead of new function
+    server_cust->cust_priority = &priority;
+
     server_cust->target_flow.protocol = (u16)protocol; // TCP
     memcpy(server_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
     memcpy(server_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
@@ -218,13 +240,13 @@ int __init sample_client_start(void)
     server_cust->target_flow.source_ip = in_aton(source_ip);
 
     server_cust->send_function = modify_buffer_send;
-    server_cust->recv_function = NULL;
+    server_cust->recv_function = modify_buffer_recv;
 
     server_cust->cust_id = 87;
     server_cust->registration_time_struct.tv_sec = 0;
     server_cust->registration_time_struct.tv_nsec = 0;
-    server_cust->retired_time_struct.tv_sec = 0;
-    server_cust->retired_time_struct.tv_nsec = 0;
+    server_cust->revoked_time_struct.tv_sec = 0;
+    server_cust->revoked_time_struct.tv_nsec = 0;
 
     server_cust->send_buffer_size = 65536 * 2; // bufer
     server_cust->recv_buffer_size = 0;         // accept default buffer size

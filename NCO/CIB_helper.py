@@ -515,16 +515,17 @@ def delete_revoked(con, host_id, module_id):
 def init_require_build_module_table(con):
     con.execute('''CREATE TABLE req_build_modules
                    (host_id integer NOT NULL, module text NOT NULL, 
-                   bypass integer NOT NULL, applyNow integer NOT NULL,
-                   PRIMARY KEY (host_id, module))''')
+                    bypass integer NOT NULL, priority integer NOT NULL,
+                    applyNow integer NOT NULL,
+                    PRIMARY KEY (host_id, module))''')
 
 
-def insert_req_build_module(con, host_id, module, bypass, apply):
+def insert_req_build_module(con, host_id, module, bypass, priority, apply):
     result = 0
     try:
         with con:
             con.execute(
-                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?)", (host_id, module, bypass, apply))
+                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?, ?)", (host_id, module, bypass, priority, apply))
     except sl.Error as er:
         logger.info(
             f"Error inserting req_build_modules module = {module}, host_id = {host_id}")
