@@ -138,3 +138,8 @@ Common items I refer to when trying to understand code and functions in the kern
 1) python multiprocessing/logging:
 
     https://fanchenbao.medium.com/python3-logging-with-multiprocessing-f51f460b8778
+
+
+1) gihub citations:
+
+    https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md

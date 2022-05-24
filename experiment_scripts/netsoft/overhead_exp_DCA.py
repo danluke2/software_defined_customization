@@ -14,15 +14,17 @@ import traceback
 import fcntl
 import struct
 
-import platform #for linux distro
+import platform  # for linux distro
 import argparse
 
 
 # read in argument values to pretend to be multiple different hosts talking
 # with the server for testing distribution limits
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--number', type=int, required=True, help="Number of devices to emulate")
-parser.add_argument('--dir', type=str, required=True, help="KO Module download dir")
+parser.add_argument('--number', type=int, required=True,
+                    help="Number of devices to emulate")
+parser.add_argument('--dir', type=str, required=True,
+                    help="KO Module download dir")
 parser.add_argument('--ip', type=str, required=False, help="NCO IP")
 parser.add_argument('--port', type=int, required=False, help="NCO port")
 
@@ -33,11 +35,10 @@ HOST = '10.0.0.20'
 PORT = 65432        # The port used by the NCO
 
 if args.ip:
-    HOST=args.ip
+    HOST = args.ip
 
 if args.port:
-    PORT=args.port
-
+    PORT = args.port
 
 
 system_name = platform.system()
@@ -51,30 +52,30 @@ max = 5
 
 def send_periodic_report(conn_socket, report_dict, host_id):
     send_string = json.dumps(report_dict, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
     print(f"Host {host_id} periodic report")
+
 
 def send_initial_report(conn_socket, host_id):
     send_dict = {}
     # simulating mac address with host id for easy matching/tracking
-    send_dict['mac'] =  host_id
+    send_dict['mac'] = host_id
     send_dict['release'] = system_release
     send_string = json.dumps(send_dict, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
     print(f"Host {host_id} initial report")
-    # simulating active/retire tracking since emulating multiple hosts
-    report_dict = {"Active":[], "Retired":[]}
+    # simulating installed/revoked tracking since emulating multiple hosts
+    report_dict = {"Installed": [], "Revoked": []}
     return report_dict
 
 
-
-#this is fine since file will exist
+# this is fine since file will exist
 def send_symvers(conn_socket):
     filename = symver_location + 'Module.symvers'
     filesize = os.path.getsize(filename)
-    send_dict = {"file" : "Module.symvers", "size":filesize}
+    send_dict = {"file": "Module.symvers", "size": filesize}
     send_string = json.dumps(send_dict, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
 
     data = conn_socket.recv(1024)
     data = data.decode("utf-8")
@@ -98,7 +99,8 @@ def recv_ko_files(conn_socket, count, downloadDir, report_dict, host_id):
         filename = "host_" + host_id + "_test.ko"
         filesize = ko_dict["size"]
         conn_socket.sendall(b'Clear to send')
-        install_ko_file(conn_socket, filename, filesize, downloadDir, report_dict, host_id)
+        install_ko_file(conn_socket, filename, filesize,
+                        downloadDir, report_dict, host_id)
         print(f"module name = {filename} completed")
     # print("finished all ko modules")
 
@@ -111,19 +113,19 @@ def install_ko_file(conn_socket, filename, filesize, downloadDir, report_dict, h
                 break
             file_to_write.write(data)
             filesize -= len(data)
-            if filesize<=0:
+            if filesize <= 0:
                 break
         file_to_write.close()
 
     # don't install, instead update report_dict as if installed
-    report_dict["Active"] = [{"ID":int(host_id),"Count":int(host_id),"ts":int(host_id)}]
-
+    report_dict["Installed"] = [
+        {"ID": int(host_id), "Count": int(host_id), "ts": int(host_id)}]
 
 
 def emulated_host_thread(host_id, downloadDir):
     sleep_time = 5
     max = 5
-    #connect to server, send initial report and wait for server commands
+    # connect to server, send initial report and wait for server commands
     # if connection terminated, then test is over
     connected = False
     stop_recv = False
@@ -132,7 +134,7 @@ def emulated_host_thread(host_id, downloadDir):
         while not connected:
             try:
                 s.connect((HOST, PORT))
-                connected=True
+                connected = True
                 report_dict = send_initial_report(s, host_id)
                 count = 0
             except ConnectionRefusedError:
@@ -147,7 +149,7 @@ def emulated_host_thread(host_id, downloadDir):
                 recv_dict = json.loads(data)
 
             except json.decoder.JSONDecodeError as e:
-                count +=1
+                count += 1
                 if count >= max:
                     print("max json errors reached")
                     stop_recv = True
@@ -158,7 +160,7 @@ def emulated_host_thread(host_id, downloadDir):
 
             except Exception as e:
                 print(f"Error during data reception: {e}")
-                count +=1
+                count += 1
                 if count >= max:
                     print("max general errors reached")
                     stop_recv = True
@@ -168,16 +170,14 @@ def emulated_host_thread(host_id, downloadDir):
                     print("requested module.symvers file")
                     send_symvers(s)
 
-
                 elif recv_dict["cmd"] == "recv_module":
                     # print(f"prepare to recv modules, count = {recv_dict['count']}")
                     s.sendall(b'Clear to send')
-                    recv_ko_files(s, recv_dict["count"], downloadDir, report_dict, host_id)
-
+                    recv_ko_files(
+                        s, recv_dict["count"], downloadDir, report_dict, host_id)
 
                 elif recv_dict["cmd"] == "run_report":
                     send_periodic_report(s, report_dict, host_id)
-
 
                 # # command just for finishing test
                 # elif recv_dict["cmd"] == "close":
@@ -188,14 +188,13 @@ def emulated_host_thread(host_id, downloadDir):
                 print(f"Command parsing error, {e}")
 
 
-
 print(f"Starting {args.number} device threads")
 for x in range(args.number):
     try:
         host_id = str(x+1)
 
         # passing a tuple so host_id is not split into one char at a time as an arg
-        Thread(target=emulated_host_thread, args=(host_id,args.dir)).start();
+        Thread(target=emulated_host_thread, args=(host_id, args.dir)).start()
         print(f"Emulated host {host_id} thread running")
         time.sleep(0.5)
     except:

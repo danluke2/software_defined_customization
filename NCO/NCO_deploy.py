@@ -27,7 +27,7 @@ def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_lis
     for module in deployed_list:
         if module["ID"] in deployed_db:
             update_deployed(db_connection, host_id,
-                            module["ID"], module["Count"], module["Bypass"], module["ts"])
+                            module["ID"], module["Count"], module["Activated"], module["ts"])
             # we remove here to make list smaller and determine mismatches
             deployed_db.remove(module["ID"])
         else:
@@ -37,7 +37,7 @@ def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_lis
                 update_built_module_install_requirement(
                     db_connection, host_id, module["ID"], req_install, module["ts"])
                 insert_deployed(
-                    db_connection, host_id, module["ID"], module["Count"], module["Bypass"],
+                    db_connection, host_id, module["ID"], module["Count"], module["Activated"],
                     cfg.SEC_WINDOW, 0, module["ts"], 0, 0)
 
                 result = cfg.REFRESH_INSTALL_LIST
@@ -50,7 +50,7 @@ def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_lis
     for module in deprecated_list:
         if module["ID"] in deployed_db:
             update_deployed(db_connection, host_id,
-                            module["ID"], module["Count"], module["Bypass"], module["ts"])
+                            module["ID"], module["Count"], module["Activated"], module["ts"])
             # we remove here to make list smaller and determine mismatches
             deployed_db.remove(module["ID"])
 
@@ -117,3 +117,85 @@ def check_install_requirement_or_max_time(db_connection, host_id, end_time, inte
             return
         else:
             time.sleep(interval)
+
+
+######################### DEPLOYED MODULE UPDATED FUNCTIONS #############################
+
+
+# Handle toggling of modules; part of NCO controlled enabling of new module
+def retrieve_toggle_active_list(db_connection, host_id):
+    toggle_list = select_all_req_active_toggle(db_connection, host_id)
+    if toggle_list == cfg.DB_ERROR:
+        return -1
+    mod_id = [x[1] for x in toggle_list]
+    mode = [x[2] for x in toggle_list]
+    return mod_id, mode
+
+
+def toggle_active(conn_socket, db_connection, host_id, mod_id, mode):
+    logger.info(f"Toggling module {mod_id} to {mode} for host {host_id}")
+    # send active update command
+    command = {"cmd": "toggle_active", "id": mod_id, "mode": mode}
+    send_string = json.dumps(command, indent=4)
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+    try:
+        data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
+        json_data = json.loads(data)
+    except json.decoder.JSONDecodeError as e:
+        logger.info(f"Error on active mode update recv call\n {e}")
+        return
+
+    # Need to check for ERROR key if failed
+    try:
+        id = json_data["ID"]
+        success = json_data["Result"]
+
+        if success == 0:
+            logger.info(f"Device error: {data}")
+            return cfg.REVOKE_ERROR
+        else:
+            # remove module from require table; next report will handle table updates
+            delete_req_active_toggle_by_id(db_connection, host_id, id)
+            return 0
+    except Exception as e:
+        logger.info(f"Toggle exception: {e}")
+
+
+# Handle toggling of modules; part of NCO controlled enabling of new module
+def retrieve_set_priority_list(db_connection, host_id):
+    priority_list = select_all_req_set_priority(db_connection, host_id)
+    if priority_list == cfg.DB_ERROR:
+        return -1
+    mod_id = [x[1] for x in priority_list]
+    mode = [x[2] for x in priority_list]
+    return mod_id, mode
+
+
+def set_priority(conn_socket, db_connection, host_id, mod_id, priority):
+    logger.info(
+        f"Setting module {mod_id} priority to {priority} for host {host_id}")
+    # send active update command
+    command = {"cmd": "set_priority", "id": mod_id, "priority": priority}
+    send_string = json.dumps(command, indent=4)
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+    try:
+        data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
+        json_data = json.loads(data)
+    except json.decoder.JSONDecodeError as e:
+        logger.info(f"Error on active mode update recv call\n {e}")
+        return
+
+    # Need to check for ERROR key if failed
+    try:
+        id = json_data["ID"]
+        success = json_data["Result"]
+
+        if success == 0:
+            logger.info(f"Device error: {data}")
+            return cfg.REVOKE_ERROR
+        else:
+            # remove module from require table; next report will handle table updates
+            delete_req_set_priority_by_id(db_connection, host_id, id)
+            return 0
+    except Exception as e:
+        logger.info(f"Prioirty exception: {e}")

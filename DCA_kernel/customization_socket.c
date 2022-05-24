@@ -38,7 +38,7 @@ static size_t assign_customization_to_array(struct customization_socket *cust_so
                                             struct customization_node *cust_node);
 
 static void unassign_all_customization(struct customization_socket *cust_sock);
-static void unassign_single_customization(struct customization_socket *cust_sock, struct customization_node *cust_node);
+static int unassign_single_customization(struct customization_socket *cust_sock, struct customization_node *cust_node);
 
 
 
@@ -341,6 +341,7 @@ void remove_customization_from_each_socket(struct customization_node *cust)
     struct hlist_node tmp;
     struct hlist_node *tmpptr = &tmp;
     size_t i;
+    int put_in_normal_table;
 
     // Prevent customized socket access while potentially removing cust from it
     spin_lock(&cust_socket_lock);
@@ -360,19 +361,83 @@ void remove_customization_from_each_socket(struct customization_node *cust)
 #ifdef DEBUG1
                 trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
 #endif
+                // unassign_single_customization will get active lock and also set update_cust_check to force another
+                // cust lookup
+                put_in_normal_table = unassign_single_customization(cust_socket_iterator, cust_node);
+
+                if (put_in_normal_table)
+                {
+                    // Remove socket from customization list
+                    hash_del(&cust_socket_iterator->socket_hash);
+
+                    // Now add to the normal list
+                    spin_lock(&normal_socket_lock);
+
+                    hash_add(normal_socket_table, &cust_socket_iterator->socket_hash, cust_socket_iterator->hash_key);
+                    spin_unlock(&normal_socket_lock);
+                }
+
+                break;
+            }
+        }
+    }
+    spin_unlock(&cust_socket_lock);
+    return;
+}
+
+
+
+// Hash for each b/c we need to find matching sockets, so don't know keys
+void sort_each_socket_with_matching_cust(struct customization_node *cust)
+{
+    u32 cust_id = cust->cust_id;
+    struct customization_socket *cust_socket_iterator;
+    struct customization_node *cust_node;
+    int bucket;
+    struct hlist_node tmp;
+    struct hlist_node *tmpptr = &tmp;
+    size_t i;
+    size_t j;
+
+    // Prevent customized socket access while potentially sorting it
+    spin_lock(&cust_socket_lock);
+    hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket_iterator, socket_hash)
+    {
+        for (i = 0; i < MAX_CUST_ATTACH; i++)
+        {
+            cust_node = cust_socket_iterator->customizations[i];
+            if (cust_node == NULL)
+            {
+                // no need to keep checking
+                break;
+            }
+
+            if (cust_node->cust_id == cust_id)
+            {
+#ifdef DEBUG1
+                trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
+#endif
                 spin_lock(&cust_socket_iterator->active_customization_lock);
-                // unassign_single_customization will also set update_cust_check to force another cust lookup
-                unassign_single_customization(cust_socket_iterator, cust_node);
+
+                // there are at least i customizations attached, but need to know exact
+                // when finished, j is index of first NULL ptr and also number of cust attached
+                for (j = i; j < MAX_CUST_ATTACH; j++)
+                {
+                    if (cust_socket_iterator->customizations[j] == NULL)
+                    {
+                        break;
+                    }
+                }
+                // if j = 1, then only one cust attached and no need to sort
+                if (j > 1)
+                {
+                    // for loop index = number of elements of customization array
+                    sort(cust_socket_iterator->customizations, j, sizeof(void *), &priority_compare, NULL);
+                }
+
+
                 spin_unlock(&cust_socket_iterator->active_customization_lock);
 
-                // Remove socket from customization list
-                hash_del(&cust_socket_iterator->socket_hash);
-
-                // Now add to the normal list
-                spin_lock(&normal_socket_lock);
-
-                hash_add(normal_socket_table, &cust_socket_iterator->socket_hash, cust_socket_iterator->hash_key);
-                spin_unlock(&normal_socket_lock);
                 break;
             }
         }
@@ -650,9 +715,7 @@ static size_t assign_customization_to_array(struct customization_socket *cust_so
 #endif
 
     // now that buffer sizes are correct, add the cust node to socket and sort it
-
-
-    // need to loop through cust nodes and assign to socket
+    // need to loop through cust nodes and assign to socket at first NULL pointer
     for (i = 0; i < MAX_CUST_ATTACH; i++)
     {
         if (cust_sock->customizations[i] == NULL)
@@ -732,11 +795,13 @@ static void unassign_all_customization(struct customization_socket *cust_sock)
 
 // Removes a single customization from the socket; resets values and frees buffers used if necessary
 // @param[I] cust_sock The customization socket to remove the cust from
-static void unassign_single_customization(struct customization_socket *cust_sock, struct customization_node *cust_node)
+// @return 1 if socket has no more modules attached, 0 othewise
+static int unassign_single_customization(struct customization_socket *cust_sock, struct customization_node *cust_node)
 {
     struct customization_node *temp_node[MAX_CUST_ATTACH] = {NULL};
     size_t i;
     size_t j;
+    int no_more_cust = 0;
 
     // if only one customization node attached, then call unassign all instead but with active_lock
     for (i = 0; i < MAX_CUST_ATTACH; i++)
@@ -749,13 +814,14 @@ static void unassign_single_customization(struct customization_socket *cust_sock
     }
 
     spin_lock(&cust_sock->active_customization_lock);
-    if (i == 0)
+    if (i == 1)
     {
         unassign_all_customization(cust_sock);
+        no_more_cust = 1;
     }
     else
     {
-        // remove the cust from the array
+        // find and remove the cust from the array
         for (i = 0; i < MAX_CUST_ATTACH; i++)
         {
             if (cust_sock->customizations[i] == NULL)
@@ -783,6 +849,7 @@ static void unassign_single_customization(struct customization_socket *cust_sock
             }
 
             cust_sock->customizations[j] = temp_node[j + 1];
+            cust_sock->customizations[j + 1] = NULL;
         }
     }
     spin_unlock(&cust_sock->active_customization_lock);
@@ -794,7 +861,7 @@ static void unassign_single_customization(struct customization_socket *cust_sock
     cust_sock->update_cust_check = true;
 
 
-    return;
+    return no_more_cust;
 }
 
 

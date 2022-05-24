@@ -3,7 +3,6 @@
 #Purpose: #Purpose: cleans up files from experiments
 #$1 is section to run
 
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
@@ -26,28 +25,34 @@ CLIENT_PASSWD=vagrant
 WIRESHARK_DIR=/usr/lib/x86_64-linux-gnu/wireshark/plugins
 
 # NCO/DCA
-if [ "$1" = "DEPRECATE" ]; then
+if [ "$1" = "DEP" ]; then
   cd $EXP_SCRIPT_DIR/logs
-  rm deprecate_exp.txt
+  rm deprecate_*.txt
   cd $NCO_DIR
   rm cib.db
   cd device_modules
   rm -rf host*
 fi
 
-
-# Bypass and ApplyNow experiment
-if [ "$1" = "BYPASS" ]; then
+# Active and ApplyNow experiment
+if [ "$1" = "ACTIVATED" ]; then
   cd $EXP_SCRIPT_DIR/logs
-  rm bypass_exp.txt
+  rm actived_*.txt
   cd $NCO_DIR
   rm cib.db
   cd device_modules
   rm -rf host*
 fi
 
-
-
+# Priority experiment
+if [ "$1" = "PRI" ]; then
+  cd $EXP_SCRIPT_DIR/logs
+  rm priority_*.txt
+  cd $NCO_DIR
+  rm cib.db
+  cd device_modules
+  rm -rf host*
+fi
 
 # Challenge
 if [ "$1" = "CHALLENGE" ]; then
@@ -55,14 +60,14 @@ if [ "$1" = "CHALLENGE" ]; then
   rm cib.db
   cd device_modules
   rm -rf host*
-
+  cd $EXP_SCRIPT_DIR/logs
+  rm challenge_dep*.txt
 fi
-
 
 # Remove NCO and DCA logs
 if [ "$1" = "LOGS" ]; then
   cd $NCO_DIR
-  rm nco_messages.log
+  rm *_messages.log
   cd $DCA_USER_DIR
-  rm *messages.log
+  rm *_messages.log
 fi

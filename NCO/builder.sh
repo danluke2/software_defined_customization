@@ -4,7 +4,7 @@
 #arg2 is the module ID to assign
 #arg3 is the host id
 #arg4 is hex encoded key
-#arg5 is bypass flag
+#arg5 is active_mode flag
 #arg6 is priority value
 #arg7 is applyNow flag
 
@@ -68,7 +68,7 @@ sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c
 ((line=line+1))
 sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$4\";" $mod_dir/${1}.c
 ((line=line+1))
-sed -i "${line}i\u16 bypass=${5};" $mod_dir/${1}.c
+sed -i "${line}i\u16 activate=${5};" $mod_dir/${1}.c
 ((line=line+1))
 sed -i "${line}i\u16 priority=${6};" $mod_dir/${1}.c
 ((line=line+1))

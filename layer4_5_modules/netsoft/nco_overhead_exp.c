@@ -48,9 +48,9 @@ static bool applyNow = false;
 module_param(applyNow, bool, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
-unsigned short bypass = 0;
-module_param(bypass, ushort, 0600);
-MODULE_PARM_DESC(bypass, "Place customization in bypass mode, which bypasses customization");
+unsigned short activate = 0;
+module_param(activate, ushort, 0600);
+MODULE_PARM_DESC(activate, "Place customization in active mode, which enables customization");
 
 unsigned short priority = 65535;
 module_param(priority, ushort, 0600);
@@ -60,7 +60,7 @@ MODULE_PARM_DESC(priority, "Customization priority level used when attaching mod
 // NCO VARIABLES GO HERE
 u16 module_id = 1;
 char hex_key[HEX_KEY_LENGTH] = "";
-u16 bypass = 0;
+u16 activate = 0;
 u16 priority = 0;
 u16 applyNow = 0;
 
@@ -79,9 +79,9 @@ u16 applyNow = 0;
 // @post src_buf holds customized message for DCA to send to Layer 4
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-    // passive monitoring allowed here, but active must pass bypass_mode check
+    // must pass active_mode check to customize
 
-    if (*python_cust->bypass_mode)
+    if (*python_cust->active_mode == 0)
     {
         send_buf_st->try_next = true;
         return;
@@ -100,9 +100,9 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // @post recv_buf holds customized message for DCA to send to app instead
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-    // passive monitoring allowed here, but active must pass bypass_mode check
+    // must pass active_mode check to customize
 
-    if (*python_cust->bypass_mode)
+    if (*python_cust->active_mode == 0)
     {
         recv_buf_st->try_next = true;
         return;
@@ -135,8 +135,8 @@ int __init sample_client_start(void)
         return -1;
     }
 
-    // provide pointer for DCA to toggle bypass mode instead of new function
-    python_cust->bypass_mode = &bypass;
+    // provide pointer for DCA to toggle active mode instead of new function
+    python_cust->active_mode = &activate;
 
     // provide pointer for DCA to update priority instead of new function
     python_cust->cust_priority = &priority;

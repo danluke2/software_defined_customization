@@ -1,8 +1,8 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
-HOST='10.0.0.20'
-nco_dir='/home/vagrant/software_defined_customization/NCO/'
-nco_mod_dir='/home/vagrant/software_defined_customization/layer4_5_modules/nco_modules/'
-common_struct_dir='/home/vagrant/software_defined_customization/DCA_kernel/'
+HOST = '10.0.0.20'
+nco_dir = '/home/vagrant/software_defined_customization/NCO/'
+nco_mod_dir = '/home/vagrant/software_defined_customization/layer4_5_modules/nco_modules/'
+common_struct_dir = '/home/vagrant/software_defined_customization/DCA_kernel/'
 # ************** END STANDARD PARAMS ****************
 
 
@@ -22,7 +22,7 @@ random_hosts = True
 next_module_id = 1
 
 # default values that builder can overwrite
-bypass = 0
+active_mode = 0  # i.e., no customization applied
 applyNow = 0
 
 symvers_dir = "device_modules/host_"  # + host_id

@@ -43,7 +43,7 @@ module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
 
-char cust_tag_test[21] = "XTAGdig";
+char cust_tag_test[21] = "XTAGHIGHdig";
 
 struct customization_node *dns_cust;
 
@@ -86,7 +86,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 {
     bool copy_success;
     size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 20 bytes
-    char tag[5] = "XTAG";
+    char tag[9] = "XTAGHIGH";
     recv_buf_st->copy_length = 0;
     recv_buf_st->no_cust = false;
     recv_buf_st->set_cust_to_skip = false;
@@ -102,7 +102,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     // trace_print_hex_dump("Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base,
     //                      recv_buf_st->recv_return, true);
 
-    if (strncmp((char *)recv_buf_st->src_iter->iov->iov_base, tag, 4) == 0)
+    if (strncmp((char *)recv_buf_st->src_iter->iov->iov_base, tag, 8) == 0)
     {
         iov_iter_advance(recv_buf_st->src_iter, cust_tag_test_size);
         copy_success =
@@ -122,8 +122,9 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 
     else
     {
-        // something strange came in
-        trace_printk("L4.5: DNS packet does not match pattern, size = %lu\n", recv_buf_st->recv_return);
+        // something strange came in, maybe it matches another cust attached
+        trace_printk("L4.5: DNS packet does not match high pattern, size = %lu\n", recv_buf_st->recv_return);
+        recv_buf_st->try_next = true;
     }
 
     return;

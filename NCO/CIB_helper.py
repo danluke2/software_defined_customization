@@ -43,7 +43,9 @@ def init_db_tables(con):
 
     init_require_build_module_table(con)
 
-    init_require_toggle_table(con)
+    init_require_active_toggle_table(con)
+
+    init_require_set_priority_table(con)
 
     init_require_deprecate_table(con)
 
@@ -155,18 +157,18 @@ def init_deployed_table(con):
     # each id and module pair must be unique
     con.execute('''CREATE TABLE deployed
                    (host_id integer NOT NULL, module_id integer NOT NULL,
-                   sock_count integer, bypass_mode integer,
+                   sock_count integer, active_mode integer,
                    security_window integer, last_security_ts integer,
                    registered_ts integer, deprecated_ts integer, host_error_ts integer,
                    PRIMARY KEY (host_id, module_id))''')
 
 
-def insert_deployed(con, host_id, module_id, count, bypass, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts):
+def insert_deployed(con, host_id, module_id, count, active_mode, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts):
     result = 0
     try:
         with con:
             con.execute("INSERT INTO deployed VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (host_id,
-                        module_id, count, bypass, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts))
+                        module_id, count, active_mode, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts))
     except sl.Error as er:
         logger.info(
             f"Error inserting module into deployed, module_id = {module_id}, host_id = {host_id}")
@@ -175,14 +177,14 @@ def insert_deployed(con, host_id, module_id, count, bypass, sec_window, sec_ts, 
     return result
 
 
-def update_deployed(con, host_id, module_id, count, bypass, registered_ts):
+def update_deployed(con, host_id, module_id, count, active_mode, registered_ts):
     result = 0
     try:
         with con:
             con.execute('''UPDATE deployed
-            SET sock_count = :count, bypass_mode = :bypass, registered_ts = :reg
+            SET sock_count = :count, active_mode = :active_mode, registered_ts = :reg
             WHERE host_id = :host AND module_id =:module;''',
-                        {"count": count, "bypass": bypass, "reg": registered_ts, "host": host_id, "module": module_id})
+                        {"count": count, "active_mode": active_mode, "reg": registered_ts, "host": host_id, "module": module_id})
     except sl.Error as er:
         logger.info(
             f"Error updating deployed row, module_id = {module_id}, host_id = {host_id}")
@@ -300,54 +302,107 @@ def select_all_deployed_rows(con, host_id):
     return result
 
 
-# ***************** TOGGLE TABLE ***********************
+# ***************** ACTIVE TOGGLE TABLE ***********************
 
-def init_require_toggle_table(con):
+def init_require_active_toggle_table(con):
     # each id and module pair must be unique
-    con.execute('''CREATE TABLE req_toggle
+    con.execute('''CREATE TABLE req_active_toggle
                    (host_id integer NOT NULL, module_id integer NOT NULL,
                     mode integer NOT NULL,
                     PRIMARY KEY (host_id, module_id))''')
 
 
-def insert_req_toggle(con, host_id, module_id, mode):
+def insert_req_active_toggle(con, host_id, module_id, mode):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO req_toggle VALUES (?, ?, ?)",
+            con.execute("INSERT INTO req_active_toggle VALUES (?, ?, ?)",
                         (host_id, module_id, mode))
     except sl.Error as er:
         logger.info(
-            f"Error inserting module into req_toggle, module_id = {module_id}, host_id = {host_id}")
+            f"Error inserting module into req_active_toggle, module_id = {module_id}, host_id = {host_id}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def delete_req_toggle_by_id(con, host_id, module_id):
+def delete_req_active_toggle_by_id(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM req_toggle WHERE host_id = :id AND module_id =:module;", {
+            con.execute("DELETE FROM req_active_toggle WHERE host_id = :id AND module_id =:module;", {
                         "id": host_id, "module": module_id})
     except sl.Error as er:
         logger.info(
-            f"Error deleting req_toggle row, module={module_id}, host={host_id}")
+            f"Error deleting req_active_toggle row, module={module_id}, host={host_id}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
 
 
-def select_all_req_toggle(con, host_id):
+def select_all_req_active_toggle(con, host_id):
     result = 0
     try:
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM req_toggle WHERE host_id = :id;", {"id": host_id})
+                "SELECT * FROM req_active_toggle WHERE host_id = :id;", {"id": host_id})
             result = cur.fetchall()
     except sl.Error as er:
-        logger.info(f"Error slecting all req_toggle for host {host_id}")
+        logger.info(f"Error slecting all req_active_toggle for host {host_id}")
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+# ***************** SET PRIORITY TABLE ***********************
+
+def init_require_set_priority_table(con):
+    # each id and module pair must be unique
+    con.execute('''CREATE TABLE req_set_priority
+                   (host_id integer NOT NULL, module_id integer NOT NULL,
+                    priority integer NOT NULL,
+                    PRIMARY KEY (host_id, module_id))''')
+
+
+def insert_req_set_priority(con, host_id, module_id, priority):
+    result = 0
+    try:
+        with con:
+            con.execute("INSERT INTO req_set_priority VALUES (?, ?, ?)",
+                        (host_id, module_id, priority))
+    except sl.Error as er:
+        logger.info(
+            f"Error inserting module into req_set_priority, module_id = {module_id}, host_id = {host_id}")
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def delete_req_set_priority_by_id(con, host_id, module_id):
+    result = 0
+    try:
+        with con:
+            con.execute("DELETE FROM req_set_priority WHERE host_id = :id AND module_id =:module;", {
+                        "id": host_id, "module": module_id})
+    except sl.Error as er:
+        logger.info(
+            f"Error deleting req_set_priority row, module={module_id}, host={host_id}")
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_all_req_set_priority(con, host_id):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute(
+                "SELECT * FROM req_set_priority WHERE host_id = :id;", {"id": host_id})
+            result = cur.fetchall()
+    except sl.Error as er:
+        logger.info(f"Error slecting all req_set_priority for host {host_id}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -515,17 +570,17 @@ def delete_revoked(con, host_id, module_id):
 def init_require_build_module_table(con):
     con.execute('''CREATE TABLE req_build_modules
                    (host_id integer NOT NULL, module text NOT NULL, 
-                    bypass integer NOT NULL, priority integer NOT NULL,
+                    active_mode integer NOT NULL, priority integer NOT NULL,
                     applyNow integer NOT NULL,
                     PRIMARY KEY (host_id, module))''')
 
 
-def insert_req_build_module(con, host_id, module, bypass, priority, apply):
+def insert_req_build_module(con, host_id, module, active_mode, priority, apply):
     result = 0
     try:
         with con:
             con.execute(
-                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?, ?)", (host_id, module, bypass, priority, apply))
+                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?, ?)", (host_id, module, active_mode, priority, apply))
     except sl.Error as er:
         logger.info(
             f"Error inserting req_build_modules module = {module}, host_id = {host_id}")

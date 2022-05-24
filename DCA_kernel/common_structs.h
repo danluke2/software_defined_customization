@@ -112,7 +112,7 @@ struct customization_node
 
     // mod_id
     u16 cust_id;
-    u16 *bypass_mode;
+    u16 *active_mode;
     // counter to track number of sockets cust is applied to
     u16 sock_count;
     // used to sort customizations in cust array

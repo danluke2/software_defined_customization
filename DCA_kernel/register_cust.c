@@ -16,8 +16,8 @@
 
 // cust list should be short, so linked list should be fast (for now)
 // creates linked list head
-struct list_head active_customization_list;
-static DEFINE_SPINLOCK(active_customization_list_lock);
+struct list_head installed_customization_list;
+static DEFINE_SPINLOCK(installed_customization_list_lock);
 
 
 // this should be a short list that holds cust in transition state
@@ -40,7 +40,7 @@ EXPORT_SYMBOL_GPL(unregister_customization);
 
 void init_customization_list(void)
 {
-    INIT_LIST_HEAD(&active_customization_list);
+    INIT_LIST_HEAD(&installed_customization_list);
     INIT_LIST_HEAD(&deprecated_customization_list);
     INIT_LIST_HEAD(&revoked_customization_list);
     return;
@@ -54,12 +54,12 @@ void free_customization_list(void)
     struct customization_node *cust;
     struct customization_node *cust_next;
 
-    spin_lock(&active_customization_list_lock);
-    list_for_each_entry_safe(cust, cust_next, &active_customization_list, cust_list_member)
+    spin_lock(&installed_customization_list_lock);
+    list_for_each_entry_safe(cust, cust_next, &installed_customization_list, cust_list_member)
     {
         list_del(&cust->cust_list_member);
     }
-    spin_unlock(&active_customization_list_lock);
+    spin_unlock(&installed_customization_list_lock);
     return;
 }
 
@@ -105,7 +105,7 @@ struct customization_node *get_cust_by_id(u16 cust_id)
     struct customization_node *cust_temp = NULL;
     struct customization_node *cust_next = NULL;
 
-    list_for_each_entry_safe(cust_temp, cust_next, &active_customization_list, cust_list_member)
+    list_for_each_entry_safe(cust_temp, cust_next, &installed_customization_list, cust_list_member)
     {
         if (cust_temp->cust_id == cust_id)
         {
@@ -133,7 +133,7 @@ size_t get_customizations(struct customization_socket *cust_socket, struct custo
     size_t counter = 0;
     u16 priority_threshold = 65535; // max u16 value
 
-    list_for_each_entry_safe(cust_temp, cust_next, &active_customization_list, cust_list_member)
+    list_for_each_entry_safe(cust_temp, cust_next, &installed_customization_list, cust_list_member)
     {
         if (customization_compare(cust_temp, cust_socket))
         {
@@ -201,7 +201,7 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
     }
 
     cust->cust_id = module_cust->cust_id;
-    cust->bypass_mode = module_cust->bypass_mode;
+    cust->active_mode = module_cust->active_mode;
     cust->sock_count = 0; // init value
     cust->cust_priority = module_cust->cust_priority;
 
@@ -235,9 +235,9 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
     trace_printk("L4.5: Registration time: %llu\n", cust->registration_time_struct.tv_sec);
 #endif
 
-    spin_lock(&active_customization_list_lock);
-    list_add(&cust->cust_list_member, &active_customization_list);
-    spin_unlock(&active_customization_list_lock);
+    spin_lock(&installed_customization_list_lock);
+    list_add(&cust->cust_list_member, &installed_customization_list);
+    spin_unlock(&installed_customization_list_lock);
 
 
     if (applyNow)
@@ -265,8 +265,8 @@ int unregister_customization(struct customization_node *module_cust)
 #endif
 
     // First: delete from list so no new sockets can claim it
-    spin_lock(&active_customization_list_lock);
-    list_for_each_entry_safe(matching_cust, cust_next, &active_customization_list, cust_list_member)
+    spin_lock(&installed_customization_list_lock);
+    list_for_each_entry_safe(matching_cust, cust_next, &installed_customization_list, cust_list_member)
     {
         if (matching_cust->cust_id == module_cust->cust_id)
         {
@@ -278,7 +278,7 @@ int unregister_customization(struct customization_node *module_cust)
             break;
         }
     }
-    spin_unlock(&active_customization_list_lock);
+    spin_unlock(&installed_customization_list_lock);
 
 
     if (found == 0)
@@ -360,8 +360,8 @@ int deprecate_customization(u16 cust_id)
 #endif
 
     // Second: delete from list so no new sockets can claim it
-    spin_lock(&active_customization_list_lock);
-    list_for_each_entry_safe(matching_cust, cust_next, &active_customization_list, cust_list_member)
+    spin_lock(&installed_customization_list_lock);
+    list_for_each_entry_safe(matching_cust, cust_next, &installed_customization_list, cust_list_member)
     {
         if (matching_cust->cust_id == module_cust->cust_id)
         {
@@ -372,7 +372,7 @@ int deprecate_customization(u16 cust_id)
             break;
         }
     }
-    spin_unlock(&active_customization_list_lock);
+    spin_unlock(&installed_customization_list_lock);
 
     // Last: store customization in deprecated list and set deprecated time
     ktime_get_real_ts64(&matching_cust->deprecated_time_struct);
@@ -391,8 +391,8 @@ int deprecate_customization(u16 cust_id)
 
 
 
-// set customization bypass mode
-int toggle_customization(u16 cust_id, u16 mode)
+// set customization active mode
+int toggle_customization_active_mode(u16 cust_id, u16 mode)
 {
     int found = 0;
     struct customization_node *module_cust = NULL;
@@ -409,7 +409,39 @@ int toggle_customization(u16 cust_id, u16 mode)
     }
 
     found = 1;
-    *module_cust->bypass_mode = mode;
+    *module_cust->active_mode = mode;
+    return found;
+}
+
+
+
+// set customization priority
+int set_customization_priority(u16 cust_id, u16 priority)
+{
+    int found = 0;
+    struct customization_node *module_cust = NULL;
+
+    // First: find cust node matching given cust_id
+    module_cust = get_cust_by_id(cust_id);
+
+    if (module_cust == NULL)
+    {
+#ifdef DEBUG
+        trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
+#endif
+        return found;
+    }
+
+    found = 1;
+    *module_cust->cust_priority = priority;
+
+    // now we need to sort sockets with module attached again since order may change
+    if (module_cust->sock_count > 0)
+    {
+        // trigger sort
+        sort_each_socket_with_matching_cust(module_cust);
+    }
+
     return found;
 }
 
@@ -449,14 +481,14 @@ void netlink_cust_report(char *message, size_t *length)
     size_t rem_length = *length;
 
     message = json_objOpen(message, NULL, &rem_length);
-    message = json_arrOpen(message, "Active", &rem_length);
+    message = json_arrOpen(message, "Installed", &rem_length);
 
     // trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
-    list_for_each_entry_safe(cust_temp, cust_next, &active_customization_list, cust_list_member)
+    list_for_each_entry_safe(cust_temp, cust_next, &installed_customization_list, cust_list_member)
     {
         message = json_objOpen(message, NULL, &rem_length);
         message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
-        message = json_uint(message, "Bypass", *cust_temp->bypass_mode, &rem_length);
+        message = json_uint(message, "Activated", *cust_temp->active_mode, &rem_length);
         message = json_uint(message, "Count", cust_temp->sock_count, &rem_length);
         message = json_ulong(message, "ts", cust_temp->registration_time_struct.tv_sec, &rem_length);
         message = json_objClose(message, &rem_length);
@@ -472,7 +504,7 @@ void netlink_cust_report(char *message, size_t *length)
     {
         message = json_objOpen(message, NULL, &rem_length);
         message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
-        message = json_uint(message, "Bypass", *cust_temp->bypass_mode, &rem_length);
+        message = json_uint(message, "Activated", *cust_temp->active_mode, &rem_length);
         message = json_uint(message, "Count", cust_temp->sock_count, &rem_length);
         message = json_ulong(message, "ts", cust_temp->deprecated_time_struct.tv_sec, &rem_length);
         message = json_objClose(message, &rem_length);
@@ -699,7 +731,75 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
     message = json_objOpen(message, NULL, &rem_length);
     message = json_uint(message, "ID", cust_id, &rem_length);
 
-    result = toggle_customization(cust_id, mode);
+    result = toggle_customization_active_mode(cust_id, mode);
+
+    message = json_uint(message, "Result", result, &rem_length);
+
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+
+    *length = *length - rem_length;
+
+    return;
+
+error_msg:
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+    *length = *length - rem_length;
+    return;
+}
+
+
+
+void netlink_set_cust_priority(char *message, size_t *length, char *request)
+{
+    u16 cust_id = 0;
+    int word_count = 0;
+    int expected_words = 4;
+    char *words[4]; // hold expected_words pointers to char pointers
+    u16 priority;
+    int result;
+    size_t rem_length = *length;
+
+    // request format: PRIORITY cust_id priority END
+    // strsep should turn this into:
+    // PRIORITY
+    // cust_id
+    // priority
+    // END
+
+    word_count = split_message(request, words, expected_words);
+
+    if (word_count != expected_words)
+    {
+        trace_printk("L4.5 ALERT: priority word count error = %d\n", word_count);
+        // we did not get a valid message, so return error message
+        goto error_msg;
+    }
+
+    result = kstrtou16((words[1]), 10, &cust_id);
+    if (result != 0)
+    {
+        trace_printk("L4.5 ALERT: priority cust_id %s, error = %d\n", words[1], result);
+        // cust id string to u16 failed, so return error message
+        goto error_msg;
+    }
+
+    result = kstrtou16((words[2]), 10, &priority);
+    if (result != 0)
+    {
+        trace_printk("L4.5 ALERT: priority %s, error = %d\n", words[2], result);
+        // cust id string to u16 failed, so return error message
+        goto error_msg;
+    }
+
+
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_uint(message, "ID", cust_id, &rem_length);
+
+    result = set_customization_priority(cust_id, priority);
 
     message = json_uint(message, "Result", result, &rem_length);
 

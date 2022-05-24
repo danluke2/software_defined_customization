@@ -17,7 +17,7 @@ parser.add_argument('--inverse', type=str, required=False,
 parser.add_argument('--type', type=str, required=False,
                     help="type of middlebox for dependency")
 parser.add_argument(
-    '--bypass', help="Sets module to bypass mode", action="store_true")
+    '--activate', help="Activates module", action="store_true")
 parser.add_argument('--priority', type=int, required=True,
                     help="Module priority level")
 parser.add_argument(
@@ -25,7 +25,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-bypass = cfg.bypass  # default value
+active_mode = cfg.active_mode  # default value
 applyNow = cfg.applyNow  # default value
 
 
@@ -36,8 +36,8 @@ if args.inverse:
         insert_inverse_module(db_connection, args.module,
                               args.inverse, args.type)
 
-if args.bypass:
-    bypass = 1  # overwrite default
+if args.activate:
+    active_mode = 1  # overwrite default
 
 if args.applyNow:
     applyNow = 1  # overwrite default
@@ -45,4 +45,4 @@ if args.applyNow:
 time.sleep(5)
 
 insert_req_build_module(db_connection, args.host,
-                        args.module, bypass, args.priority, applyNow)
+                        args.module, active_mode, args.priority, applyNow)

@@ -87,10 +87,10 @@ def insert_and_update_module_tables(db_connection, module, module_id, host_id, k
 
 # we only build one module at a time, so mod_id should not need race condition protection
 # ASSUMPTION: symver file and directory exists
-def build_ko_module(host_id, module_id, module_name, key, bypass, priority, applyNow):
+def build_ko_module(host_id, module_id, module_name, key, active_mode, priority, applyNow):
     try:
         subprocess.run([cfg.nco_dir + "builder.sh", module_name, str(module_id),
-                       str(host_id), key.hex(), str(bypass), str(priority), str(applyNow)], check=True)
+                       str(host_id), key.hex(), str(active_mode), str(priority), str(applyNow)], check=True)
         result = 0
     except subprocess.CalledProcessError as e:
         logger.info(f"Error occured during module build process, error={e}")
@@ -104,13 +104,13 @@ def construction_loop(db_connection):
     modules_to_build = select_all_req_build_modules(db_connection)
     host_id_list = [x[0] for x in modules_to_build]
     module_list = [x[1] for x in modules_to_build]
-    bypass = [x[2] for x in modules_to_build]
+    active_mode = [x[2] for x in modules_to_build]
     priority = [x[3] for x in modules_to_build]
     applyNow = [x[4] for x in modules_to_build]
     for i in range(len(modules_to_build)):
         key = generate_key()
         err = build_ko_module(
-            host_id_list[i],  cfg.next_module_id, module_list[i], key, bypass[i], priority[i], applyNow[i])
+            host_id_list[i],  cfg.next_module_id, module_list[i], key, active_mode[i], priority[i], applyNow[i])
         if err == -1:
             # move on to next module instead of updating the tables
             logger.info(f"Construction error for host {host_id_list[i]}")

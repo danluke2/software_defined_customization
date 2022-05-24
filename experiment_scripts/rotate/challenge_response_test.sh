@@ -1,10 +1,17 @@
 #!/bin/bash
 
-#Purpose: perform the NCO/DCA module deployment experiment
-# $1 = security check window (ex: 5)
-# $2 = standard report interval (ex: 5)
-# $3 = wait X seconds before cleaning up (ex: 60)
+# Purpose: perform the NCO/DCA module deployment experiment with deprecation testing
+# Module inserted in non-activated status since we are just testing challenge capability
+# security check window = 5
+# standard report interval = 8
+# wait 20 seconds before deprecating module
+# wait additional 30 seconds before finishing test module
+# build window = 3 to speed up deploying module
 
+sec_window=5
+report_window=8
+first_wait=20
+finish_wait=30
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
@@ -26,12 +33,10 @@ CLIENT_PASSWD=vagrant
 # ************** END STANDARD PARAMS  ****************
 
 # Force root
-if [[ "$(id -u)" != "0" ]];
-then
+if [[ "$(id -u)" != "0" ]]; then
 	echo "This script must be run as root" 1>&2
 	exit -1
 fi
-
 
 #install Layer 4.5 on device
 echo "*************** Install L4.5  ***************"
@@ -46,27 +51,23 @@ sleep 2
 
 # start NCO process with command line params
 echo "*************** Starting NCO  ***************"
-gnome-terminal -- bash -c  "echo '*************** Starting NCO  ***************';  python3 $NCO_DIR/NCO.py --challenge --window $1 --query_interval $2 --linear --print"
+gnome-terminal -- bash -c "echo '*************** Starting NCO  ***************';  python3 $NCO_DIR/NCO.py --build_interval 3 --challenge --window $sec_window --query_interval $report_window --linear --print --logfile $NCO_DIR/challenge_nco_messages.log"
 
 sleep 2
 
 # start DCA process, which will have host_id = 1
 echo "*************** Starting DCA  ***************"
-gnome-terminal -- bash -c  "echo '*************** Starting DCA  ***************';  python3 $DCA_USER_DIR/DCA.py --print"
+gnome-terminal -- bash -c "echo '*************** Starting DCA  ***************';  python3 $DCA_USER_DIR/DCA.py --print --logfile $DCA_USER_DIR/challenge_dca_messages.log"
 
-
-sleep 2
+sleep $report_window
 
 # Insert challenge module in DB for deployment to host_id = 1
 echo "*************** Deploy Module  ***************"
 python3 $NCO_DIR/deploy_module_helper.py --module "nco_challenge_response" --host 1 --priority 42
 
+sleep $first_wait
 
-sleep $3
-
-
-echo "*************** finished  ***************"
-
+echo "*************** Finished Normal Part  ***************"
 
 # deprecate client module in DB host_id = 2
 echo "*************** Deprecate Challenge Module ***************"
@@ -74,11 +75,22 @@ python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --hos
 
 # Note: challenge/response still happening for deprecated module since still active on the socket
 
-sleep $3
+sleep $finish_wait
 
 # Revoke client module in DB host_id = 2
 echo "*************** Revoke Challenge Module ***************"
 python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1
 
+sleep $report_window
+sleep $report_window
 
-sleep $3
+# save tracelog files from each host
+sudo cp /sys/kernel/tracing/trace $EXP_SCRIPT_DIR/logs/challenge_deprecate.txt
+
+pkill python3
+rmmod layer4_5
+
+# TODO: run a python file to determine success/failure of test automatically
+# parse log files
+# challenge_*.txt: identify challenge NLMSG and subsequent L4.5 call, insmod with app name
+# NCO/DCA logs: verify challenge passed each time, no failures; deprecate transition

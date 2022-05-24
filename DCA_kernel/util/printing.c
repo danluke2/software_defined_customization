@@ -107,7 +107,7 @@ void trace_print_module_params(struct customization_node *cust_node)
     trace_printk("Node pid task = %s\n", cust_node->target_flow.task_name_pid);
     trace_printk("Node tgid task = %s\n", cust_node->target_flow.task_name_tgid);
     trace_printk("Node id = %u\n", cust_node->cust_id);
-    trace_printk("Node Bypass mode = %u\n", *cust_node->bypass_mode);
+    trace_printk("Node Activated = %u\n", *cust_node->active_mode);
     trace_printk("Node Priority = %u\n", *cust_node->cust_priority);
     trace_printk("Node dest port = %u\n", cust_node->target_flow.dest_port);
     trace_printk("Node source port = %u\n", cust_node->target_flow.source_port);

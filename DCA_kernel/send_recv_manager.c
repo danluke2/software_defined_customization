@@ -35,12 +35,32 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     for (i = 0; i < MAX_CUST_ATTACH; i++)
     {
         cust_node = cust_sock->customizations[i];
+
         // customization could have been unregistered right before this call
         // or we reached the end of valid customization modules in the array
-        if (cust_node == NULL || cust_sock->customize_or_skip == SKIP)
+        if (cust_node == NULL)
+        {
+            if (i == 0)
+            {
+                // if i == 0, then we should not have found a NULL node
+#ifdef DEBUG
+                trace_printk("L4.5 ALERT: Cust_node NULL found unexpectedly, pid %d\n", cust_sock->pid);
+#endif
+                goto skip_and_send;
+            }
+            else
+            {
+                // reached a NULL node, so no cust is happening this round
+                spin_unlock(&cust_sock->active_customization_lock);
+                // trace_printk("released lock\n");
+                return sendmsg(sk, msg, size);
+            }
+        }
+
+        if (cust_sock->customize_or_skip == SKIP)
         {
 #ifdef DEBUG
-            trace_printk("L4.5 ALERT: Cust_node NULL or send SKIP set unexpectedly, pid %d\n", cust_sock->pid);
+            trace_printk("L4.5 ALERT: Cust_node send SKIP set, pid %d\n", cust_sock->pid);
 #endif
             goto skip_and_send;
         }
@@ -234,10 +254,30 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     {
         cust_node = cust_sock->customizations[i];
 
-        if (cust_node == NULL || cust_sock->customize_or_skip == SKIP)
+        if (cust_node == NULL)
+        {
+            if (i == 0)
+            {
+                // if i == 0, then we should not have found a NULL node
+#ifdef DEBUG
+                trace_printk("L4.5 ALERT: Cust_node NULL found unexpectedly, pid %d\n", cust_sock->pid);
+#endif
+                goto skip_and_recv;
+            }
+            else
+            {
+#ifdef DEBUG1
+                trace_printk("L4.5: Reached a NULL Cust_node, pid %d\n", cust_sock->pid);
+#endif
+                // reached a NULL node, so no cust is happening this round
+                goto advance_and_recv;
+            }
+        }
+
+        if (cust_sock->customize_or_skip == SKIP)
         {
 #ifdef DEBUG
-            trace_printk("L4.5 ALERT: Cust_node NULL or recv SKIP set unexpectedly, pid %d\n", cust_sock->pid);
+            trace_printk("L4.5 ALERT: Cust_node recv SKIP set unexpectedly, pid %d\n", cust_sock->pid);
 #endif
             goto skip_and_recv;
         }
@@ -285,7 +325,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
             goto skip_and_recv;
         }
 
-        if (cust_sock->send_buf_st.try_next)
+        if (cust_sock->recv_buf_st.try_next)
         {
             // go to the next customization node b/c current one couldn't match customization
             continue;
@@ -299,6 +339,9 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 
     if (cust_performed == false)
     {
+#ifdef DEBUG
+        trace_printk("L4.5: No cust performed, pid %d\n", cust_sock->pid);
+#endif
         goto advance_and_recv;
     }
 
@@ -387,7 +430,7 @@ skip_and_recv:
     return recvmsg_ret;
 
 advance_and_recv:
-#ifdef DEBUG
+#ifdef DEBUG1
     trace_printk("L4.5: advance and recv triggered\n");
     #ifdef DEBUG2
     trace_print_iov_params(&msg->msg_iter);

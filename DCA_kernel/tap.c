@@ -197,7 +197,7 @@ void common_close(struct sock *sk)
     trace_printk("L4.5: socket close call, pid=%d, sk=%lu\n", task->pid, (unsigned long)sk);
     if (ret == 0)
     {
-        // prints sockets that bypassed L4.5 processing
+        // prints sockets that were not processedy by L4.5
         trace_printk("L4.5: socket not found; pid=%d, sk=%lu\n", task->pid, (unsigned long)sk);
     }
 #endif

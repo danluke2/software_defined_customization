@@ -130,23 +130,23 @@ def process_report(conn_socket, db_connection, host_id, MAX_BUFFER_SIZE):
         print(f"Error on process report recv call, {e}")
         return CLOSE_SOCK
 
-    active_list = json_data["Active"]
-    retired_list = json_data["Retired"]
+    installed_list = json_data["Installed"]
+    revoked_list = json_data["Revoked"]
 
-    # update Active table based on retired list, if empty then for loop skips
-    for module in retired_list:
-        err = delete_active(db_connection, host_id, module["ID"])
+    # update Installed table based on revoked list, if empty then for loop skips
+    for module in revoked_list:
+        err = delete_installed(db_connection, host_id, module["ID"])
         if err == DB_ERROR:
             print(
-                f"Active delete DB error occurred, host_id = {host_id}, module = {module}")
+                f"Installed delete DB error occurred, host_id = {host_id}, module = {module}")
         else:
-            err = insert_retired(db_connection, host_id,
+            err = insert_revoked(db_connection, host_id,
                                  module["ID"], module["ts"])
             if err == DB_ERROR:
                 print(
-                    f"Active delete DB error occurred, host_id = {host_id}, module = {module}")
+                    f"Installed delete DB error occurred, host_id = {host_id}, module = {module}")
 
-    return active_list
+    return installed_list
 
 
 def request_symver_file(conn_socket, db_connection, host_id, mac):
@@ -188,36 +188,36 @@ def recv_symvers_file(conn_socket, host_id):
         file_to_write.close()
 
 
-# Host reported active_list, which we compare to the active rows in our DB
-# We also compare the active_list to the install rows and update both tables as necessary
-def handle_active_update(db_connection, host_id, active_list, install_id_list):
+# Host reported installed_list, which we compare to the installed rows in our DB
+# We also compare the installed_list to the install rows and update both tables as necessary
+def handle_installed_update(db_connection, host_id, installed_list, install_id_list):
     result = 0
-    active_db = select_active_modules(db_connection, host_id)
-    # print(f"Active list {active_list}")
+    installed_list = select_installed_modules(db_connection, host_id)
+    # print(f"Installed list {installed_list}")
     # print(f"Install id list {install_id_list}")
     # compare values to find host/db mismatches, while also updating table
-    for module in active_list:
-        if module["ID"] in active_db:
-            update_active(db_connection, host_id,
-                          module["ID"], module["Count"], module["ts"])
+    for module in installed_list:
+        if module["ID"] in installed_list:
+            update_installed(db_connection, host_id,
+                             module["ID"], module["Count"], module["ts"])
             # we remove here to make list smaller and determine mismatches
-            active_db.remove(module["ID"])
+            installed_list.remove(module["ID"])
         else:
             # check if module was installed last cycle, if so update both tables
             if module["ID"] in install_id_list:
                 req_install = 0
                 update_built_module_install_requirement(
                     db_connection, host_id, module["ID"], req_install, module["ts"])
-                insert_active(db_connection, host_id,
-                              module["ID"], module["Count"], module["ts"], 0)
+                insert_installed(db_connection, host_id,
+                                 module["ID"], module["Count"], module["ts"], 0)
                 result = REFRESH_INSTALL_LIST
             else:
                 print(
-                    f"host has active module not in Active or Install DB, module =", module["ID"])
+                    f"host has installed module not in Installed or Install DB, module =", module["ID"])
 
-    for module_id in active_db:
+    for module_id in installed_list:
         print(f"Module_id {module_id} in DB, but not reported by host")
-        update_active_host_error(
+        update_installed_host_error(
             db_connection, host_id, module_id, int(time.time()))
 
     return result
@@ -331,17 +331,19 @@ def device_thread(conn, ip, port, cv, start_results, end_results, index, MAX_BUF
 
     # get a full report from host and send updated modules
     request_report(conn, host_id)
-    active_list = process_report(conn, db_connection, host_id, MAX_BUFFER_SIZE)
-    if active_list == CLOSE_SOCK:
-        print(f"Active list error, host {host_id}")
+    installed_list = process_report(
+        conn, db_connection, host_id, MAX_BUFFER_SIZE)
+    if installed_list == CLOSE_SOCK:
+        print(f"Installed list error, host {host_id}")
         conn.close()
         return
 
-    # need install list to compare with active lists
+    # need install list to compare with installed lists
     modules, module_ids = retrieve_install_list(db_connection, host_id)
 
-    # update Active list based on active list from host, must compare also
-    err = handle_active_update(db_connection, host_id, active_list, module_ids)
+    # update Installed list based on report from host, must compare also
+    err = handle_installed_update(
+        db_connection, host_id, installed_list, module_ids)
     if err == REFRESH_INSTALL_LIST:
         # need updated install list, but not the id's
         modules, module_ids = retrieve_install_list(db_connection, host_id)
@@ -352,14 +354,15 @@ def device_thread(conn, ip, port, cv, start_results, end_results, index, MAX_BUF
 
     # get updated host report to ensure install success
     request_report(conn, host_id)
-    active_list = process_report(conn, db_connection, host_id, MAX_BUFFER_SIZE)
-    if active_list == CLOSE_SOCK:
-        print(f"Active list error, host {host_id}")
+    installed_list = process_report(
+        conn, db_connection, host_id, MAX_BUFFER_SIZE)
+    if installed_list == CLOSE_SOCK:
+        print(f"Installed list error, host {host_id}")
         conn.close()
         return
 
-    if len(active_list) != 0:
-        module = active_list[0]
+    if len(installed_list) != 0:
+        module = installed_list[0]
         if module["ID"] != host_id:
             print(f"*************Module id error")
         else:

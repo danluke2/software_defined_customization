@@ -1,5 +1,5 @@
 #ifndef KBUILD_MODNAME
-#define KBUILD_MODNAME KBUILD_STR(layer4_5)
+    #define KBUILD_MODNAME KBUILD_STR(layer4_5)
 #endif
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -74,7 +74,10 @@ static void nl_receive_request(struct sk_buff *skb)
     {
         netlink_toggle_cust(message, &message_size, data);
     }
-
+    else if (strncmp(data, "PRIORITY", 8) == 0)
+    {
+        netlink_set_cust_priority(message, &message_size, data);
+    }
 
     skb_out = nlmsg_new(message_size, GFP_KERNEL);
     if (!skb_out)
