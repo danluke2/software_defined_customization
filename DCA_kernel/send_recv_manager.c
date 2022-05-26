@@ -185,8 +185,8 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 
     // fill the customization buffer instead of msg buffer with desired amount of data to allow customization to process
     // data correctly prior to filling msghdr
-    recvmsg_ret =
-        recvmsg(sk, &cust_sock->recv_buf_st.kmsg, cust_sock->recv_buf_st.available_bytes, nonblock, flags, addr_len);
+    // we set nonblock = 1 since we already did a peek and there should be data for us
+    recvmsg_ret = recvmsg(sk, &cust_sock->recv_buf_st.kmsg, cust_sock->recv_buf_st.available_bytes, 1, flags, addr_len);
     // even if recvmsg_return <= 0, we still want to do cust b/c of the buffering
     // so cust mod now needs to check recvmsg return and decide what to do
 

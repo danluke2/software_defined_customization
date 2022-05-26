@@ -399,6 +399,24 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     }
 #endif
 
+    // Perform a PEEK request so we don't remove data from L4 yet, but can fill in missing msg params if they exist
+    // perform recvmsg here because nonblock may be false and hold here until L4 has a message to return, which should
+    // avoid deadlock on real recvmsg call
+    recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
+
+    if (recvmsg_return < 0)
+    {
+#ifdef DEBUG1
+        trace_printk("L4.5: Error on recvmsg peek: return value=%d, pid %d, sk %lu\n", recvmsg_return, task->pid,
+                     (unsigned long)sk);
+#endif
+        return recvmsg_return;
+    }
+
+    // We need to reset msg->msg_flags b/c TRUNC flag could be set and cause odd application behavior
+    // (mainly for UDP; ex: dnsmasq drops message)
+    msg->msg_flags = 0;
+
     // Try to get cust socket, but if first time seeing socket this will fail to find the socket
     cust_socket = get_cust_socket(task, sk);
 
@@ -415,22 +433,6 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
             trace_printk("L4.5: %s create cust socket, pid %d, sk %lu\n", TARGET_APP, task->pid, (unsigned long)sk);
         }
 #endif
-
-        // Perform a PEEK request so we don't remove data from L4 yet, but can fill in missing msg params if they exist
-        recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
-
-        if (recvmsg_return < 0)
-        {
-#ifdef DEBUG1
-            trace_printk("L4.5: Error on recvmsg peek: return value=%d, pid %d, sk %lu\n", recvmsg_return, task->pid,
-                         (unsigned long)sk);
-#endif
-            return recvmsg_return;
-        }
-
-        // We need to reset msg->msg_flags b/c TRUNC flag could be set and cause odd application behavior (mainly for
-        // UDP; ex: dnsmasq drops message)
-        msg->msg_flags = 0;
 
         cust_socket = create_cust_socket(task, sk, msg);
         if (cust_socket == NULL)
