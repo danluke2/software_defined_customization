@@ -28,9 +28,9 @@ KCFLAGS = -Wall -O3 -g
 # DEBUG1 has extra comments for customized flows that might be useful
 # DEBUG2 has very situational comments that can just clog up the file
 # DEBUG3 most amount of comments
-DEBUG_FLAGS = -DDEBUG -DDEBUG1 -DDEBUG2 -DDEBUG3
+# DEBUG_FLAGS = -DDEBUG -DDEBUG1 -DDEBUG2 -DDEBUG3
 # DEBUG_FLAGS = -DDEBUG -DDEBUG2
-# DEBUG_FLAGS = -DDEBUG
+DEBUG_FLAGS = -DDEBUG
 
 all: layer4_5
 
