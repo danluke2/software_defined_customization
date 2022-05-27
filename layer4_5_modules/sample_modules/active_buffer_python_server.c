@@ -100,9 +100,19 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     if (recv_buf_st->recv_return == 0)
     {
         // if we have data buffered, then give to app
-        if (insert_index > 0 && insert_index <= recv_buf_st->length)
+        if (insert_index > 0)
         {
-            recv_buf_st->copy_length = insert_index;
+            if (insert_index <= recv_buf_st->length)
+            {
+                recv_buf_st->copy_length = insert_index;
+            }
+            else
+            {
+                // give as much as we can
+                recv_buf_st->copy_length = recv_buf_st->length;
+                buffered_data = recv_buf_st->length - insert_index;
+                buffered_index = recv_buf_st->length;
+            }
         }
         else
         {
