@@ -97,6 +97,7 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
     ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.15, percentLabels[tick],
             horizontalalignment='center', weight=weights[k], color="red")
 
+plt.xticks(fontsize=14)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 plt.ylabel('Seconds')
 plt.title("Buffer Model: DNS Batch Query/Response Time")

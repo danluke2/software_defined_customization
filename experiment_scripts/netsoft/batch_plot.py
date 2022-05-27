@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-#run the bulk transfer shell script to collect the data, then generate the plots
+# run the bulk transfer shell script to collect the data, then generate the plots
 
-#open each file, compare md5sum and fill in list of times
+# open each file, compare md5sum and fill in list of times
 dns_data_base = []
 with open("../logs/batch_base.txt") as fp:
     while True:
@@ -63,20 +63,20 @@ print(f'Medians: {medians}\n'
 
 
 maximum = 0
-minimum=1000000
+minimum = 1000000
 for x in dns_data:
     temp = max(x)
-    if temp>maximum:
+    if temp > maximum:
         maximum = temp
     temp = min(x)
-    if temp<minimum:
+    if temp < minimum:
         minimum = temp
 
-top=maximum+0.5
+top = maximum+0.5
 bottom = minimum-0.5
 
 ax.set_ylim(bottom, top)
-ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey',alpha=0.5)
+ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
 pos = np.arange(3) + 1
 meanLabels = [str(np.round(s, 2)) for s in means]
 # upperLabels2 = [str(np.round(s, 2)) for s in medians]
@@ -93,10 +93,11 @@ weights = ['bold', 'semibold']
 for tick, label in zip(range(3), ax.get_xticklabels()):
     k = tick % 2
     ax.text(pos[tick]+0.35, float(meanLabels[tick]), meanLabels[tick],
-             horizontalalignment='center', weight=weights[k], color="green")
+            horizontalalignment='center', weight=weights[k], color="green")
     ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.15, percentLabels[tick],
-             horizontalalignment='center', weight=weights[k], color="red")
+            horizontalalignment='center', weight=weights[k], color="red")
 
+plt.xticks(fontsize=14)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 plt.ylabel('Seconds')
 plt.title("DNS Batch Query/Response Time")

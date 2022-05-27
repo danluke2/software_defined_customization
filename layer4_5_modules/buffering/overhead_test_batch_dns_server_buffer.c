@@ -123,22 +123,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     // trace_print_hex_dump("Temp Buffer Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->temp_buf,
     //                      recv_buf_st->recv_return, true);
 
-    if (recv_buf_st->recv_return - cust_tag_test_size <= 0)
-    {
-        // something strange came in
-        trace_printk("L4.5 ALERT: DNS packet length makes no sense, size = %lu\n", recv_buf_st->recv_return);
-
-        if (recv_buf_st->recv_return <= recv_buf_st->length)
-        {
-            recv_buf_st->no_cust = true;
-        }
-        else
-        {
-            // recv > length but does not match our cust, so drop the message
-            recv_buf_st->copy_length = 0;
-        }
-    }
-    else
+    if (recv_buf_st->recv_return - cust_tag_test_size > 0)
     {
         if (strncmp(cust_tag_test, recv_buf_st->temp_buf, cust_tag_test_size) == 0)
         {
@@ -168,7 +153,21 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
             memcpy(recv_buf_st->buf, recv_buf_st->temp_buf, recv_buf_st->copy_length);
         }
     }
+    else
+    {
+        // something strange came in
+        trace_printk("L4.5 ALERT: DNS packet length makes no sense, size = %lu\n", recv_buf_st->recv_return);
 
+        if (recv_buf_st->recv_return <= recv_buf_st->length)
+        {
+            recv_buf_st->no_cust = true;
+        }
+        else
+        {
+            // recv > length but does not match our cust, so drop the message
+            recv_buf_st->copy_length = 0;
+        }
+    }
 
     // trace_print_hex_dump("Cust Buffer DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf,
     //                      recv_buf_st->copy_length, true);
@@ -213,7 +212,7 @@ int __init sample_client_start(void)
     dns_cust->retired_time_struct.tv_nsec = 0;
 
     dns_cust->send_buffer_size = 0;    // accept default buffer size
-    dns_cust->recv_buffer_size = 2048; // we don't need a full buffer
+    dns_cust->recv_buffer_size = 4096; // we don't need a full buffer
 
     result = register_customization(dns_cust);
 
