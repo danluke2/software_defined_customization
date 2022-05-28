@@ -210,35 +210,45 @@ void remove_customization_from_each_socket(struct customization_node *cust)
 }
 
 
-// Only called by Socket close function
+// Only called by Socket close function, but might not be called by same task that created it
 int delete_cust_socket(struct task_struct *task, struct sock *sk)
 {
     int found = 0;
+    int bucket;
     struct customization_socket *cust_socket;
-    cust_socket = get_cust_socket(task, sk);
-    if (cust_socket != NULL)
+    struct hlist_node tmp;
+    struct hlist_node *tmpptr = &tmp;
+
+    spin_lock(&normal_socket_lock);
+    hash_for_each_safe(normal_socket_table, bucket, tmpptr, cust_socket, socket_hash)
     {
-        found = 1;
-        if (cust_socket->customization == NULL)
+        if (cust_socket->sk == sk)
         {
-            spin_lock(&normal_socket_lock);
             hash_del(&cust_socket->socket_hash);
             kfree(cust_socket);
             socket_allocsminusfrees--;
-            spin_unlock(&normal_socket_lock);
+            found = 1;
         }
-        else
+    }
+    spin_unlock(&normal_socket_lock);
+
+    // even if in normal table, could still be in cust table under different pid
+    // so we kind of need a new key mechanism (mostly b/c UDP)
+    spin_lock(&cust_socket_lock);
+    hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket, socket_hash)
+    {
+        if (cust_socket->sk == sk)
         {
-            spin_lock(&cust_socket_lock);
             hash_del(&cust_socket->socket_hash);
-            // if socket close called on a customized socket then we allocated
-            // buffer space for it
             unassign_customization(cust_socket);
             kfree(cust_socket);
             socket_allocsminusfrees--;
-            spin_unlock(&cust_socket_lock);
+            found = 1;
         }
     }
+    spin_unlock(&cust_socket_lock);
+
+
     return found;
 }
 

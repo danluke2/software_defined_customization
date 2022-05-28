@@ -72,8 +72,8 @@ for x in dns_data:
     if temp < minimum:
         minimum = temp
 
-top = maximum+0.5
-bottom = minimum-0.5
+top = maximum+0.2
+bottom = minimum-0.2
 
 ax.set_ylim(bottom, top)
 ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
@@ -83,9 +83,9 @@ meanLabels = [str(np.round(s, 2)) for s in means]
 
 
 baseline = float(meanLabels[0])
-tapOverhead = ((float(meanLabels[1]) - baseline)/baseline)*100
-custOverhead = ((float(meanLabels[2]) - baseline)/baseline)*100
-percentLabels = ["", f'{tapOverhead:.2f}', f'{custOverhead:.2f}']
+tapOverhead = ((float(meanLabels[1]) - baseline)/baseline)
+custOverhead = ((float(meanLabels[2]) - baseline)/baseline)
+percentLabels = ["", f'{tapOverhead:.2%}', f'{custOverhead:.2%}']
 
 
 weights = ['bold', 'semibold']
@@ -94,13 +94,13 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
     k = tick % 2
     ax.text(pos[tick]+0.35, float(meanLabels[tick]), meanLabels[tick],
             horizontalalignment='center', weight=weights[k], color="green")
-    ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.15, percentLabels[tick],
+    ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.05, percentLabels[tick],
             horizontalalignment='center', weight=weights[k], color="red")
 
 plt.xticks(fontsize=14)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 plt.ylabel('Seconds')
-plt.title("DNS Batch Query/Response Time")
+plt.title("Application Model: \nDNS Batch Query/Response Time")
 
 # plt.show()
 plt.savefig('batch_overhead.png')
