@@ -333,10 +333,12 @@ static void assign_customization(struct customization_socket *cust_sock, struct 
     // condition ? value_if_true : value_if_false
     u32 send_buffer_size = (cust_node->send_buffer_size != 0) ? cust_node->send_buffer_size : SEND_BUF_SIZE;
     u32 recv_buffer_size = (cust_node->recv_buffer_size != 0) ? cust_node->recv_buffer_size : RECV_BUF_SIZE;
+    u32 temp_buffer_size = (cust_node->temp_buffer_size != 0) ? cust_node->temp_buffer_size : TEMP_BUF_SIZE;
 
 #ifdef DEBUG
     trace_printk("L4.5: Send buffer size = %u\n", send_buffer_size);
     trace_printk("L4.5: Recv buffer size = %u\n", recv_buffer_size);
+    trace_printk("L4.5: Temp buffer size = %u\n", temp_buffer_size);
 #endif
 
     cust_sock->customization = NULL; // default value
@@ -396,7 +398,7 @@ static void assign_customization(struct customization_socket *cust_sock, struct 
             cust_sock->recv_buf_st.buf_size = recv_buffer_size;
 
 
-            cust_sock->recv_buf_st.temp_buf = kmalloc(recv_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
+            cust_sock->recv_buf_st.temp_buf = kmalloc(temp_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
             if (cust_sock->recv_buf_st.temp_buf == NULL)
             {
 #ifdef DEBUG
@@ -412,12 +414,12 @@ static void assign_customization(struct customization_socket *cust_sock, struct 
                              cust_sock->socket_flow.task_name_pid);
 #endif
                 // we only buffer recv for now, so set kmsg params here
-                cust_sock->recv_buf_st.iov.iov_len = recv_buffer_size;
+                cust_sock->recv_buf_st.iov.iov_len = temp_buffer_size;
                 cust_sock->recv_buf_st.iov.iov_base = cust_sock->recv_buf_st.temp_buf;
 
 
                 socket_allocsminusfrees++; // temp buf
-                cust_sock->recv_buf_st.available_bytes = recv_buffer_size;
+                cust_sock->recv_buf_st.available_bytes = temp_buffer_size;
                 cust_sock->customize_recv_or_skip = CUSTOMIZE;
                 cust_sock->customization = cust_node;
             }

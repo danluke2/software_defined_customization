@@ -11,7 +11,7 @@ systemctl stop avahi-daemon
 systemctl disable avahi-daemon
 
 apt update
-# apt -y upgrade
+apt -y remove unattended-upgrades
 
 timedatectl set-ntp on
 timedatectl
@@ -23,20 +23,15 @@ SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_script
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
-
-
 $DCA_KERNEL_DIR/bash/installer.sh
-
 
 #replace dnsmasq config to match experiments
 cp $GIT_DIR/vagrant/dnsmasq.conf /etc/dnsmasq.conf
 
 # Update .bashrc to include some aliases
-cat <<EOT >> /home/vagrant/.bashrc
+cat <<EOT >>/home/vagrant/.bashrc
 alias edit='sudo gedit ~/.bashrc'
 alias src='source ~/.bashrc'
 alias desk='cd /home/vagrant/Desktop'
@@ -58,11 +53,9 @@ tracecopy () {
 }
 EOT
 
-
-
 # allow scripting ssh commands
 touch /home/vagrant/.ssh/config
-cat <<EOT >> /home/vagrant/.ssh/config
+cat <<EOT >>/home/vagrant/.ssh/config
 Host 10.0.0.20
     StrictHostKeyChecking no
 
@@ -70,10 +63,8 @@ Host 10.0.0.40
     StrictHostKeyChecking no
 EOT
 
-
-
 # fix network interface GW and DNS server
-cat <<EOT >> /etc/netplan/50-vagrant.yaml
+cat <<EOT >>/etc/netplan/50-vagrant.yaml
       gateway4: 10.0.0.20
       nameservers:
           search: [mydomain, otherdomain]

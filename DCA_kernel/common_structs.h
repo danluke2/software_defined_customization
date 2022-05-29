@@ -11,6 +11,7 @@
 #define TASK_NAME_LEN 16 // defined in sched.h as TASK_COMM_LEN 16
 #define SEND_BUF_SIZE 65536
 #define RECV_BUF_SIZE 65536
+#define TEMP_BUF_SIZE 32768 // half of recv_buf size
 
 // for functions that need to know direction of messages
 #define SEND 0
@@ -66,8 +67,8 @@ struct customization_buffer
     size_t length;             // send=amount of data in src_iter, recv=max amount to return
     size_t recv_return;        // amount of data L4 returned from recvmsg call
 
-    void *temp_buf;
-    u32 available_bytes; // bytes available to put temp data
+    void *temp_buf;      // temp buf size is same as buf
+    u32 available_bytes; // amount of space available in buf to put data
     struct kvec iov;
     struct msghdr kmsg;
 
@@ -130,6 +131,7 @@ struct customization_node
     // cust can set these to override the defualt SEND_BUF_SIZE, RECV_BUF_SIZE
     u32 send_buffer_size;
     u32 recv_buffer_size;
+    u32 temp_buffer_size;
 
     struct timespec64 registration_time_struct;
     struct timespec64 retired_time_struct;

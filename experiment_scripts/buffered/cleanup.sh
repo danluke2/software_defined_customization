@@ -28,7 +28,7 @@ WIRESHARK_DIR=/usr/lib/x86_64-linux-gnu/wireshark/plugins
 # Bulk
 if [ "$1" = "BULK" ]; then
   cd $EXP_SCRIPT_DIR/buffered
-  rm bulk_overhead.png
+  rm buffer_bulk_overhead.png
   cd $EXP_SCRIPT_DIR/logs
   rm buffer_bulk_*.txt
   cd $LAYER_MOD_DIR/buffering

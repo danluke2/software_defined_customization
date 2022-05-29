@@ -128,6 +128,15 @@ int register_customization(struct customization_node *module_cust)
         return -1;
     }
 
+    // invalid customization recieved, temp_buf can't be larger than recv buffer
+    if (module_cust->recv_buffer_size < module_cust->temp_buffer_size)
+    {
+#ifdef DEBUG
+        trace_printk("L4.5 ALERT: Buffer size check failed\n");
+#endif
+        return -1;
+    }
+
     // Verify the ID is unique before allowing registration
     test_cust = get_cust_by_id(module_cust->cust_id);
     if (test_cust != NULL)
@@ -159,6 +168,7 @@ int register_customization(struct customization_node *module_cust)
 
     cust->send_buffer_size = module_cust->send_buffer_size;
     cust->recv_buffer_size = module_cust->recv_buffer_size;
+    cust->temp_buffer_size = module_cust->temp_buffer_size;
 
 #ifdef DEBUG
     trace_printk("L4.5: Registering module\n");

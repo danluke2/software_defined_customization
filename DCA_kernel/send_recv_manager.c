@@ -179,7 +179,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     // set kmsg to match msg values
     cust_sock->recv_buf_st.kmsg = *msg;
     // setup kmsg with temp buffer
-    iov_iter_kvec(&cust_sock->recv_buf_st.kmsg.msg_iter, READ | ITER_KVEC, &cust_sock->recv_buf_st.iov, 1,
+    iov_iter_kvec(&cust_sock->recv_buf_st.kmsg.msg_iter, READ, &cust_sock->recv_buf_st.iov, 1,
                   cust_sock->recv_buf_st.available_bytes);
 
 
@@ -330,11 +330,7 @@ skip_and_recv:
     trace_printk("L4.5: skip and recv triggered\n");
 #endif
     cust_sock->customize_recv_or_skip = SKIP;
-    // transfer temp buffer to msg buffer
-    copy_success = copy_to_iter(cust_sock->recv_buf_st.temp_buf, recvmsg_ret, &msg->msg_iter);
-    spin_unlock(&cust_sock->active_customization_lock);
-    // just make the application ask again
-    return recvmsg_ret;
+    goto check_and_copy;
 
 
 check_and_copy:

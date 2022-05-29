@@ -212,7 +212,8 @@ int __init sample_client_start(void)
     dns_cust->retired_time_struct.tv_nsec = 0;
 
     dns_cust->send_buffer_size = 0;    // accept default buffer size
-    dns_cust->recv_buffer_size = 4096; // we don't need a full buffer
+    dns_cust->recv_buffer_size = 8192; // we don't need a full buffer
+    dns_cust->temp_buffer_size = 4096; // half of recv
 
     result = register_customization(dns_cust);
 
