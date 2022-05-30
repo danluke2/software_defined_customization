@@ -90,7 +90,7 @@ print(tcp_data_tap_buff)
 
 
 tcp_data_cust_buff = []
-with open("../logs/bulk_cust.txt") as fp:
+with open("../logs/buffer_bulk_cust.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -135,8 +135,8 @@ for x in tcp_data:
     if temp < minimum:
         minimum = temp
 
-top = maximum+0.5
-bottom = minimum-0.5
+top = maximum+0.15
+bottom = minimum-0.15
 
 ax.set_ylim(bottom, top)
 ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
@@ -250,8 +250,8 @@ for x in tcp_data:
     if temp < minimum:
         minimum = temp
 
-top = maximum+0.5
-bottom = minimum-0.5
+top = maximum+0.25
+bottom = minimum-0.25
 ax1.set_ylim(bottom, top)
 ax1.set_xticklabels(["Baseline", "L4.5 Tap\n(App Model)", "L4.5 Tap\n(Buffer Model)",
                      "L4.5 Tap+Cust\n(App Model)", "L4.5 Tap+Cust\n(Buffer Model)"],
