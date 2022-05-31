@@ -115,6 +115,8 @@ Common items I refer to when trying to understand code and functions in the kern
 
 1) nginx server with ssl:
 
+    https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-18-04
+
     https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-18-04
 
     https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04
