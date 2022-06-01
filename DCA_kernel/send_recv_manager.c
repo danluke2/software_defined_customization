@@ -104,10 +104,17 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     sendmsg_return = sendmsg(sk, &kmsg, cust_sock->send_buf_st.copy_length);
     spin_unlock(&cust_sock->active_customization_lock);
 
+    // if sendmsg error, then we need to inform the customization somehow of the error
+    cust_sock->send_buf_st.send_return = sendmsg_return;
+
     if (sendmsg_return < 0)
     {
 #ifdef DEBUG
         trace_printk("L4.5 ALERT: Sendmsg returned error code = %d\n", sendmsg_return);
+        // trace_print_msg_params(msg);
+        // trace_print_msg_params(&kmsg);
+        // trace_print_hex_dump("App Message: ", DUMP_PREFIX_ADDRESS, 16, 1, msg->msg_iter.iov->iov_base, 64, true);
+        // trace_print_hex_dump("Cust Message: ", DUMP_PREFIX_ADDRESS, 16, 1, kmsg.msg_iter.iov->iov_base, 64, true);
 #endif
         return sendmsg_return;
     }
@@ -143,7 +150,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     struct customization_node *cust_node;
     struct iov_iter iter_temp;
     size_t copy_success;
-    size_t recvmsg_ret;
+    int recvmsg_ret;
 
 #ifdef DEBUG1
     trace_printk("L4.5 Start of DCA recvmsg\n");
@@ -182,11 +189,21 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     iov_iter_kvec(&cust_sock->recv_buf_st.kmsg.msg_iter, READ, &cust_sock->recv_buf_st.iov, 1,
                   cust_sock->recv_buf_st.available_bytes);
 
+    // if we have enough data in the buffer to fulfill request, then don't ask for more yet
+    if (cust_sock->recv_buf_st.buffered_bytes >= len)
+    {
+        recvmsg_ret = 0;
+    }
+    else
+    {
+        // fill the customization buffer instead of msg buffer with desired amount of data to allow customization to
+        // process data correctly
+        // prior to filling msghdr we set nonblock = 1 since we already did a peek and there
+        // should be data for us
+        recvmsg_ret =
+            recvmsg(sk, &cust_sock->recv_buf_st.kmsg, cust_sock->recv_buf_st.available_bytes, 1, flags, addr_len);
+    }
 
-    // fill the customization buffer instead of msg buffer with desired amount of data to allow customization to process
-    // data correctly prior to filling msghdr
-    // we set nonblock = 1 since we already did a peek and there should be data for us
-    recvmsg_ret = recvmsg(sk, &cust_sock->recv_buf_st.kmsg, cust_sock->recv_buf_st.available_bytes, 1, flags, addr_len);
     // even if recvmsg_return <= 0, we still want to do cust b/c of the buffering
     // so cust mod now needs to check recvmsg return and decide what to do
 
@@ -219,7 +236,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     if (cust_sock->recv_buf_st.recv_return < 0)
     {
 #ifdef DEBUG1
-        trace_printk("L4.5: received %lu error message from module, pid %d\n", cust_sock->recv_buf_st.recv_return,
+        trace_printk("L4.5: received %d error message from module, pid %d\n", cust_sock->recv_buf_st.recv_return,
                      cust_sock->pid);
 #endif
         spin_unlock(&cust_sock->active_customization_lock);
@@ -272,8 +289,6 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 
     copy_success = copy_to_iter(cust_sock->recv_buf_st.buf, cust_sock->recv_buf_st.copy_length, &msg->msg_iter);
 
-
-
     // I don't think this is likely, but need to check
     if (copy_success != cust_sock->recv_buf_st.copy_length)
     {
@@ -300,8 +315,6 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 #ifdef DEBUG2
     trace_printk("L4.5: After copy success, before return to app\n");
     trace_print_iov_params(&msg->msg_iter);
-    trace_print_hex_dump("msg buffer: ", DUMP_PREFIX_ADDRESS, 16, 1, msg->msg_iter.iov->iov_base,
-                         cust_sock->recv_buf_st.copy_length, true);
 #endif
 
     // only update time after we recv successfully

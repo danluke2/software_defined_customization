@@ -33,7 +33,7 @@ static char *source_ip = "0.0.0.0";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
-static unsigned int destination_port = 8080;
+static unsigned int destination_port = 443;
 module_param(destination_port, uint, 0600);
 MODULE_PARM_DESC(destination_port, "DPORT to match");
 
@@ -352,7 +352,7 @@ int __init sample_client_start(void)
     client_cust->send_function = NULL;
     client_cust->recv_function = modify_buffer_recv;
 
-    client_cust->cust_id = 78;
+    client_cust->cust_id = 101;
     client_cust->registration_time_struct.tv_sec = 0;
     client_cust->registration_time_struct.tv_nsec = 0;
     client_cust->retired_time_struct.tv_sec = 0;
@@ -361,9 +361,9 @@ int __init sample_client_start(void)
     client_cust->send_buffer_size = 0; //  normal buffer size
     client_cust->recv_buffer_size = 65536 * 2;
     // temp_buffer_size <= recv_buffer_size
-    client_cust->temp_buffer_size = 102400 + 3000;
-    // curl buffer length from trace messages = 102400
-    // there will be about 3000 tag bytes so we can put more in temp that will just be removed
+    client_cust->temp_buffer_size = 16401 + 1024;
+    // curl buffer length from trace messages = 16401 max when TLS used
+    // there will be some tag bytes so we can put more in temp that will just be removed
 
     result = register_customization(client_cust);
 
@@ -373,7 +373,7 @@ int __init sample_client_start(void)
         return -1;
     }
 
-    trace_printk("L4.5: client module loaded, id=%d\n", client_cust->cust_id);
+    trace_printk("L4.5: TLS client module loaded, id=%d\n", client_cust->cust_id);
 
     return 0;
 }
@@ -388,11 +388,11 @@ void __exit sample_client_end(void)
 
     if (ret == 0)
     {
-        trace_printk("L4.5 ALERT: client module unload error\n");
+        trace_printk("L4.5 ALERT: client TLS module unload error\n");
     }
     else
     {
-        trace_printk("L4.5: client module unloaded\n");
+        trace_printk("L4.5: TLS client module unloaded\n");
     }
     kfree(client_cust);
     return;

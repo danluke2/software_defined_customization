@@ -65,7 +65,8 @@ struct customization_buffer
     size_t copy_length;        // how much of buffer to copy
     struct iov_iter *src_iter; // source buffer to work from
     size_t length;             // send=amount of data in src_iter, recv=max amount to return
-    size_t recv_return;        // amount of data L4 returned from recvmsg call
+    int recv_return;           // amount of data L4 returned from recvmsg call
+    int send_return;           // amount of data send return from last round
 
     void *temp_buf;      // temp buf size is same as buf
     u32 available_bytes; // amount of space available in buf to put data
@@ -74,6 +75,8 @@ struct customization_buffer
 
     bool skip_cust;
     bool no_cust;
+
+    size_t buffered_bytes;
 };
 
 // buffers for customization module use to buffer inoming messages

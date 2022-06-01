@@ -399,10 +399,28 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     }
 #endif
 
+    // Try to get cust socket, but if first time seeing socket this will fail to find the socket
+    cust_socket = get_cust_socket(task, sk);
+
+    // if we found the socket and we have data buffered, then we don't need to do an early recvmsg with PEEK
+
     // Perform a PEEK request so we don't remove data from L4 yet, but can fill in missing msg params if they exist
     // perform recvmsg here because nonblock may be false and hold here until L4 has a message to return, which should
     // avoid deadlock on real recvmsg call
-    recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
+    if (cust_socket != NULL)
+    {
+        // buffered data is false by default
+        if (cust_socket->recv_buf_st.buffered_bytes == 0)
+        {
+            recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
+        }
+    }
+    // otherwise, we do a normal recvmsg with app specified nonblock parameter
+    else
+    {
+        recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
+    }
+
 
     if (recvmsg_return < 0)
     {
@@ -417,8 +435,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     // (mainly for UDP; ex: dnsmasq drops message)
     msg->msg_flags = 0;
 
-    // Try to get cust socket, but if first time seeing socket this will fail to find the socket
-    cust_socket = get_cust_socket(task, sk);
+
 
     // this section generall only runs on first tap attempt (server, UDP)
     if (cust_socket == NULL)
