@@ -217,8 +217,8 @@ for x in dns_data:
 top = maximum+0.2
 bottom = minimum-0.2
 ax1.set_ylim(bottom, top)
-ax1.set_xticklabels(["Baseline", "L4.5 Tap\n(App Model)", "L4.5 Tap\n(Buffer Model)",
-                     "L4.5 Tap+Cust\n(App Model)", "L4.5 Tap+Cust\n(Buffer Model)"],
+ax1.set_xticklabels(["Baseline", "L4.5 Tap\n(Strict Model)", "L4.5 Tap\n(Flexible Model)",
+                     "L4.5 Tap+Cust\n(Strict Model)", "L4.5 Tap+Cust\n(Flexible Model)"],
                     rotation=0, fontsize=12)
 
 # Due to the Y-axis scale being different across samples, it can be

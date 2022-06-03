@@ -35,10 +35,20 @@ if [ "$1" = "BULK" ]; then
   make clean
 fi
 
+# Bulk TLS
+if [ "$1" = "TLS" ]; then
+  cd $EXP_SCRIPT_DIR/buffered
+  rm buffer_tls_bulk_overhead.png
+  cd $EXP_SCRIPT_DIR/logs
+  rm buffer_tls_bulk_*.txt
+  cd $LAYER_MOD_DIR/buffering
+  make clean
+fi
+
 # Batch
 if [ "$1" = "BATCH" ]; then
   cd $EXP_SCRIPT_DIR/buffered
-  rm buffer_batch_overhead.png
+  rm buffer_batch_overhead*.png
   cd $EXP_SCRIPT_DIR/logs
   rm buffer_batch_*.txt
   cd $LAYER_MOD_DIR/buffering

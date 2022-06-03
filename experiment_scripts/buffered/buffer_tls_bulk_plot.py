@@ -10,7 +10,7 @@ from matplotlib.patches import Polygon
 
 # open each file, compare md5sum and fill in list of times
 tcp_data_base = []
-with open("../logs/bulk_base.txt") as fp:
+with open("../logs/buffer_tls_bulk_base.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -29,48 +29,8 @@ tcp_data_base = [x/1000 for x in tcp_data_base]
 print(tcp_data_base)
 
 
-tcp_data_tap = []
-with open("../logs/bulk_tap.txt") as fp:
-    md5compare = fp.readline()
-    while True:
-        md5download = fp.readline()
-        if not md5download:
-            break
-        if md5compare != md5download:
-            print(f"compare mismatch, {md5compare} != {md5download}")
-        else:
-            time = fp.readline()
-            if not time:
-                break
-            tcp_data_tap.append(int(time))
-
-
-tcp_data_tap = [x/1000 for x in tcp_data_tap]
-print(tcp_data_tap)
-
-
-tcp_data_cust = []
-with open("../logs/bulk_cust.txt") as fp:
-    md5compare = fp.readline()
-    while True:
-        md5download = fp.readline()
-        if not md5download:
-            break
-        if md5compare != md5download:
-            print(f"compare mismatch, {md5compare} != {md5download}")
-        else:
-            time = fp.readline()
-            if not time:
-                break
-            tcp_data_cust.append(int(time))
-
-
-tcp_data_cust = [x/1000 for x in tcp_data_cust]
-print(tcp_data_cust)
-
-
 tcp_data_tap_buff = []
-with open("../logs/buffer_bulk_tap.txt") as fp:
+with open("../logs/buffer_tls_bulk_tap.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -90,7 +50,7 @@ print(tcp_data_tap_buff)
 
 
 tcp_data_cust_buff = []
-with open("../logs/buffer_bulk_cust.txt") as fp:
+with open("../logs/buffer_tls_bulk_cust.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -108,75 +68,12 @@ with open("../logs/buffer_bulk_cust.txt") as fp:
 tcp_data_cust_buff = [x/1000 for x in tcp_data_cust_buff]
 print(tcp_data_cust_buff)
 
-tcp_data = [tcp_data_base, tcp_data_tap,
-            tcp_data_tap_buff, tcp_data_cust, tcp_data_cust_buff]
+tcp_data = [tcp_data_base, tcp_data_tap_buff, tcp_data_cust_buff]
 
 
 plt.rc('axes', titlesize=16)     # fontsize of the axes title
 plt.rc('axes', labelsize=14)
 plt.rc('figure', titlesize=16)
-
-fig, ax = plt.subplots()
-bp = ax.boxplot(tcp_data, showmeans=True)
-
-medians = [item.get_ydata()[0] for item in bp['medians']]
-means = [item.get_ydata()[0] for item in bp['means']]
-print(f'Medians: {medians}\n'
-      f'Means:   {means}')
-
-
-maximum = 0
-minimum = 1000000
-for x in tcp_data:
-    temp = max(x)
-    if temp > maximum:
-        maximum = temp
-    temp = min(x)
-    if temp < minimum:
-        minimum = temp
-
-top = maximum+0.15
-bottom = minimum-0.15
-
-ax.set_ylim(bottom, top)
-ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-pos = np.arange(5) + 1
-meanLabels = [str(np.round(s, 4)) for s in means]
-# upperLabels2 = [str(np.round(s, 2)) for s in medians]
-
-
-baseline = float(meanLabels[0])
-tapOverhead = ((float(meanLabels[1]) - baseline)/baseline)
-custOverhead = ((float(meanLabels[2]) - baseline)/baseline)
-tapOverheadBuf = ((float(meanLabels[3]) - baseline)/baseline)
-custOverheadBuf = ((float(meanLabels[4]) - baseline)/baseline)
-percentLabels = ["", f'{tapOverhead:.2%}', f'{custOverhead:.2%}',
-                 f'{tapOverheadBuf:.2%}', f'{custOverheadBuf:.2%}']
-
-
-weights = ['bold', 'semibold']
-
-for tick, label in zip(range(5), ax.get_xticklabels()):
-    k = tick % 2
-    ax.text(pos[tick]+0.35, float(meanLabels[tick]), meanLabels[tick],
-            horizontalalignment='center', weight=weights[k], color="green")
-    ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.08, percentLabels[tick],
-            horizontalalignment='center', weight=weights[k], color="red")
-
-plt.xticks(fontsize=14)
-plt.xticks([1, 2, 3, 4, 5], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust",
-           "L4.5 Tap", "L4.5 Tap+Cust"], rotation=45)
-plt.ylabel('Seconds')
-plt.title("Bulk File Transfer Time")
-
-
-# plt.show()
-# plt.savefig('buffer_batch_overhead_combined.png')
-
-
-# Testing a different king of plot
-tcp_data = [tcp_data_base, tcp_data_tap,
-            tcp_data_tap_buff, tcp_data_cust, tcp_data_cust_buff]
 
 
 fig, ax1 = plt.subplots(figsize=(10, 6))
@@ -195,30 +92,32 @@ ax1.yaxis.grid(True, linestyle='-', which='major', color='lightgrey',
 
 ax1.set(
     axisbelow=True,  # Hide the grid behind plot objects
-    title="Bulk File Transfer Time",
+    title="Bulk File Transfer Time over HTTPS",
     xlabel='',
     ylabel='Seconds',
 )
 
+medians = [item.get_ydata()[0] for item in bp['medians']]
 means = [item.get_ydata()[0] for item in bp['means']]
+print(f'Medians: {medians}\n'
+      f'Means:   {means}')
+
+meanLabels = [str(np.round(s, 2)) for s in means]
 
 baseline = float(meanLabels[0])
-tapOverhead = ((float(meanLabels[1]) - baseline)/baseline)
-custOverhead = ((float(meanLabels[3]) - baseline)/baseline)
-tapOverheadBuf = ((float(meanLabels[2]) - baseline)/baseline)
-custOverheadBuf = ((float(meanLabels[4]) - baseline)/baseline)
-percentLabels = ["", f'{tapOverhead:.2%}', f'{tapOverheadBuf:.2%}',
-                 f'{custOverhead:.2%}', f'{custOverheadBuf:.2%}']
+tapOverheadBuf = ((float(meanLabels[1]) - baseline)/baseline)
+custOverheadBuf = ((float(meanLabels[2]) - baseline)/baseline)
+percentLabels = ["", f'{tapOverheadBuf:.2%}', f'{custOverheadBuf:.2%}']
 
 # Now fill the boxes with desired colors
-box_colors = ['pink', 'darkkhaki', 'royalblue', 'darkkhaki', 'royalblue']
+box_colors = ['pink', 'royalblue', 'royalblue']
 num_boxes = len(tcp_data)
 medians = np.empty(num_boxes)
 for i in range(num_boxes):
     box = bp['boxes'][i]
     box_x = []
     box_y = []
-    for j in range(5):
+    for j in range(3):
         box_x.append(box.get_xdata()[j])
         box_y.append(box.get_ydata()[j])
     box_coords = np.column_stack([box_x, box_y])
@@ -253,8 +152,8 @@ for x in tcp_data:
 top = maximum+0.25
 bottom = minimum-0.25
 ax1.set_ylim(bottom, top)
-ax1.set_xticklabels(["Baseline", "L4.5 Tap\n(Strict Model)", "L4.5 Tap\n(Flexible Model)",
-                     "L4.5 Tap+Cust\n(Strict Model)", "L4.5 Tap+Cust\n(Flexible Model)"],
+ax1.set_xticklabels(["Baseline", "L4.5 Tap\n(Flexible Model)",
+                    "L4.5 Tap+Cust\n(Flexible Model)"],
                     rotation=0, fontsize=12)
 
 # Due to the Y-axis scale being different across samples, it can be
@@ -275,17 +174,5 @@ for tick, label in zip(range(num_boxes), ax1.get_xticklabels()):
              weight=weights[k], color="red")
 
 
-# Finally, add a basic legend
-# fig.text(0.80, 0.15, f'App Model',
-#          backgroundcolor=box_colors[1], color='black', weight='roman',
-#          size='large')
-# fig.text(0.80, 0.1, 'Buffer Model',
-#          backgroundcolor=box_colors[2],
-#          color='white', weight='roman', size='large')
-# fig.text(0.80, 0.015, '*', color='white', backgroundcolor='silver',
-#          weight='roman', size='medium')
-# fig.text(0.815, 0.013, ' Average Value', color='black', weight='roman',
-#          size='x-small')
-
 # plt.show()
-plt.savefig('buffer_bulk_overhead.png')
+plt.savefig('buffer_tls_bulk_overhead.png')
