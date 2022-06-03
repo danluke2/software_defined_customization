@@ -5,3 +5,6 @@
 *.ko
 *.mod*
 *.o
+
+# deleted files from git in branch
+sample*
