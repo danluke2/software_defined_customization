@@ -39,14 +39,34 @@ sleep 2
 
 rmmod layer4_5
 
-# no baseline needed since same as non-buffering case
+# comment out if already ran baseline tests in non-buffering branch
+OUTPUT=$EXP_SCRIPT_DIR/logs/batch_base.txt
+touch $OUTPUT
+
+echo "*************** starting base batch ***************"
+
+for ((i = 1; i <= $1; i++)); do
+  echo "DNS test $i"
+  total=0
+  for ((j = 1; j <= $2; j++)); do
+    query="www.test_base_$i$j.com"
+    before=$(date '+%s%6N')
+    dig @$SERVER_IP -p 53 $query >/dev/null
+    after=$(date '+%s%6N')
+    total=$((total + (after - before)))
+    sleep $3
+  done
+  echo "$((total))" >>$OUTPUT
+done
+
+echo "*************** finished base test ***************"
 
 # client connect to server over ssh, kill dnsmasq, install L4.5, restart dnsmasq, client install L4.5, run experiment, save data to file
 
 OUTPUT=$EXP_SCRIPT_DIR/logs/buffer_batch_tap.txt
 touch $OUTPUT
 
-echo Installing Layer 4.5 on server and client
+echo "Installing Layer 4.5 on server and client"
 
 sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; $DCA_KERNEL_DIR/bash/installer.sh; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 

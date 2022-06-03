@@ -10,7 +10,7 @@ from matplotlib.patches import Polygon
 
 # open each file, compare md5sum and fill in list of times
 dns_data_base = []
-with open("../logs/keep/batch_base.txt") as fp:
+with open("../logs/batch_base.txt") as fp:
     while True:
         time = fp.readline()
         if not time:
@@ -252,4 +252,4 @@ for tick, label in zip(range(num_boxes), ax1.get_xticklabels()):
 #          size='x-small')
 
 # plt.show()
-plt.savefig('buffer_batch_overhead_combined.png')
+plt.savefig('buffer_batch_overhead.png')
