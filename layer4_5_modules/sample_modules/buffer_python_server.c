@@ -106,14 +106,19 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
   bool copy_success;
   recv_buf_st->no_cust = false;
   recv_buf_st->skip_cust = false;
+  recv_buf_st->buffered_bytes = 0;
 
+
+  trace_printk("L4.5 module: recvmsg_ret = %d, msg len = %lu\n", recv_buf_st->recv_return, recv_buf_st->length);
+
+  
   // we aren't buffering, so if recvmsg returned error, just pass back to app
   if(recv_buf_st->recv_return < 0)
   {
     return;
   }
 
-  trace_printk("L4.5 module: recvmsg_ret = %lu, msg len = %lu\n", recv_buf_st->recv_return, recv_buf_st->length);
+  
 
 
   //NOTE: when buffering allowed, recv_return can be 0
@@ -218,6 +223,15 @@ int __init sample_server_start(void)
 
   // Cust ID normally set by NCO, uniqueness required
 	python_cust->cust_id = 24;
+  python_cust->registration_time_struct.tv_sec = 0;
+  python_cust->registration_time_struct.tv_nsec = 0;
+  python_cust->retired_time_struct.tv_sec = 0;
+  python_cust->retired_time_struct.tv_nsec = 0;
+
+  python_cust->send_buffer_size = 0; //  normal buffer size
+  python_cust->recv_buffer_size = 0; //  normal buffer size
+  // temp_buffer_size <= recv_buffer_size
+  python_cust->temp_buffer_size = 0; //  normal buffer size
 
 	result = register_customization(python_cust);
 

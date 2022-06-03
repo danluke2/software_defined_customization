@@ -181,6 +181,11 @@ int __init sample_client_start(void)
 	python_cust->retired_time_struct.tv_sec = 0;
   python_cust->retired_time_struct.tv_nsec = 0;
 
+  python_cust->send_buffer_size = 0; //  normal buffer size
+  python_cust->recv_buffer_size = 0; //  normal buffer size
+  // temp_buffer_size <= recv_buffer_size
+  python_cust->temp_buffer_size = 0; //  normal buffer size
+
 	result = register_customization(python_cust);
 
   if(result != 0)

@@ -72,55 +72,52 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+
+    recv_buf_st->copy_length = 0;
     recv_buf_st->no_cust = false;
     recv_buf_st->skip_cust = false;
+    recv_buf_st->buffered_bytes = 0;
     insert_index = 0;
 
-    // if recvmsg returned error, just pass back to app
-    if (recv_buf_st->recv_return < 0)
-    {
-        return;
-    }
-
-    // if data was buffered, then shift it to front of buffer
+    // if data was buffered in previous recv, then shift it to front of buffer
     if (buffered_data > 0)
     {
+        // trace_printk("Adjusting Message buffer\n");
         memmove(recv_buf_st->buf, recv_buf_st->buf + buffered_index, buffered_data);
         insert_index += buffered_data;
         buffered_data = 0;
         buffered_index = 0;
-        trace_print_hex_dump("Buffered Message: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, insert_index, true);
+        // trace_print_hex_dump("Buffered Message: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->buf, insert_index, true);
     }
 
 
-    trace_printk("L4.5 module: recvmsg_ret = %lu, msg len = %lu\n", recv_buf_st->recv_return, recv_buf_st->length);
+    trace_printk("L4.5 module: recvmsg_ret = %d, msg len = %lu\n", recv_buf_st->recv_return, recv_buf_st->length);
 
+    // if recvmsg returned error, then see if we have data, otherwise pass back error
+    if (recv_buf_st->recv_return < 0)
+    {
+        // printk(KERN_ALERT "L4.5: recv ret < 0\n");
+        // trace_printk("L4.5: recv ret < 0\n");
+        // if we have data buffered, then give to app
+        if (insert_index > 0)
+        {
+            // need to adjust recv_return to match buffered data amount for L4.5 recvmsg
+            recv_buf_st->recv_return = insert_index;
+            recv_buf_st->copy_length += insert_index;
+        }
+        // otherwise, pass error back to the app
+        return;
+    }
 
     // NOTE: when buffering allowed, recv_return can be 0
     if (recv_buf_st->recv_return == 0)
     {
-        // if we have data buffered, then give to app
-        if (insert_index > 0)
-        {
-            if (insert_index <= recv_buf_st->length)
-            {
-                recv_buf_st->copy_length = insert_index;
-            }
-            else
-            {
-                // give as much as we can
-                recv_buf_st->copy_length = recv_buf_st->length;
-                buffered_data = recv_buf_st->length - insert_index;
-                buffered_index = recv_buf_st->length;
-            }
-        }
-        else
-        {
-            recv_buf_st->copy_length = 0;
-        }
+        // printk(KERN_ALERT "L4.5: recv ret = 0\n");
+        // trace_printk("L4.5: recv ret = 0\n");
+        recv_buf_st->recv_return = insert_index;
+        recv_buf_st->copy_length += insert_index;
         return;
     }
-
 
     trace_print_hex_dump("Temp Buffer Message: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->temp_buf,
                          recv_buf_st->recv_return, true);
@@ -185,9 +182,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         }
         recv_buf_st->copy_length += insert_index;
     }
-
-
-    return;
 }
 
 
@@ -233,6 +227,16 @@ int __init sample_server_start(void)
 
     // Cust ID normally set by NCO, uniqueness required
     python_cust->cust_id = 24;
+    python_cust->registration_time_struct.tv_sec = 0;
+    python_cust->registration_time_struct.tv_nsec = 0;
+    python_cust->retired_time_struct.tv_sec = 0;
+    python_cust->retired_time_struct.tv_nsec = 0;
+
+    python_cust->send_buffer_size = 0; //  normal buffer size
+    python_cust->recv_buffer_size = 0; //  normal buffer size
+    // temp_buffer_size <= recv_buffer_size
+    python_cust->temp_buffer_size = 0; //  normal buffer size
+
 
     result = register_customization(python_cust);
 
