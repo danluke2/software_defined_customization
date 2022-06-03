@@ -4,3 +4,7 @@ overhead.iso
 *.png
 *rsa
 # *.pem
+
+# deleted folders
+netsoft*
+geni*

@@ -84,7 +84,7 @@ sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; cd $LAYER_
 sleep 2
 
 # Client module is same as netsoft version
-cd $NETSOFT_MOD_DIR
+cd $LAYER_MOD_DIR/buffering
 make BUILD_MODULE=overhead_test_batch_dns_client.o
 insmod overhead_test_batch_dns_client.ko
 cd $EXP_SCRIPT_DIR/buffered
