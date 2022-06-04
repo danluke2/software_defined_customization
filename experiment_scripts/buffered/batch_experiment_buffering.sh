@@ -139,4 +139,4 @@ sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; systemctl 
 
 echo generating plot
 
-python3 buffer_batch_plot.py
+python3 buffer_batch_plot_simple.py

@@ -1,7 +1,9 @@
 # Software Defined Network Customization at Layer 4.5
 
 
-Prototype of Layer 4.5 customization framework to match NetSoft 2022 submission paper (under review).  Contains a Network-wide Customization Orchestrator (NCO) to distribute Layer 4.5 customization modules to devices.  NCO communicates with Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
+Prototype of Layer 4.5 customization framework to match accepted NetSoft 2022 paper, but now using a different Layer 4.5 model that allows application message buffering.  
+
+Contains a Network-wide Customization Orchestrator (NCO) to distribute Layer 4.5 customization modules to devices.  NCO communicates with Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
 
 
 Acronyms:
@@ -13,67 +15,7 @@ Acronyms:
 1) CIB: Customization Information Base
 
 
-## Overview:
-
-<a href="url"><img src="https://github.com/danluke2/software_defined_customization/blob/main/assets/stack.png" align="center" height="400"  ></a>
-
-
-1) NCO distributes customizations to devices over a control channel for insertion at Layer 4.5
-
-    * Layer 4.5 is transparent to application and transport layers
-
-
-<a href="url"><img src="https://github.com/danluke2/software_defined_customization/blob/main/assets/nco_host.png" align="center" height="400"  ></a>
-
-
-2) NCO has several internal components to support distribution and management of the deployed customization
-
-    * Construct: responsible for building the per-device customization module to include embedding necessary parameters and storing all values in the CIB
-
-    * Deploy: supports transport of customization modules, in binary format, to devices on the networ
-
-    * Revoke: support the removal of outdated or misbehaving customization modules from a customized device
-
-    * Monitor: allows for retrieving module use statistics across the network to aid in forensics analysis
-
-    * Security: provide a mechanism for adding per-network module security requirements to match a given threat model
-
-    * Middlebox: interface with network controlled middlebox device to allow processing a deployed customization
-
-
-
-<a href="url"><img src="https://github.com/danluke2/software_defined_customization/blob/main/assets/automation.png" align="center" height="400"  ></a>
-
-
-3) DCA establishes the control channel with NCO to manage customizations installed on the device.
-
-    * DCA_user establishes the control channel with NCO
-
-    * DCA_kernel encompasses Layer 4.5 logic to manage customizations on the device
-
-3) Customization modules register with Layer 4.5 DCA
-
-    * register the protocol (TCP or UDP), application (task) name, destination port, destination IPv4 address, source IPv4 address (if server), and source port (if desired) for tracking sockets
-
-        * server knows the source and dest IP since it binds to a source IP
-
-        * clients don't know source IP since IP table lookup has not happened yet
-
-        * source port (client) generally not useful since randomly assigned value
-
-        * destination port (server) generally not useful since randomly assigned by the client
-
-    * provide send\_function and recv\_function pointers to be stored and
-    applied to customized sockets
-
-        * the send or recv function may also be NULL if not customizing that path
-
-        * if both are NULL, then customization is rejected
-
-
-### Youtube Videos:
-
-  * NetVerify 21 presentation focused on Layer 4.5 and initial idea of network wide control (15 min): https://youtu.be/s9vwJLDMSlI?start=17737&end=18730
+Refer the master branch README for additional details on architecture.
 
 
 
@@ -99,6 +41,12 @@ Acronyms:
 #### Install Steps
 
 1) Git clone this repo
+
+    * switch to buffering branch
+
+        * `git branch -v -a`
+
+        * `git switch -c buffering origin/buffering`
 
     * create your own branch after cloning to avoid accidental changes to master:
 
@@ -203,4 +151,4 @@ NOTE: Other Linux OS's are possible, but you need to adjust scripts to reflect y
 
     * Sample modules don't use the NCO or user-space DCA component and focus on Layer 4.5 only
 
-1) To run experiments from paper, see README in experiment\_scripts/netsoft and modules in layer4_5_modules/netsoft
+1) To run the provided experiments, see README in experiment\_scripts/buffered and modules in layer4_5_modules/buffering
