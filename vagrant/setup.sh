@@ -23,7 +23,7 @@ SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_script
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS ****************
 
 $DCA_KERNEL_DIR/bash/installer.sh
 

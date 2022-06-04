@@ -14,8 +14,8 @@
 // ************** END STANDARD PARAMS ****************
 
 
-static int __init sample_server_start(void);
-static void __exit sample_server_end(void);
+static int __init sample_client_start(void);
+static void __exit sample_client_end(void);
 
 
 extern int register_customization(struct customization_node *cust);
@@ -39,7 +39,7 @@ static unsigned int destination_port = 0;
 module_param(destination_port, uint, 0600);
 MODULE_PARM_DESC(destination_port, "DPORT to match");
 
-static unsigned int source_port = 443;
+static unsigned int source_port = 8080;
 module_param(source_port, uint, 0600);
 MODULE_PARM_DESC(source_port, "SPORT to match");
 
@@ -54,17 +54,12 @@ size_t extra_bytes_copied_from_last_send = 0;
 size_t BYTE_POSIT = 1000;
 
 size_t total_bytes_from_app = 0;
-size_t total_bytes_from_cust_mod = 0;
 size_t total_tags = 0;
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
+size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1;
 
 
-// rollback parameters
-size_t saved_last_send = 0;
-size_t saved_extra_bytes_copied_from_last_send = 0;
-size_t saved_total_tags = 0;
-size_t saved_copy_length = 0;
 
 
 // Helpers
@@ -85,36 +80,20 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1;
     size_t i = 0;
     size_t remaining_length = send_buf_st->length;
     size_t loop_length = send_buf_st->length;
     u32 number_of_tags_added = 0;
     send_buf_st->copy_length = 0;
 
-
-    if (send_buf_st->send_return < 0)
-    {
-        // send error occured last round, so redo customization (not a likely event)
-        total_bytes_from_app -= saved_last_send;
-        extra_bytes_copied_from_last_send = saved_extra_bytes_copied_from_last_send;
-        total_tags = saved_total_tags;
-        total_bytes_from_cust_mod -= saved_copy_length;
-    }
-
-
-
     total_bytes_from_app += send_buf_st->length;
-    // trace_printk("L4.5: Total bytes from app to cust mod = %lu, sent_bytes=%lu\n", total_bytes_from_app,
-    //              send_buf_st->length);
+    // trace_printk("L4.5: Total bytes from app to cust mod = %lu\n", total_bytes_from_app);
 
     if (extra_bytes_copied_from_last_send > 0)
     {
-        // trace_printk("L4.5: extra bytes check > 0\n");
         // we had bytes counting towards BYTE_POSIT from last send call
         if (BYTE_POSIT - extra_bytes_copied_from_last_send > send_buf_st->length)
         {
-            trace_printk("L4.5: extra bytes check, copy entire buffer\n");
             // copy entire buffer because still under BYTE_POSIT value
             copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
             if (copy_success == false)
@@ -124,13 +103,11 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
                 return;
             }
             send_buf_st->copy_length += send_buf_st->length;
-            saved_extra_bytes_copied_from_last_send = extra_bytes_copied_from_last_send;
             extra_bytes_copied_from_last_send += send_buf_st->length;
             remaining_length -= send_buf_st->length;
         }
         else
         {
-            // trace_printk("L4.5: extra bytes check, copy until tag\n");
             // first copy remaining bytes to reach BYTE_POSIT
             copy_success = copy_from_iter_full(send_buf_st->buf, BYTE_POSIT - extra_bytes_copied_from_last_send,
                                                send_buf_st->src_iter);
@@ -147,7 +124,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
             remaining_length -= send_buf_st->copy_length;
             extra_bytes_copied_from_last_send = 0;
 
-            // trace_printk("L4.5: extra bytes check, adding tag\n");
             // reached tag posit, so put in our generic tag
             memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
             send_buf_st->copy_length += cust_tag_test_size;
@@ -156,7 +132,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     }
 
     loop_length = remaining_length;
-    // trace_printk("L4.5: loop length = %lu\n", loop_length);
     // at this point we have 0 bytes inserted toward BYTE_POSIT tag positiion
     for (i = 0; i + BYTE_POSIT <= loop_length; i += BYTE_POSIT)
     {
@@ -174,8 +149,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         send_buf_st->copy_length += BYTE_POSIT;
         remaining_length -= BYTE_POSIT;
 
-
-        // trace_printk("L4.5: loop, adding tag\n");
         // now insert tag
         memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
         send_buf_st->copy_length += cust_tag_test_size;
@@ -185,8 +158,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
     if (remaining_length > 0)
     {
-
-        // trace_printk("L4.5: remaining > 0\n");
         // copy over leftover bytes from loop
         copy_success =
             copy_from_iter_full(send_buf_st->buf + send_buf_st->copy_length, remaining_length, send_buf_st->src_iter);
@@ -197,19 +168,12 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
             trace_print_cust_iov_params(send_buf_st->src_iter);
             return;
         }
-        saved_extra_bytes_copied_from_last_send = extra_bytes_copied_from_last_send;
         extra_bytes_copied_from_last_send += remaining_length;
         send_buf_st->copy_length += remaining_length;
     }
-
-    saved_total_tags = total_tags;
     total_tags += number_of_tags_added;
 
-    saved_last_send = send_buf_st->length; // want length from app not including tags
     // trace_printk("L4.5: Number of tags inserted = %u, total = %lu\n", number_of_tags_added, total_tags);
-    saved_copy_length = send_buf_st->copy_length;
-    total_bytes_from_cust_mod += send_buf_st->copy_length;
-    // trace_printk("L4.5: total bytes from cust mod = %lu\n", total_bytes_from_cust_mod);
     return;
 }
 
@@ -225,7 +189,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 
 // The init function that calls the functions to register a Layer 4.5 customization
 // @post Layer 4.5 customization registered
-int __init sample_server_start(void)
+int __init sample_client_start(void)
 {
     char thread_name[16] = "python3";
     char application_name[16] = "python3";
@@ -251,7 +215,7 @@ int __init sample_server_start(void)
     server_cust->send_function = modify_buffer_send;
     server_cust->recv_function = NULL;
 
-    server_cust->cust_id = 102;
+    server_cust->cust_id = 87;
     server_cust->registration_time_struct.tv_sec = 0;
     server_cust->registration_time_struct.tv_nsec = 0;
     server_cust->retired_time_struct.tv_sec = 0;
@@ -259,7 +223,6 @@ int __init sample_server_start(void)
 
     server_cust->send_buffer_size = 65536 * 2; // bufer
     server_cust->recv_buffer_size = 0;         // accept default buffer size
-    server_cust->temp_buffer_size = 0;         // accept default buffer size
 
     result = register_customization(server_cust);
 
@@ -269,7 +232,7 @@ int __init sample_server_start(void)
         return -1;
     }
 
-    trace_printk("L4.5: TLS server module loaded, id=%d\n", server_cust->cust_id);
+    trace_printk("L4.5: server module loaded, id=%d\n", server_cust->cust_id);
 
     return 0;
 }
@@ -277,7 +240,7 @@ int __init sample_server_start(void)
 
 // Calls the functions to unregister customization node from use on sockets
 // @post Layer 4.5 customization node unregistered
-void __exit sample_server_end(void)
+void __exit sample_client_end(void)
 {
     // NOTE: this is only valid/safe place to call unregister (deadlock scenario)
     int ret = unregister_customization(server_cust);
@@ -288,7 +251,7 @@ void __exit sample_server_end(void)
     }
     else
     {
-        trace_printk("L4.5: TLS server module unloaded\n");
+        trace_printk("L4.5: server module unloaded\n");
     }
     kfree(server_cust);
     return;
@@ -296,7 +259,7 @@ void __exit sample_server_end(void)
 
 
 
-module_init(sample_server_start);
-module_exit(sample_server_end);
+module_init(sample_client_start);
+module_exit(sample_client_end);
 MODULE_AUTHOR("Dan Lukaszewski");
 MODULE_LICENSE("GPL");

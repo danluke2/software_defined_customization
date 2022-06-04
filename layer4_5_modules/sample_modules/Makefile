@@ -4,7 +4,7 @@ MODULE_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/sample_
 DISTRO_DIR=/lib/modules/5.13.0-35-generic
 
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS ****************
 
 
 #this is the module you want to create (ex: sample_python_client.o)

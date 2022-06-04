@@ -21,7 +21,7 @@ SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
 
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS ****************
 
 WIRESHARK_DIR=/usr/lib/x86_64-linux-gnu/wireshark/plugins
 
