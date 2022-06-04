@@ -9,20 +9,17 @@
 GIT_DIR=/home/vagrant/software_defined_customization
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
 EXP_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts
-NETSOFT_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts/netsoft
-GENI_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts/geni
+BUFFER_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts/buffered
 LAYER_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules
-NETSOFT_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/netsoft
-GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
+BUFFER_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/buffering
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
-
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
-
 # ************** END STANDARD PARAMS ****************
 
 # Force root
@@ -99,15 +96,15 @@ echo "*************** finished tap test ***************"
 OUTPUT=$EXP_SCRIPT_DIR/logs/buffer_batch_cust.txt
 touch $OUTPUT
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; cd $LAYER_MOD_DIR/buffering; make BUILD_MODULE=overhead_test_batch_dns_server_buffer.o; insmod overhead_test_batch_dns_server_buffer.ko; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; cd $BUFFER_MOD_DIR; make BUILD_MODULE=overhead_test_batch_dns_server_buffer.o; insmod overhead_test_batch_dns_server_buffer.ko; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 sleep 2
 
 # Client module is same as netsoft version
-cd $LAYER_MOD_DIR/buffering
+cd $BUFFER_MOD_DIR
 make BUILD_MODULE=overhead_test_batch_dns_client.o
 insmod overhead_test_batch_dns_client.ko
-cd $EXP_SCRIPT_DIR/buffered
+cd $BUFFER_SCRIPT_DIR
 
 sleep 2
 echo "*************** starting cust batch ***************"

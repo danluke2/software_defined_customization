@@ -4,7 +4,6 @@
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
-
 # ************** END STANDARD PARAMS ****************
 
 # Force root

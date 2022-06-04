@@ -7,20 +7,17 @@
 GIT_DIR=/home/vagrant/software_defined_customization
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
 EXP_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts
-NETSOFT_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts/netsoft
-GENI_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts/geni
+BUFFER_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts/buffered
 LAYER_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules
-NETSOFT_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/netsoft
-GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
+BUFFER_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/buffering
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
-
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
-
 # ************** END STANDARD PARAMS ****************
 
 # Force root
@@ -116,12 +113,12 @@ echo "*************** finished tap test ***************"
 OUTPUT=$EXP_SCRIPT_DIR/logs/buffer_tls_bulk_cust.txt
 touch $OUTPUT
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; cd $LAYER_MOD_DIR/buffering; make BUILD_MODULE=overhead_test_bulk_file_tls_server.o; insmod overhead_test_bulk_file_tls_server.ko; cd $GIT_DIR/../Desktop; python3 $SIMPLE_SERVER_DIR/python_https_server.py >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; cd $BUFFER_MOD_DIR; make BUILD_MODULE=overhead_test_bulk_file_tls_server.o; insmod overhead_test_bulk_file_tls_server.ko; cd $GIT_DIR/../Desktop; python3 $SIMPLE_SERVER_DIR/python_https_server.py >/dev/null 2>&1 &"
 
 sleep 2
 echo $MD5 >>$OUTPUT
 
-cd $LAYER_MOD_DIR/buffering
+cd $BUFFER_MOD_DIR
 make BUILD_MODULE=overhead_test_bulk_file_tls_client.o
 insmod overhead_test_bulk_file_tls_client.ko
 
@@ -143,7 +140,7 @@ rmmod layer4_5
 
 sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python; rmmod overhead_test_bulk_file_tls_server; rmmod layer4_5; cd $GIT_DIR/../Desktop; rm overhead.iso; exit"
 
-cd $EXP_SCRIPT_DIR/buffered
+cd $BUFFER_SCRIPT_DIR
 
 echo "generating plot"
 

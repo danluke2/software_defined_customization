@@ -7,44 +7,35 @@
 #arg5 is hex encoded key
 #arg 6 is config info ...
 
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
-
-
-# ************** STANDARD PARAMS MUST GO HERE ****************
-
+# ************** END STANDARD PARAMS ****************
 
 # ----------------------------------------------------------------
 # Function for exit due to fatal program error
 #   Accepts 1 argument:
 #     string containing descriptive error message
 # ----------------------------------------------------------------
-error_exit()
-{
+error_exit() {
   echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
   exit 1
 }
 
+CURDIR="$(pwd)"
 
-
-CURDIR="$( pwd )"
-
-line=$3;
+line=$3
 
 core_mod_dir=$NCO_DIR/core_modules
 symvers_dir=$NCO_DIR/device_modules/host_$4
 mod_dir=$symvers_dir/modules
 
-
 #copy module from core dir to the host module dir before changing it
-cp $core_mod_dir/$1.c  $mod_dir
+cp $core_mod_dir/$1.c $mod_dir
 
 #open module and insert u16 module_id = XX; with NCO assigned value
 sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c
-((line=line+1))
+((line = line + 1))
 sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$5\";" $mod_dir/${1}.c
-
 
 #make the module based on host_id symver location
 cd $mod_dir

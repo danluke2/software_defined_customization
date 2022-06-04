@@ -1,7 +1,7 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
-HOST = '10.0.0.20'
-nco_dir = '/home/vagrant/software_defined_customization/NCO/'
-
+HOST='10.0.0.20'
+nco_dir='/home/vagrant/software_defined_customization/NCO/'
+common_struct_dir='/home/vagrant/software_defined_customization/DCA_kernel/'
 # ************** END STANDARD PARAMS ****************
 
 

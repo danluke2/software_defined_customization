@@ -59,6 +59,9 @@ delete_lines() {
   ((END = END - 1))
   if [ $START -lt $END ]; then
     sed -i "${START},${END}d" $1
+
+  elif [ $START -eq $END ]; then
+    sed -i "${START},${END}d" $1
   fi
 }
 
@@ -225,8 +228,6 @@ delete_lines $FILE
 LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
 ((LINE = LINE + 1))
 sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
-((LINE = LINE + 1))
-sed -i "${LINE}i\NCO_MOD_DIR=$NCO_MOD_DIR" $FILE
 
 # *************** NCO Builder update ***************
 
@@ -241,8 +242,6 @@ LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
 sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
 ((LINE = LINE + 1))
 sed -i "${LINE}i\nco_dir='$NCO_DIR/'" $FILE
-((LINE = LINE + 1))
-sed -i "${LINE}i\nco_mod_dir='$NCO_MOD_DIR/'" $FILE
 ((LINE = LINE + 1))
 sed -i "${LINE}i\common_struct_dir='$DCA_KERNEL_DIR/'" $FILE
 

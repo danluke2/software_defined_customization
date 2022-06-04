@@ -4,7 +4,6 @@
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
-
 # ************** END STANDARD PARAMS ****************
 
 # Force root

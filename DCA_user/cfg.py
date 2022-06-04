@@ -1,10 +1,8 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
-HOST = '10.0.0.20'
-dca_dir = '/home/vagrant/software_defined_customization/DCA_user/'
-symver_location = '/usr/lib/modules/5.13.0-35-generic/layer4_5/'
-system_release = '5.13.0-35-generic'
-
-
+HOST='10.0.0.20'
+dca_dir='/home/vagrant/software_defined_customization/DCA_user/'
+symver_location='/usr/lib/modules/5.13.0-35-generic/layer4_5/'
+system_release='5.13.0-35-generic'
 # ************** END STANDARD PARAMS ****************
 
 
