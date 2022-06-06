@@ -18,7 +18,6 @@ import sys
 logger = logging.getLogger(__name__)  # use module name
 
 
-
 ######################### MIDDLEBOX FUNCTIONS #############################
 
 def update_inverse_module_requirements(db_connection, modules):
@@ -31,28 +30,31 @@ def update_inverse_module_requirements(db_connection, modules):
             middle_ip_list = [x[2] for x in middlebox_list]
             for ip in middle_ip_list:
                 # if inverse already in deploy list, then skip
-                deployed_inverse = select_deploy_inverse_by_ip(db_connection, ip)
+                deployed_inverse = select_deploy_inverse_by_ip(
+                    db_connection, ip)
                 temp = [x[0] for x in deployed_inverse]
                 if inverse_list[i] in temp:
                     continue
                 else:
-                    insert_deploy_inverse(db_connection, inverse_list[i], ip, 1, 0)
+                    insert_deploy_inverse(
+                        db_connection, inverse_list[i], ip, 1, 0)
 
 
 def handle_middlebox_insert(db_connection, mac, ip, port, kernel_release, type, interval):
     max_tries = 10
     counter = 0
-    #repeatedly generate middlebox ID and insert into db until successful
+    # repeatedly generate middlebox ID and insert into db until successful
     while counter <= max_tries:
-        generated_id = random.randint(1,65535)
+        generated_id = random.randint(1, 65535)
         logger.info(f"Inserting middlebox {mac}, ID = {generated_id}")
         # if host_id already exists, then DB error occurs and we try again
-        err = insert_middlebox(db_connection, mac, generated_id, ip, port, type, kernel_release, interval)
+        err = insert_middlebox(
+            db_connection, mac, generated_id, ip, port, type, kernel_release, interval)
         if (err == cfg.DB_ERROR):
             logger.info("Could not insert middlebox, try again")
             if counter == max_tries:
                 return cfg.DB_ERROR
-            counter +=1
+            counter += 1
             continue
         else:
             break
@@ -68,7 +70,7 @@ def send_inverse_module(conn_socket, module):
     filesize = os.path.getsize(cfg.nco_dir + cfg.inverse_dir + module)
     command = {"cmd": "recv_inverse", "name": module, "size": filesize}
     send_string = json.dumps(command, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
     data = conn_socket.recv(1024)
     data = data.decode("utf-8")
     if data != 'Clear to send':
@@ -84,7 +86,6 @@ def send_inverse_module(conn_socket, module):
     return result
 
 
-
 def get_inverse_list(db_connection, ip):
     inverse_to_deploy = select_deploy_inverse_by_ip(db_connection, ip)
     inverse_list = []
@@ -94,17 +95,16 @@ def get_inverse_list(db_connection, ip):
     return inverse_list
 
 
-
-
 def middlebox_thread(conn_socket, ip, port, cv, buffer_size, interval, exit_event_mid):
     db_connection = db_connect(cfg.nco_dir + 'cib.db')
     # process initial report
     try:
-        #Device immediately sends a customization report upon connection
+        # Device immediately sends a customization report upon connection
         data = conn_socket.recv(buffer_size)
         json_data = json.loads(data)
     except json.decoder.JSONDecodeError as e:
-        logger.info(f"Error on initial recv call, terminating connection\n {e}")
+        logger.info(
+            f"Error on initial recv call, terminating connection\n {e}")
         conn_socket.close()
         return
 
@@ -115,7 +115,8 @@ def middlebox_thread(conn_socket, ip, port, cv, buffer_size, interval, exit_even
     middlebox = select_middlebox(db_connection, device_mac)
 
     if middlebox == None:
-        middlebox = handle_middlebox_insert(db_connection, device_mac, ip, port, kernel_release, type, interval)
+        middlebox = handle_middlebox_insert(
+            db_connection, device_mac, ip, port, kernel_release, type, interval)
 
     if middlebox == cfg.DB_ERROR:
         logger.info("Middlebox DB error occurred, terminating connection")
@@ -132,7 +133,6 @@ def middlebox_thread(conn_socket, ip, port, cv, buffer_size, interval, exit_even
         if err == cfg.DB_ERROR:
             logger.info(f"Middlebox Port not updated for mac = {device_mac}")
 
-
     while True:
         if exit_event_mid.is_set():
             break
@@ -145,9 +145,11 @@ def middlebox_thread(conn_socket, ip, port, cv, buffer_size, interval, exit_even
         for i in range(len(inverse_list)):
             ts = send_inverse_module(conn_socket, inverse_list[i])
             if ts == cfg.MIDDLEBOX_ERROR:
-                update_inverse_module_installed_status(db_connection, inverse_list[i], ip, 1, -1)
+                update_inverse_module_installed_status(
+                    db_connection, inverse_list[i], ip, 1, -1)
             else:
-                update_inverse_module_installed_status(db_connection, inverse_list[i], ip, 0, ts)
+                update_inverse_module_installed_status(
+                    db_connection, inverse_list[i], ip, 0, ts)
 
     conn_socket.close()
 
@@ -156,12 +158,13 @@ def middlebox_process(exit_event, cv, interval, queue):
     exit_event_mid = threading.Event()
     logger.info("Middlebox process running")
     middle_threads = []
-    
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         try:
-            s.settimeout(5) # timeout for listening to check if shutdown condition reached
+            # timeout for listening to check if shutdown condition reached
+            s.settimeout(5)
             s.bind((cfg.HOST, cfg.MIDDLE_PORT))
             logger.info('Socket bind complete')
         except socket.error as msg:
@@ -180,7 +183,8 @@ def middlebox_process(exit_event, cv, interval, queue):
             try:
                 (conn, (ip, port)) = s.accept()
                 logger.info(f"Accepting middlebox connection from {ip}:{port}")
-                middlebox = threading.Thread(target=middlebox_thread, args=(conn, ip, port, cv, cfg.MAX_BUFFER_SIZE, interval, exit_event_mid))
+                middlebox = threading.Thread(target=middlebox_thread, args=(
+                    conn, ip, port, cv, cfg.MAX_BUFFER_SIZE, interval, exit_event_mid))
                 middlebox.start()
                 middle_threads.append(middlebox)
             except socket.timeout:

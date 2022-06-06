@@ -4,16 +4,20 @@
 #include <linux/kernel.h>
 #include <linux/pid.h>   // For pid_t
 #include <linux/sched.h> // For current (pointer to task)
-#include <linux/tcp.h>   // For TCP structures
-#include <linux/udp.h>   // For UDP structures
-#include <net/ip.h>      // for sock structure
+#include <linux/socket.h>
+#include <linux/tcp.h> // For TCP structures
+#include <linux/udp.h> // For UDP structures
+#include <net/ip.h>    // for sock structure
 
 #include "customization_socket.h"
 #include "send_recv_manager.h"
 #include "tap.h"
 #include "util/printing.h"
 
-
+// Update the target application under investigation
+#ifdef APP
+char TARGET_APP[TASK_NAME_LEN] = "dig";
+#endif
 
 
 // TCP General reference functions
@@ -193,11 +197,11 @@ void common_close(struct sock *sk)
 
     ret = delete_cust_socket(task, sk);
 
-#ifdef DEBUG2
+#ifdef DEBUG3
     trace_printk("L4.5: socket close call, pid=%d, sk=%lu\n", task->pid, (unsigned long)sk);
     if (ret == 0)
     {
-        // prints sockets that bypassed L4.5 processing
+        // prints sockets that were not processedy by L4.5
         trace_printk("L4.5: socket not found; pid=%d, sk=%lu\n", task->pid, (unsigned long)sk);
     }
 #endif
@@ -286,14 +290,25 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size,
 #endif
     }
 
+    // if update check set due to new cust module, then need to check if socket should be customized now
+    if (cust_socket->update_cust_check)
+    {
+#ifdef DEBUG3
+        trace_printk("L4.5: cust recheck triggered, pid %d\n", task->pid);
+#endif
+        update_cust_status(cust_socket, task, sk);
+    }
+
+
     // if tracking was set to SKIP at some point, stop trying to modify messages
-    if (cust_socket->customize_send_or_skip == SKIP)
+    if (cust_socket->customize_or_skip == SKIP)
     {
 #ifdef DEBUG3
         trace_printk("L4.5: cust_socket send set to skip, pid %d\n", task->pid);
 #endif
         return sendmsg(sk, msg, size);
     }
+
 
     return dca_sendmsg(cust_socket, sk, msg, size, sendmsg);
 }
@@ -357,6 +372,10 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     struct task_struct *task = current;
     struct customization_socket *cust_socket;
     int recvmsg_return = 0;
+#ifdef APP
+    struct task_struct *test = pid_task(find_vpid(task->tgid), PIDTYPE_PID);
+    bool found = false;
+#endif
 
 
     // only tapping iovec at the moment, but not sure we should limit
@@ -367,6 +386,14 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
 #endif
         return recvmsg(sk, msg, len, nonblock, flags, addr_len);
     }
+
+#ifdef APP
+    if (strncmp(test->comm, TARGET_APP, TASK_NAME_LEN) == 0)
+    {
+        trace_printk("L4.5: found %s recv, pid %d, sk %lu\n", TARGET_APP, task->pid, (unsigned long)sk);
+        found = true;
+    }
+#endif
 
     recvmsg_return = recvmsg(sk, msg, len, nonblock, flags, addr_len);
     if (recvmsg_return <= 0)
@@ -387,6 +414,13 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
         trace_printk("L4.5: NULL cust socket in recvmsg, creating cust socket for pid %d\n", task->pid);
 #endif
 
+#ifdef APP
+        if (found)
+        {
+            trace_printk("L4.5: %s create cust socket, pid %d, sk %lu\n", TARGET_APP, task->pid, (unsigned long)sk);
+        }
+#endif
+
         cust_socket = create_cust_socket(task, sk, msg);
         if (cust_socket == NULL)
         {
@@ -395,28 +429,45 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
 #endif
             return recvmsg_return;
         }
+
+        // allow logging for TARGET_APP regardless of customization status
+#ifdef APP
+        if (found)
+        {
+            trace_printk("L4.5: %s cust socket created, pid %d, sk %lu\n", TARGET_APP, task->pid, (unsigned long)sk);
+            trace_printk("L4.5: recvmsg was %d, pid %d, sk %lu\n", recvmsg_return, task->pid, (unsigned long)sk);
+            trace_print_cust_socket(cust_socket, "target app recvmsg");
+        }
+#endif
+
 #ifdef DEBUG
+        if (cust_socket->customization != NULL)
+        {
+            // Socket added to tracking table, dump socket info to log
+            trace_print_cust_socket(cust_socket, "recvmsg");
+        }
+    #ifdef DEBUG1
         else
         {
-            if (cust_socket->customization != NULL)
-            {
-                // Socket added to tracking table, dump socket info to log
-                trace_print_cust_socket(cust_socket, "recvmsg");
-            }
-    #ifdef DEBUG1
-            else
-            {
-                trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
-                // Socket added to tracking table, dump socket info to log
-                trace_print_cust_socket(cust_socket, "sendmsg");
-            }
-    #endif
+            trace_printk("L4.5: Customization skipped for pid %d, sk %lu\n", task->pid, (unsigned long)sk);
+            // Socket added to tracking table, dump socket info to log
+            trace_print_cust_socket(cust_socket, "recvmsg");
         }
+    #endif
 #endif
     }
 
-    // if tracking was set to false at some point, stop trying to modify messages
-    if (cust_socket->customize_recv_or_skip == SKIP)
+    // if update check set due to new cust module, then need to check if socket should be customized now
+    if (cust_socket->update_cust_check)
+    {
+#ifdef DEBUG3
+        trace_printk("L4.5: cust recheck triggered, pid %d\n", task->pid);
+#endif
+        update_cust_status(cust_socket, task, sk);
+    }
+
+    // if tracking was set to SKIP at some point, stop trying to modify messages
+    if (cust_socket->customize_or_skip == SKIP)
     {
 #ifdef DEBUG3
         trace_printk("L4.5: cust_socket recv set to skip, pid %d\n", task->pid);

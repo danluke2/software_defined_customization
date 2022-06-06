@@ -41,6 +41,8 @@ void init_socket_tables(void)
 }
 
 
+
+
 struct customization_socket *create_cust_socket(struct task_struct *task, struct sock *sk, struct msghdr *msg)
 {
     struct customization_socket *new_cust_socket = NULL;
@@ -69,10 +71,12 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
     // default pointer values to prevent random errors
     new_cust_socket->customization = NULL;
     new_cust_socket->send_buf_st.buf = NULL;
-    new_cust_socket->recv_buf_st.buf = NULL;
+    new_cust_socket->send_buf_st.no_cust = false;
+    new_cust_socket->send_buf_st.set_cust_to_skip = false;
 
+    new_cust_socket->recv_buf_st.buf = NULL;
     new_cust_socket->recv_buf_st.no_cust = false;
-    new_cust_socket->recv_buf_st.skip_cust = false;
+    new_cust_socket->recv_buf_st.set_cust_to_skip = false;
 
     // set default time values to indicate no packets seen yet
     new_cust_socket->last_cust_send_time_struct.tv_sec = 0;
@@ -90,8 +94,7 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
         trace_printk("L4.5: cust request lookup NULL, proto=%u, pid task=%s, tgid task=%s, uid = %d\n", sk->sk_protocol,
                      task->comm, tgid_task->comm, new_cust_socket->uid);
 #endif
-        new_cust_socket->customize_send_or_skip = SKIP;
-        new_cust_socket->customize_recv_or_skip = SKIP;
+        new_cust_socket->customize_or_skip = SKIP;
     }
     else
     {
@@ -122,6 +125,57 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
     }
     return new_cust_socket;
 }
+
+
+
+
+void update_cust_status(struct customization_socket *cust_socket, struct task_struct *task, struct sock *sk)
+{
+    struct customization_node *cust_node = NULL;
+
+    cust_node = get_customization(cust_socket);
+    if (cust_node == NULL)
+    {
+#ifdef DEBUG3
+        trace_printk("L4.5: cust update lookup NULL, proto=%u, pid task=%s, tgid task=%s, uid = %d\n",
+                     cust_socket->socket_flow.protocol, cust_socket->socket_flow.task_name_pid,
+                     cust_socket->socket_flow.task_name_tgid, cust_socket->uid);
+#endif
+        cust_socket->customize_or_skip = SKIP;
+        return;
+    }
+
+    // previously skipped socket is now customized
+    if (cust_socket->customization == NULL)
+    {
+#ifdef DEBUG
+        trace_printk("L4.5: Assigning cust to socket, pid %d\n", task->pid);
+#endif
+        assign_customization(cust_socket, cust_node);
+
+
+        // if we are now customizing the socket, we must move the socket to cust table
+        if (cust_socket->customization != NULL)
+        {
+#ifdef DEBUG2
+            trace_printk("L4.5: Adding pid %d to customization table\n", task->pid);
+#endif
+            // remove from normal table
+            spin_lock(&normal_socket_lock);
+
+            hash_del(&cust_socket->socket_hash);
+
+            // add to cust table before releasing normal lock?
+            spin_lock(&cust_socket_lock);
+            hash_add(cust_socket_table, &cust_socket->socket_hash, cust_socket->hash_key);
+            spin_unlock(&cust_socket_lock);
+
+            spin_unlock(&normal_socket_lock);
+        }
+    }
+}
+
+
 
 
 // Hash for each possible b/c we know hash key and can limit search
@@ -165,6 +219,32 @@ struct customization_socket *get_cust_socket(struct task_struct *task, struct so
         spin_unlock(&cust_socket_lock);
     }
     return cust_socket;
+}
+
+
+
+
+// Called when new cust module registered
+void set_update_cust_check(void)
+{
+    int bucket;
+    struct customization_socket *cust_socket;
+    struct hlist_node tmp;
+    struct hlist_node *tmpptr = &tmp;
+
+    // all sockets in normal table are set
+    spin_lock(&normal_socket_lock);
+    hash_for_each_safe(normal_socket_table, bucket, tmpptr, cust_socket, socket_hash)
+    {
+#ifdef DEBUG
+        trace_printk("L4.5 Normal Socket: Resetting things with pid %d and socket %p\n", cust_socket->pid,
+                     cust_socket->sk);
+#endif
+        cust_socket->update_cust_check = true;
+    }
+    spin_unlock(&normal_socket_lock);
+
+    return;
 }
 
 
@@ -213,6 +293,8 @@ void remove_customization_from_each_socket(struct customization_node *cust)
 }
 
 
+
+
 // Only called by Socket close function, but might not be called by same task that created it
 int delete_cust_socket(struct task_struct *task, struct sock *sk)
 {
@@ -254,6 +336,8 @@ int delete_cust_socket(struct task_struct *task, struct sock *sk)
 
     return found;
 }
+
+
 
 
 // Called when unloading DCA, so no customization modules can be loaded
@@ -299,6 +383,8 @@ void delete_all_cust_socket(void)
 }
 
 
+
+
 // If TCP socket, then msg pointer might be NULL because it does not have a msg yet
 // NOTE: recv 4 tuple flips tuple to reflect a reply tuple
 static void set_four_tuple(struct sock *sk, struct customization_socket *cust_socket, struct msghdr *msg)
@@ -342,80 +428,73 @@ static void assign_customization(struct customization_socket *cust_sock, struct 
     trace_printk("L4.5: Recv buffer size = %u\n", recv_buffer_size);
 #endif
 
-    cust_sock->customization = NULL; // default value
+    // assume we will cust send/recv
+    cust_sock->customize_or_skip = CUSTOMIZE;
 
-    if (cust_node->send_function == NULL)
+    // all cust nodes must have valid function pointers, which are checked when module is registered
+    if (cust_node->send_function == NULL || cust_node->recv_function == NULL)
     {
-        cust_sock->customize_send_or_skip = SKIP;
 #ifdef DEBUG
-        trace_printk("L4.5: Cust send null, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
+        trace_printk("L4.5: Cust send or recv null, pid=%d, name=%s\n", cust_sock->pid,
+                     cust_sock->socket_flow.task_name_pid);
 #endif
-    }
-    else
-    {
-        cust_sock->send_buf_st.buf = kmalloc(send_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
-        if (cust_sock->send_buf_st.buf == NULL)
-        {
-#ifdef DEBUG
-            trace_printk("L4.5 ALERT Send cust buffer malloc fail; proto=%u, task=%s\n",
-                         cust_sock->socket_flow.protocol, cust_sock->socket_flow.task_name_pid);
-#endif
-            cust_sock->customize_send_or_skip = SKIP;
-        }
-        else
-        {
-#ifdef DEBUG
-            trace_printk("L4.5 Assigned send buffer, pid=%d, name=%s\n", cust_sock->pid,
-                         cust_sock->socket_flow.task_name_pid);
-#endif
-            socket_allocsminusfrees++;
-            cust_sock->send_buf_st.buf_size = send_buffer_size;
-            cust_sock->customize_send_or_skip = CUSTOMIZE;
-            cust_sock->customization = cust_node;
-        }
+        cust_sock->customize_or_skip = SKIP;
+        goto error_and_return;
     }
 
-    if (cust_node->recv_function == NULL)
+
+    cust_sock->send_buf_st.buf = kmalloc(send_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
+    if (cust_sock->send_buf_st.buf == NULL)
     {
-        cust_sock->customize_recv_or_skip = SKIP;
 #ifdef DEBUG
-        trace_printk("L4.5: Cust recv null, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
+        trace_printk("L4.5 ALERT Send cust buffer malloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol,
+                     cust_sock->socket_flow.task_name_pid);
 #endif
-    }
-    else
-    {
-        cust_sock->recv_buf_st.buf = kmalloc(recv_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
-        if (cust_sock->recv_buf_st.buf == NULL)
-        {
-#ifdef DEBUG
-            trace_printk("L4.5: Recv cust buffer malloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol,
-                         cust_sock->socket_flow.task_name_pid);
-#endif
-            cust_sock->customize_recv_or_skip = SKIP;
-        }
-        else
-        {
-#ifdef DEBUG
-            trace_printk("L4.5: Assigned recv buffer, pid=%d, name=%s\n", cust_sock->pid,
-                         cust_sock->socket_flow.task_name_pid);
-#endif
-            socket_allocsminusfrees++;
-            cust_sock->recv_buf_st.buf_size = recv_buffer_size;
-            cust_sock->customize_recv_or_skip = CUSTOMIZE;
-            cust_sock->customization = cust_node;
-        }
+        cust_sock->customize_or_skip = SKIP;
+        goto error_and_return;
     }
 
-    if (cust_sock->customization != NULL)
+    cust_sock->recv_buf_st.buf = kmalloc(recv_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
+    if (cust_sock->recv_buf_st.buf == NULL)
     {
-        // only need to create the active spinlock if customizing socket
-        spin_lock_init(&cust_sock->active_customization_lock);
-        // increment count here to keep count accurate/easier to manage
-        cust_node->sock_count += 1;
 #ifdef DEBUG
-        trace_printk("L4.5: Socket count = %u\n", cust_node->sock_count);
+        trace_printk("L4.5 ALERT Recv cust buffer malloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol,
+                     cust_sock->socket_flow.task_name_pid);
 #endif
+        cust_sock->customize_or_skip = SKIP;
+        // free send buffer since kmalloc must have passed for it
+        kfree(cust_sock->send_buf_st.buf);
+        goto error_and_return;
     }
+
+#ifdef DEBUG
+    trace_printk("L4.5 Assigned buffers, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
+#endif
+    socket_allocsminusfrees += 2;
+    cust_sock->send_buf_st.buf_size = send_buffer_size;
+    cust_sock->recv_buf_st.buf_size = recv_buffer_size;
+    cust_sock->customize_or_skip = CUSTOMIZE;
+    cust_sock->customization = cust_node;
+
+    spin_lock_init(&cust_sock->active_customization_lock);
+    // increment count here to keep count accurate/easier to manage
+    cust_node->sock_count += 1;
+#ifdef DEBUG
+    trace_printk("L4.5: Socket count = %u\n", cust_node->sock_count);
+#endif
+
+    return;
+
+
+error_and_return:
+#ifdef DEBUG
+    trace_printk("L4.5 ALERT: Cust Assignment failed, pid=%d, name=%s\n", cust_sock->pid,
+                 cust_sock->socket_flow.task_name_pid);
+#endif
+    cust_sock->send_buf_st.buf_size = 0;
+    cust_sock->recv_buf_st.buf_size = 0;
+    cust_sock->customize_or_skip = SKIP;
+    cust_sock->customization = NULL;
     return;
 }
 
@@ -455,12 +534,14 @@ static void unassign_customization(struct customization_socket *cust_sock)
     trace_printk("L4.5: Cust removed, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
 #endif
 
-    cust_sock->customize_send_or_skip = SKIP;
-    cust_sock->customize_recv_or_skip = SKIP;
+    cust_sock->customize_or_skip = SKIP;
     cust_sock->customization = NULL;
+    cust_sock->update_cust_check = true;
 
     return;
 }
+
+
 
 
 // Debug use only

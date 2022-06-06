@@ -6,3 +6,5 @@
 *.mod*
 Module.symvers
 modules.order
+
+test_modules*

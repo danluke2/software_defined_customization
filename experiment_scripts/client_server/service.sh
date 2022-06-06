@@ -2,40 +2,28 @@
 
 #Purpose:  establishes Python simple server service
 
-
-
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
-
-
-
-
-# ************** STANDARD PARAMS MUST GO HERE ****************
+# ************** END STANDARD PARAMS ****************
 
 # Force root
-if [[ "$(id -u)" != "0" ]];
-then
+if [[ "$(id -u)" != "0" ]]; then
 	echo "This script must be run as root" 1>&2
 	exit -1
 fi
 
-
-
 echo "Installing Python Simple Server service"
-
 
 LOADER_FILE=/etc/systemd/system/simple_server.service
 
 if test -f "$LOADER_FILE"; then
-    echo "$LOADER_FILE exists."
-		rm $LOADER_FILE
+	echo "$LOADER_FILE exists."
+	rm $LOADER_FILE
 fi
 
 touch $LOADER_FILE
 
-cat <<EOT >> $LOADER_FILE
+cat <<EOT >>$LOADER_FILE
 [Unit]
 Description=Python simple server loader systemd service.
 

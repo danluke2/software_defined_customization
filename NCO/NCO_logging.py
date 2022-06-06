@@ -6,9 +6,11 @@ from time import sleep
 
 import cfg
 
+
 def logger_configurer():
     root = logging.getLogger()
-    file_handler = handlers.RotatingFileHandler(cfg.log_file, 'a', cfg.log_size, cfg.log_max)
+    file_handler = handlers.RotatingFileHandler(
+        cfg.log_file, 'a', cfg.log_size, cfg.log_max)
     file_formatter = logging.Formatter('%(asctime)s  %(name)s  %(message)s')
     file_handler.setFormatter(file_formatter)
     root.addHandler(file_handler)

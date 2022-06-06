@@ -1,35 +1,34 @@
 // @file core_modules/NCO_test.c
 // @brief Test module to verify challenge-response works
 
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/slab.h>
-#include <linux/init.h>
-#include <linux/version.h>
 #include <linux/inet.h>
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/slab.h>
 #include <linux/uio.h> // For iter structures
+#include <linux/version.h>
 
 // for the overhead test, a copy of common_structs is in same location as this module
 #include "common_structs.h"
 
 
-extern int register_customization(struct customization_node *cust);
+extern int register_customization(struct customization_node *cust, u16 applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
 
-//test message for this plugin
+// test message for this plugin
 char cust_test[12] = "testCustMod";
-size_t cust_test_size = (size_t)sizeof(cust_test)-1;
 
 struct customization_node *python_cust;
 
 
 // Kernel module parameters with default values
-static char* destination_ip = "10.0.0.40";
-module_param(destination_ip, charp, 0600);  //root only access to change
+static char *destination_ip = "10.0.0.40";
+module_param(destination_ip, charp, 0600); // root only access to change
 MODULE_PARM_DESC(destination_ip, "Dest IP to match");
 
-static char* source_ip = "10.0.0.20";
+static char *source_ip = "10.0.0.20";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
@@ -46,9 +45,11 @@ module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
 
+// NCO VARIABLES GO HERE
 
-// Line 52 should be blank b/c NCO will write the module_id variable to that line
-// followed by any other variables we determine NCO should declare when building
+
+
+// END NCO VARIABLES
 
 
 
@@ -62,20 +63,31 @@ MODULE_PARM_DESC(protocol, "L4 protocol to match");
 // @post src_buf holds customized message for DCA to send to Layer 4
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-  bool copy_success;
-
-	send_buf_st->copy_length = cust_test_size + send_buf_st->length;
-
-	memcpy(send_buf_st->buf, cust_test, cust_test_size);
-  //copy from full will revert iter back to normal if failure occurs
-	copy_success = copy_from_iter_full(send_buf_st->buf+cust_test_size, send_buf_st->length, send_buf_st->src_iter);
-  if(copy_success == false)
-  {
-    // not all bytes were copied, so pick scenario 1 or 2 below
-    trace_printk("Failed to copy all bytes to cust buffer\n");
+    bool copy_success;
+    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
     send_buf_st->copy_length = 0;
-  }
-	return;
+    send_buf_st->no_cust = false;
+    send_buf_st->set_cust_to_skip = false;
+
+    // if module hasn't been activated, then don't perform customization
+    if (*python_cust->active_mode == 0)
+    {
+        send_buf_st->no_cust = true;
+        return;
+    }
+
+    send_buf_st->copy_length = cust_test_size + send_buf_st->length;
+
+    memcpy(send_buf_st->buf, cust_test, cust_test_size);
+    // copy from full will revert iter back to normal if failure occurs
+    copy_success = copy_from_iter_full(send_buf_st->buf + cust_test_size, send_buf_st->length, send_buf_st->src_iter);
+    if (copy_success == false)
+    {
+        // not all bytes were copied, so pick scenario 1 or 2 below
+        trace_printk("Failed to copy all bytes to cust buffer\n");
+        send_buf_st->copy_length = 0;
+    }
+    return;
 }
 
 
@@ -86,21 +98,31 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // @post recv_buf holds customized message for DCA to send to app instead
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-  bool copy_success;
+    bool copy_success;
+    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
+    recv_buf_st->no_cust = false;
+    recv_buf_st->set_cust_to_skip = false;
 
- 	recv_buf_st->copy_length = recv_buf_st->recv_return - cust_test_size;
+    // if module hasn't been activated, then don't perform customization
+    if (*python_cust->active_mode == 0)
+    {
+        recv_buf_st->no_cust = true;
+        return;
+    }
 
-  //adjust iter offset to start of actual message, then copy
-  iov_iter_advance(recv_buf_st->src_iter, cust_test_size);
+    recv_buf_st->copy_length = recv_buf_st->recv_return - cust_test_size;
 
-  copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->copy_length, recv_buf_st->src_iter);
-  if(copy_success == false)
-  {
-    // not all bytes were copied, so pick scenario 1 or 2 below
-    trace_printk("Failed to copy all bytes to cust buffer\n");
-    recv_buf_st->copy_length = 0;
-  }
- 	return;
+    // adjust iter offset to start of actual message, then copy
+    iov_iter_advance(recv_buf_st->src_iter, cust_test_size);
+
+    copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->copy_length, recv_buf_st->src_iter);
+    if (copy_success == false)
+    {
+        // not all bytes were copied, so pick scenario 1 or 2 below
+        trace_printk("Failed to copy all bytes to cust buffer\n");
+        recv_buf_st->copy_length = 0;
+    }
+    return;
 }
 
 
@@ -113,56 +135,61 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 // @post Layer 4.5 customization registered
 int __init sample_client_start(void)
 {
-	char thread_name[16] = "python3";
-  char application_name[16] = "python3";
-  int result;
+    char thread_name[16] = "python3";
+    char application_name[16] = "python3";
+    int result;
 
 
-	python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
-	if(python_cust == NULL)
-	{
-		trace_printk("client kmalloc failed\n");
-		return -1;
-	}
+    python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
+    if (python_cust == NULL)
+    {
+        trace_printk("client kmalloc failed\n");
+        return -1;
+    }
 
-	python_cust->target_flow.protocol = 17; // UDP
-  // python_cust->protocol = 6; // TCP
-  // python_cust->protocol = 256; // Any since not valid IP field value
-	memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
-  memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
+    // provide pointer for DCA to toggle active mode instead of new function
+    python_cust->active_mode = 0;
 
-  // Client: no source IP or port set unless client called bind first
-	python_cust->target_flow.dest_port = 65432;
-  python_cust->target_flow.source_port = 0;
+    python_cust->target_flow.protocol = 17; // UDP
+                                            // python_cust->protocol = 6; // TCP
+                                            // python_cust->protocol = 256; // Any since not valid IP field value
+    memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
+    memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
-  //IP is a __be32 value
-  python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
-  python_cust->target_flow.source_ip = 0;
+    // Client: no source IP or port set unless client called bind first
+    python_cust->target_flow.dest_port = 65432;
+    python_cust->target_flow.source_port = 0;
 
-  // These functions must be defined and will be used to modify the
-  // buffer on a send/receive call
-  // Function can be set to NULL if not modifying buffer contents
-	python_cust->send_function = modify_buffer_send;
-	python_cust->recv_function = NULL;
+    // IP is a __be32 value
+    python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
+    python_cust->target_flow.source_ip = 0;
 
-  // Cust ID set by customization controller, network uniqueness required
-	python_cust->cust_id = module_id;
-  python_cust->registration_time_struct.tv_sec = 0;
-  python_cust->registration_time_struct.tv_nsec = 0;
-	python_cust->retired_time_struct.tv_sec = 0;
-  python_cust->retired_time_struct.tv_nsec = 0;
+    // These functions must be defined and will be used to modify the
+    // buffer on a send/receive call
+    python_cust->send_function = modify_buffer_send;
+    python_cust->recv_function = modify_buffer_recv;
 
-	result = register_customization(python_cust);
+    python_cust->send_buffer_size = 2048; // we don't need a full buffer
+    python_cust->recv_buffer_size = 2048; // accept default buffer size
 
-  if(result != 0)
-  {
-    trace_printk("L4.5 AELRT: Module failed registration, check debug logs\n");
-    return -1;
-  }
+    // Cust ID set by customization controller, network uniqueness required
+    python_cust->cust_id = module_id;
+    python_cust->registration_time_struct.tv_sec = 0;
+    python_cust->registration_time_struct.tv_nsec = 0;
+    python_cust->revoked_time_struct.tv_sec = 0;
+    python_cust->revoked_time_struct.tv_nsec = 0;
 
-	trace_printk("L4.5: client module loaded, id=%d\n", python_cust->cust_id);
+    result = register_customization(python_cust, 0);
 
-  return 0;
+    if (result != 0)
+    {
+        trace_printk("L4.5 AELRT: Module failed registration, check debug logs\n");
+        return -1;
+    }
+
+    trace_printk("L4.5: client module loaded, id=%d\n", python_cust->cust_id);
+
+    return 0;
 }
 
 
@@ -170,18 +197,19 @@ int __init sample_client_start(void)
 // @post Layer 4.5 customization node unregistered
 void __exit sample_client_end(void)
 {
-  //NOTE: this is only valid/safe place to call unregister (deadlock scenario)
-  int ret = unregister_customization(python_cust);
+    // NOTE: this is only valid/safe place to call unregister (deadlock scenario)
+    int ret = unregister_customization(python_cust);
 
-  if(ret == 0){
-    trace_printk("L4.5 AELRT: client module unload error\n");
-  }
-  else
-  {
-    trace_printk("L4.5: client module unloaded\n");
-  }
-  kfree(python_cust);
-	return;
+    if (ret == 0)
+    {
+        trace_printk("L4.5 AELRT: client module unload error\n");
+    }
+    else
+    {
+        trace_printk("L4.5: client module unloaded\n");
+    }
+    kfree(python_cust);
+    return;
 }
 
 

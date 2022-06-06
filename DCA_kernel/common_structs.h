@@ -33,8 +33,7 @@
 enum customization_state
 {
     SKIP,
-    CUSTOMIZE,
-    UNKNOWN // signal to check again for new cust modules
+    CUSTOMIZE
 };
 
 
@@ -65,9 +64,8 @@ struct customization_buffer
     struct iov_iter *src_iter; // source buffer to work from
     size_t length;             // send=amount of data in src_iter, recv=max amount to return
     size_t recv_return;        // amount of data L4 returned from recvmsg call
-
-    bool skip_cust;
-    bool no_cust;
+    bool set_cust_to_skip;     // no more cust performed on socket
+    bool no_cust;              // module didn't alter message (save a copy operation)
 };
 
 
@@ -79,9 +77,11 @@ struct customization_socket
     struct sock *sk;
     uid_t uid; // up to modules to map ID to username if desired
 
+    // flag used to signal a new module registered and we should check cust matching
+    bool update_cust_check;
+
     // customization can be one way, so allow for send/recv differentiation
-    enum customization_state customize_send_or_skip;
-    enum customization_state customize_recv_or_skip;
+    enum customization_state customize_or_skip;
 
     struct customization_flow socket_flow;
 
@@ -107,15 +107,19 @@ struct customization_node
 
     // mod_id
     u16 cust_id;
+    u16 *active_mode;
     // counter to track number of sockets cust is applied to
     u16 sock_count;
+    // for future use
+    u16 *cust_priority;
 
     // cust can set these to override the defualt SEND_BUF_SIZE, RECV_BUF_SIZE
     u32 send_buffer_size;
     u32 recv_buffer_size;
 
     struct timespec64 registration_time_struct;
-    struct timespec64 retired_time_struct;
+    struct timespec64 deprecated_time_struct;
+    struct timespec64 revoked_time_struct;
 
     void (*send_function)(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow);
 
@@ -125,7 +129,8 @@ struct customization_node
     void (*challenge_function)(char *response_buffer, char *iv, char *challenge_message);
 
     struct list_head cust_list_member;
-    struct list_head retired_cust_list_member;
+    struct list_head deprecated_cust_list_member;
+    struct list_head revoked_cust_list_member;
 };
 
 

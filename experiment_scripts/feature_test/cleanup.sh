@@ -1,9 +1,7 @@
 #!/bin/bash
 
-#arg 1 is the module to build (without extension)
-#arg2 is the module ID to assign
-#arg3 is the line number to start inserting at
-#arg4 is the host id
+#Purpose: #Purpose: cleans up files from experiments
+#$1 is section to run
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
@@ -24,26 +22,52 @@ CLIENT_IP=10.0.0.40
 CLIENT_PASSWD=vagrant
 # ************** END STANDARD PARAMS  ****************
 
-CURDIR="$(pwd)"
+WIRESHARK_DIR=/usr/lib/x86_64-linux-gnu/wireshark/plugins
 
-line=$3
+# NCO/DCA
+if [ "$1" = "DEP" ]; then
+    cd $EXP_SCRIPT_DIR/logs
+    rm deprecate_*.txt
+    cd $NCO_DIR
+    rm cib.db
+    cd device_modules
+    rm -rf host*
+fi
 
-symvers_dir=$GIT_DIR/../device_modules/host_$4
-mod_dir=$symvers_dir/modules
+# Active and ApplyNow experiment
+if [ "$1" = "ACTIVATED" ]; then
+    cd $EXP_SCRIPT_DIR/logs
+    rm activated_*.txt
+    cd $NCO_DIR
+    rm cib.db
+    cd device_modules
+    rm -rf host*
+fi
 
-#copy module from core dir to the host module dir before changing it
-cp $NETSOFT_MOD_DIR/$1.c $mod_dir
+# Priority experiment
+if [ "$1" = "PRI" ]; then
+    cd $EXP_SCRIPT_DIR/logs
+    rm priority_*.txt
+    cd $NCO_DIR
+    rm cib.db
+    cd device_modules
+    rm -rf host*
+fi
 
-#open module and replace insert u16 module_id = XX; with NCO assigned value
-sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c
+# Challenge
+if [ "$1" = "CHALLENGE" ]; then
+    cd $NCO_DIR
+    rm cib.db
+    cd device_modules
+    rm -rf host*
+    cd $EXP_SCRIPT_DIR/logs
+    rm challenge_dep*.txt
+fi
 
-#make the module based on host_id symver location
-cd $mod_dir
-
-symbols="KBUILD_EXTRA_SYMBOLS=$symvers_dir/Module.symvers"
-mod="MODULE_DIR=$mod_dir"
-build="BUILD_MODULE=$1.o"
-
-make $symbols $mod $build
-
-cd $CURDIR
+# Remove NCO and DCA logs
+if [ "$1" = "LOGS" ]; then
+    cd $NCO_DIR
+    rm *_messages.log
+    cd $DCA_USER_DIR
+    rm *_messages.log
+fi

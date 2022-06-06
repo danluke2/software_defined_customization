@@ -9,10 +9,7 @@
 #include <linux/uio.h> // For iter structures
 #include <linux/version.h>
 
-// ************** STANDARD PARAMS MUST GO HERE ****************
-#include <common_structs.h>
-#include <printing.h>
-// ************** END STANDARD PARAMS ****************
+#include "../common_structs.h"
 
 static int __init sample_client_start(void);
 static void __exit sample_client_end(void);
@@ -45,32 +42,27 @@ static unsigned int protocol = 17; // UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-static unsigned int tag_count = 1;
-module_param(tag_count, uint, 0600);
-MODULE_PARM_DESC(tag_count, "Number of customization tags to insert");
-
-static bool applyNow = false;
-module_param(applyNow, bool, 0600);
-MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
-
-unsigned short activate = 1;
-module_param(activate, ushort, 0600);
-MODULE_PARM_DESC(activate, "Place customization in active mode, which enables customization");
-
-char cust_tag_test[9] = "XTAGXdig";
+char cust_tag_test[21] = "XTAGdig";
 
 struct customization_node *dns_cust;
 
-u16 module_id = 2;
 
+// NCO VARIABLES GO HERE
+u16 module_id = 1;
+char hex_key[HEX_KEY_LENGTH] = "";
+u16 activate = 0;
+u16 priority = 0;
+u16 applyNow = 0;
+
+
+// END NCO VARIABLES
 
 
 // The following functions perform the buffer modifications requested by handler
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    int counter = 0;
-    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 8 bytes
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 20 bytes
     send_buf_st->copy_length = 0;
     send_buf_st->no_cust = false;
     send_buf_st->set_cust_to_skip = false;
@@ -84,7 +76,11 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
     // trace_print_hex_dump("Original DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, length, true);
 
-    copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
+    memcpy(send_buf_st->buf, cust_tag_test, cust_tag_test_size);
+    send_buf_st->copy_length += cust_tag_test_size;
+
+    copy_success =
+        copy_from_iter_full(send_buf_st->buf + cust_tag_test_size, send_buf_st->length, send_buf_st->src_iter);
     if (copy_success == false)
     {
         trace_printk("L4.5 ALERT: Failed to copy DNS packet into buffer\n");
@@ -92,13 +88,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     }
 
     send_buf_st->copy_length += send_buf_st->length;
-
-    for (counter = 0; counter <= tag_count; counter++)
-    {
-        memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
-        send_buf_st->copy_length += cust_tag_test_size;
-    }
-
     return;
 }
 
@@ -136,6 +125,7 @@ int __init sample_client_start(void)
         return -1;
     }
 
+    // provide pointer for DCA to toggle active mode instead of new function
     dns_cust->active_mode = &activate;
 
     dns_cust->target_flow.protocol = protocol;
@@ -149,10 +139,10 @@ int __init sample_client_start(void)
     dns_cust->target_flow.source_port = (u16)source_port;
 
     dns_cust->send_function = modify_buffer_send;
-    dns_cust->recv_function = NULL;
+    dns_cust->recv_function = modify_buffer_recv;
 
     dns_cust->send_buffer_size = 4096;
-    dns_cust->recv_buffer_size = 32;
+    dns_cust->recv_buffer_size = 4096;
 
     dns_cust->cust_id = module_id;
     dns_cust->registration_time_struct.tv_sec = 0;

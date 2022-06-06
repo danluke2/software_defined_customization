@@ -2,7 +2,6 @@
 
 import socket
 import os
-import sys
 import subprocess
 import time
 import json
@@ -25,23 +24,28 @@ from logging import handlers
 parser = argparse.ArgumentParser(description='DCA user space program')
 parser.add_argument('--ip', type=str, required=False, help="NCO IP")
 parser.add_argument('--port', type=int, required=False, help="NCO port")
-parser.add_argument('--dir', type=str, required=False, help="KO Module download dir")
-parser.add_argument('--iface', type=str, required=False, help="Interface name for MAC")
-parser.add_argument('--controlled', help="Require user input to start checkin process", action="store_true" )
-parser.add_argument('--print', help="Enables logging to console", action="store_true" )
-parser.add_argument('--logfile', type=str, required=False, help="Full log file path to use, defaults to layer4_5 directory")
+parser.add_argument('--dir', type=str, required=False,
+                    help="KO Module download dir")
+parser.add_argument('--iface', type=str, required=False,
+                    help="Interface name for MAC")
+parser.add_argument(
+    '--controlled', help="Require user input to start checkin process", action="store_true")
+parser.add_argument(
+    '--print', help="Enables logging to console", action="store_true")
+parser.add_argument('--logfile', type=str, required=False,
+                    help="Full log file path to use, defaults to layer4_5 directory")
 
 args = parser.parse_args()
 
 
 if args.ip:
-    cfg.HOST=args.ip
+    cfg.HOST = args.ip
 
 if args.port:
-    cfg.PORT=args.port
+    cfg.PORT = args.port
 
 if args.iface:
-    cfg.INTERFACE=args.iface
+    cfg.INTERFACE = args.iface
 
 if args.dir:
     cfg.download_dir = args.dir
@@ -58,7 +62,8 @@ logger = logging.getLogger(__name__)  # use module name
 
 def logger_configurer():
     root = logging.getLogger()
-    file_handler = handlers.RotatingFileHandler(cfg.log_file, 'a', cfg.log_size, cfg.log_max)
+    file_handler = handlers.RotatingFileHandler(
+        cfg.log_file, 'a', cfg.log_size, cfg.log_max)
     file_formatter = logging.Formatter('%(asctime)s  %(message)s')
     file_handler.setFormatter(file_formatter)
     root.addHandler(file_handler)
@@ -71,45 +76,61 @@ def logger_configurer():
         root.addHandler(console_handler)
 
 
-
-
 def send_periodic_report(conn_socket):
-    send_dict = query_layer4_5()
+    message = 'CUST_REPORT'
+    send_dict = query_layer4_5(message)
     send_string = json.dumps(send_dict, indent=4)
     # logging.info(f"Periodic report: {send_string}")
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
 
 
 def send_initial_report(conn_socket):
     send_dict = {}
-    send_dict['mac'] =  getHwAddr(cfg.INTERFACE)
+    send_dict['mac'] = getHwAddr(cfg.INTERFACE)
     send_dict['release'] = cfg.system_release
     send_string = json.dumps(send_dict, indent=4)
     logging.info(f"Initial report: {send_string}")
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
 
 
 def send_full_report(conn_socket):
-    send_dict = query_layer4_5()
-    send_dict['mac'] =  getHwAddr(cfg.INTERFACE)
+    message = 'CUST_REPORT'
+    send_dict = query_layer4_5(message)
+    send_dict['mac'] = getHwAddr(cfg.INTERFACE)
     send_dict['release'] = cfg.system_release
     send_string = json.dumps(send_dict, indent=4)
     logging.info(f"Full report: {send_string}")
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
 
 
 def send_challenge_report(conn_socket, cust_id, iv, msg):
     logging.info(f"Challenge message {msg}")
-    send_dict = challenge_layer4_5(cust_id, iv, msg)
+    challenge = f'CHALLENGE {cust_id} {iv} {msg} END'
+    send_dict = query_layer4_5(challenge)
     send_string = json.dumps(send_dict, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
 
 
-def query_layer4_5():
+def send_deprecate_report(conn_socket, cust_id):
+    logging.info(f"Deactive cust id {cust_id}")
+    deprecate = f'DEPRECATE {cust_id} END'
+    send_dict = query_layer4_5(deprecate)
+    send_string = json.dumps(send_dict, indent=4)
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+
+
+def send_toggle_report(conn_socket, cust_id, mode):
+    logging.info(f"Toggle cust id {cust_id} active mode to {mode}")
+    toggle = f'TOGGLE {cust_id} {mode} END'
+    send_dict = query_layer4_5(toggle)
+    send_string = json.dumps(send_dict, indent=4)
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+
+
+def query_layer4_5(message):
     sock = Connection()
 
-    var = 'CUST_REPORT'
-    msg = Message(3,0,-1,var)
+    msg = Message(3, 0, -1, message)
 
     sock.send(msg)
 
@@ -118,54 +139,34 @@ def query_layer4_5():
     sock.fd.close()
 
     payload = report.payload.decode("utf-8")
+
+    if payload == "Failed to create cust report":
+        payload = "{};"
+
+    # need to stip padded 00's from message before convert to json
+    payload = payload.split(";")[0]
+
     logging.info(f"Query Response {payload}")
-
-    if payload == "Failed to create cust report":
-        payload = "{};"
-
-    # need to stip padded 00's from message before convert to json
-    payload = payload.split(";")[0]
-
-    return json.loads(payload)
-
-
-def challenge_layer4_5(cust_id, iv, msg):
-    sock = Connection()
-
-    challenge =f'CHALLENGE {cust_id} {iv} {msg} END'
-    msg = Message(3,0,-1,challenge)
-
-    sock.send(msg)
-
-    report = sock.recve()
-
-    sock.fd.close()
-
-    payload = report.payload.decode("utf-8")
-    logging.info(f"Challenge Response {payload}")
-
-    if payload == "Failed to create cust report":
-        payload = "{};"
-
-    # need to stip padded 00's from message before convert to json
-    payload = payload.split(";")[0]
 
     return json.loads(payload)
 
 
 # each host will have a primary mac addr to report to PCC (even if multiple avail)
+
+
 def getHwAddr(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', bytes(ifname, 'utf-8')[:15]))
+    info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack(
+        '256s', bytes(ifname, 'utf-8')[:15]))
     return ':'.join('%02x' % b for b in info[18:24])
 
 
 def send_symvers(conn_socket):
     filename = cfg.symver_location + 'Module.symvers'
     filesize = os.path.getsize(filename)
-    send_dict = {"file" : "Module.symvers", "size":filesize}
+    send_dict = {"file": "Module.symvers", "size": filesize}
     send_string = json.dumps(send_dict, indent=4)
-    conn_socket.sendall(bytes(send_string,encoding="utf-8"))
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
 
     data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
     data = data.decode("utf-8")
@@ -203,7 +204,7 @@ def install_ko_file(conn_socket, filename, filesize):
             file_to_write.write(data)
             filesize -= len(data)
             # logging.info("remaining = ", filesize)
-            if filesize<=0:
+            if filesize <= 0:
                 break
         file_to_write.close()
 
@@ -234,11 +235,9 @@ def revoke_module(conn_socket, filename):
     return result
 
 
-
-
 logger_configurer()
 
-#connect to server, send initial report and wait for server commands
+# connect to server, send initial report and wait for server commands
 # if connection terminated, then try again until server reached again
 # while (input("DCA loop again?") == "y"):
 while True:
@@ -250,16 +249,16 @@ while True:
         while not connected:
             try:
                 s.connect((cfg.HOST, cfg.PORT))
-                connected=True
+                connected = True
                 send_initial_report(s)
                 count = 0
             except ConnectionRefusedError:
                 if log_print:
-                    logging.info("FAILED to reach server. Sleep briefly & try again loop")
+                    logging.info(
+                        "FAILED to reach server. Sleep briefly & try again loop")
                     log_print = False
                 time.sleep(cfg.nco_connect_sleep_time)
                 continue
-
 
         # basically do while loop with switch statements to perform desired action
         while not stop_recv:
@@ -269,7 +268,7 @@ while True:
                 logging.info(f"Recieved message: {recv_dict}")
 
             except json.decoder.JSONDecodeError as e:
-                count +=1
+                count += 1
                 if count >= cfg.max_errors:
                     logging.info("max json errors reached")
                     stop_recv = True
@@ -280,7 +279,7 @@ while True:
 
             except Exception as e:
                 logging.info(f"Error during data reception: {e}")
-                count +=1
+                count += 1
                 if count >= cfg.max_errors:
                     logging.info("max general errors reached")
                     stop_recv = True
@@ -290,37 +289,42 @@ while True:
                     logging.info("requested module.symvers file")
                     send_symvers(s)
 
-
                 elif recv_dict["cmd"] == "recv_module":
-                    logging.info(f"prepare to recv modules, count = {recv_dict['count']}")
+                    logging.info(
+                        f"prepare to recv modules, count = {recv_dict['count']}")
                     s.sendall(b'Clear to send')
                     recv_ko_files(s, recv_dict["count"])
-
 
                 elif recv_dict["cmd"] == "revoke_module":
                     logging.info(f"revoke request received")
                     revoke_module(s, recv_dict["name"])
 
+                elif recv_dict["cmd"] == "deprecate_module":
+                    logging.info(f"deprecate request")
+                    send_deprecate_report(s, recv_dict["id"])
 
+                elif recv_dict["cmd"] == "toggle_active":
+                    logging.info(f"toggle active request")
+                    send_toggle_report(
+                        s, recv_dict["id"], recv_dict["mode"])
 
                 elif recv_dict["cmd"] == "run_report":
                     logging.info(f"report request received")
                     send_periodic_report(s)
 
-
                 elif recv_dict["cmd"] == "run_full_report":
                     logging.info(f"full report request")
                     send_full_report(s)
 
-
                 elif recv_dict["cmd"] == "challenge":
                     logging.info(f"challenge request")
-                    send_challenge_report(s, recv_dict["id"], recv_dict["iv"], recv_dict["msg"])
+                    send_challenge_report(
+                        s, recv_dict["id"], recv_dict["iv"], recv_dict["msg"])
 
             except Exception as e:
                 logging.info(f"Command parsing error, {e}")
                 logging.info(f"Command received was: {recv_dict}")
-                count +=1
+                count += 1
                 if count >= cfg.max_errors:
                     logging.info(f"Max exceptions recv, breaking connection")
                     break
