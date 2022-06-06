@@ -1,7 +1,7 @@
 # Software Defined Network Customization at Layer 4.5
 
 
-Prototype of Layer 4.5 customization framework to match NetSoft 2022 submission paper (under review).  Contains a Network-wide Customization Orchestrator (NCO) to distribute Layer 4.5 customization modules to devices.  NCO communicates with Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
+Prototype of Layer 4.5 customization framework to match NetSoft 2022 paper titled "Towards Software Defined Layer 4.5 Customization".  Layer 4.5 contains a Network-wide Customization Orchestrator (NCO) to distribute Layer 4.5 customization modules to devices.  The NCO communicates with a Device Customization Agent (DCA) to deliver the module (DCA\_user).  The DCA\_kernel code will handle the registration of the customization module and inserting the module into the socket flow between the socket layer and transport layer.
 
 
 Acronyms:
@@ -194,6 +194,10 @@ NOTE: Other Linux OS's are possible, but you need to adjust scripts to reflect y
 
 
 
+## Branches
+1) Buffering: introduces a different approach for receive side processing to allow the customization module to buffer L4 data for the application.  This basically allows processing for stricter applications, such as those that use TLS.
+
+1) Rotating: introduces the capability to rotate customization modules on an active socket and maintain backward compatibility until both end points have same customization module active (i.e., due to transmission delays).
 
 
 

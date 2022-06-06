@@ -1,13 +1,11 @@
 # Step for repeating experiments from paper submission
 
-This README explains the steps to perform the experiments from the NetSoft '22 paper submission.  
-
-NOTE: Paper will be uploaded to arxiv soon
+This README explains the steps to perform the experiments from the NetSoft '22 paper.  
 
 
 ## Prerequisites:
 
-1) Ensure you are on the 'netsoft' branch to match the settings used for the paper.
+1) (OPTIONAL) Switch to the 'netsoft' branch to match the settings used for the paper.
 
 1) To match the paper's experiments this requires 2 VM's running Layer 4.5 framework
 

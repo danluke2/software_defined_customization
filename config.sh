@@ -183,7 +183,24 @@ for x in $INSTALLER_FILES; do
   sed -i "${LINE}i\SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR" $FILE
 done
 
-# *************** DCA_user Bash updates ***************
+# *************** Python simple server Bash updates ***************
+
+# *************** Python https server update ***************
+
+INSTALLER_FILES="python_https_server.py"
+for x in $INSTALLER_FILES; do
+  FILE=$SIMPLE_SERVER_DIR/$x
+  delete_lines $FILE
+
+  # insert standard params
+  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+  ((LINE = LINE + 1))
+  sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
+  ((LINE = LINE + 1))
+  sed -i "${LINE}i\SIMPLE_SERVER_DIR='$SIMPLE_SERVER_DIR'" $FILE
+done
+
+# *************** Python https server updates ***************
 
 # *************** Vagrant Bash updates ***************
 

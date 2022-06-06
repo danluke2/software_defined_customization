@@ -3,12 +3,6 @@
 
 # TODO:
 
-1) Further test/improve overhead of using LKM approach
-
-1) how to reset cust module global variables or make socket specific (i.e., one cust mod applies to 2 sockets, then both update the same global vars)
-
-    * providing socket flow params can help distinguish different flows
-
 
 1) general module to do lots of functionality (like dialecting module);
 data collection, dialecting, maybe encryption
@@ -28,28 +22,11 @@ data collection, dialecting, maybe encryption
 1) NCO middlebox API and associated processing
 
 
-
-1) expand support for TLS traffic:
-
-    * this applies to the recieve side only since that may be breaking
-
-    * could we allow a receive loop between DCA and module to ensure all
-    encrypted traffic needed by app is delivered?
-
-    * could we be seeing problems from multiple iter buff segments?
+# Questions/Possible TODO's:
 
 1) Could I tag encrypted traffic with app/host ID to allow storing data without
 decrypting it?  (searchable encryption to some degree)
 
-
-traffic translation and middlebox traversal (same design framework)
-
-# Questions:
-
-1) Should we change recv logic: cust lookup first, if present put the L4 buffer
-into the cust buffer, then cust module modifies buffer as needed and L4.5 puts
-desired bytes into app buffer.  Downside of intermediary buffer could
-be that TCP closes connection b/c all data received by app from L4 point of view.
 
 1) Introduce IP mask to match subnets instead of just exact IP's?  
 
@@ -57,8 +34,6 @@ be that TCP closes connection b/c all data received by app from L4 point of view
 
 1) better hash key for customization sockets?
 
-1) When closing a socket, do we care if it was found or just that it is not
-present anymore?  Leaning to just not present.
 
 1) tap into UDP init also?  Not sure super useful
 
