@@ -64,6 +64,16 @@ if [ "$1" = "CHALLENGE" ]; then
     rm challenge_dep*.txt
 fi
 
+# Error
+if [ "$1" = "ERROR" ]; then
+    cd $NCO_DIR
+    rm cib.db
+    cd device_modules
+    rm -rf host*
+    cd $EXP_SCRIPT_DIR/logs
+    rm build_error.txt
+fi
+
 # Remove NCO and DCA logs
 if [ "$1" = "LOGS" ]; then
     cd $NCO_DIR

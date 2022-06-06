@@ -688,7 +688,7 @@ def select_built_module_key(con, host_id, module_id):
 def init_build_error_table(con):
     con.execute('''CREATE TABLE build_error
                    (host_id integer NOT NULL, module text NOT NULL,
-                   error string NOT NULL,
+                   error text NOT NULL,
                    PRIMARY KEY (host_id, module))''')
 
 

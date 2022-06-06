@@ -91,10 +91,10 @@ def build_ko_module(host_id, module_id, module_name, key, active_mode, applyNow)
     try:
         subprocess.run([cfg.nco_dir + "builder.sh", module_name, str(module_id),
                        str(host_id), key.hex(), str(active_mode), str(applyNow)], check=True)
-        result = "success"
+        result = 0
     except subprocess.CalledProcessError as e:
         logger.info(f"Error occured during module build process, error={e}")
-        result = e
+        result = -1
 
     return result
 
@@ -110,7 +110,7 @@ def construction_loop(db_connection):
         key = generate_key()
         err = build_ko_module(
             host_id_list[i], cfg.next_module_id, module_list[i], key, active_mode[i], applyNow[i])
-        if err == "success":
+        if err == 0:
             err = insert_and_update_module_tables(
                 db_connection, module_list[i], cfg.next_module_id, host_id_list[i], key)
             if err == cfg.DB_ERROR:
@@ -119,9 +119,9 @@ def construction_loop(db_connection):
         else:
             # an error occurred, update table and move on to next module
             logger.info(
-                f"Construction error for host {host_id_list[i]}, error{err}")
+                f"Construction error for host {host_id_list[i]}")
             insert_build_error(
-                db_connection, host_id_list[i], module_list[i], err)
+                db_connection, host_id_list[i], module_list[i], "Make error")
             delete_req_build_module(
                 db_connection, host_id_list[i], module_list[i])
             continue
