@@ -30,35 +30,54 @@ if [[ "$(id -u)" != "0" ]]; then
   exit -1
 fi
 
+# ----------------------------------------------------------------
+# Function for dns test
+#   Accepts 3 arguments:
+#     number of trials
+#     number of DNS requests
+#     sleep interval between test
+#     test name
+# ----------------------------------------------------------------
+conduct_dns() {
+  for ((i = 1; i <= $1; i++)); do
+    echo "DNS test $i"
+    total=0
+    for ((j = 1; j <= $2; j++)); do
+      query="www.test_$3_$j.com"
+      before=$(date '+%s%6N')
+      dig @$SERVER_IP -p 53 $query >/dev/null
+      after=$(date '+%s%6N')
+      total=$((total + (after - before)))
+      sleep $3
+    done
+    echo "$((total))" >>$OUTPUT
+  done
+}
+
 # client connect to server over ssh, stop dns services, start dnsmasq, then on client run experiment, save data to file
 
-# create file to store batch times
-OUTPUT=$EXP_SCRIPT_DIR/logs/batch_base.txt
-touch $OUTPUT
-
-sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; systemctl stop dnsmasq.service; systemctl stop systemd-resolved.service; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; systemctl stop dnsmasq.service; systemctl stop systemd-resolved.service; sleep 5; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 sleep 2
 
 rmmod layer4_5
 
+OUTPUT=$EXP_SCRIPT_DIR/logs/batch_primer.txt
+touch $OUTPUT
+
+echo "*************** starting baseline priming ***************"
+
+conduct_dns 1 $2 0 "prime"
+
+echo "*************** finished baseline priming ***************"
+
+# create file to store batch times
+OUTPUT=$EXP_SCRIPT_DIR/logs/batch_base.txt
+touch $OUTPUT
+
 echo "*************** starting baseline batch ***************"
 
-echo starting dns requests
-
-for ((i = 1; i <= $1; i++)); do
-  echo "DNS test $i"
-  total=0
-  for ((j = 1; j <= $2; j++)); do
-    query="www.test_base$i$j.com"
-    before=$(date '+%s%6N')
-    dig @$SERVER_IP -p 53 $query >/dev/null
-    after=$(date '+%s%6N')
-    total=$((total + (after - before)))
-    sleep $3
-  done
-  echo "$((total))" >>$OUTPUT
-done
+conduct_dns $1 $2 $3 "base"
 
 echo "*************** finished baseline test ***************"
 
@@ -79,19 +98,7 @@ sleep 2
 
 echo "*************** starting tap batch ***************"
 
-for ((i = 1; i <= $1; i++)); do
-  echo "DNS test $i"
-  total=0
-  for ((j = 1; j <= $2; j++)); do
-    query="www.test_tap$i$j.com"
-    before=$(date '+%s%6N')
-    dig @$SERVER_IP -p 53 $query >/dev/null
-    after=$(date '+%s%6N')
-    total=$((total + (after - before)))
-    sleep $3
-  done
-  echo "$((total))" >>$OUTPUT
-done
+conduct_dns $1 $2 $3 "tap"
 
 echo "*************** finished tap test ***************"
 
@@ -110,21 +117,10 @@ insmod overhead_test_batch_dns_client.ko
 cd $NETSOFT_SCRIPT_DIR
 
 sleep 2
+
 echo "*************** starting cust batch ***************"
 
-for ((i = 1; i <= $1; i++)); do
-  echo "DNS test $i"
-  total=0
-  for ((j = 1; j <= $2; j++)); do
-    query="www.test_cust$i$j.com"
-    before=$(date '+%s%6N')
-    dig @$SERVER_IP -p 53 $query >/dev/null
-    after=$(date '+%s%6N')
-    total=$((total + (after - before)))
-    sleep $3
-  done
-  echo "$((total))" >>$OUTPUT
-done
+conduct_dns $1 $2 $3 "cust"
 
 echo "*************** finished cust test ***************"
 
