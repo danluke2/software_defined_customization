@@ -376,6 +376,8 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     struct task_struct *task = current;
     struct customization_socket *cust_socket;
     int recvmsg_return = 0;
+    int peek_performed_already = 0;
+
 #ifdef APP
     struct task_struct *test = pid_task(find_vpid(task->tgid), PIDTYPE_PID);
     bool found = false;
@@ -399,26 +401,42 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     }
 #endif
 
-    // Try to get cust socket, but if first time seeing socket this will fail to find the socket
+    // Try to get cust socket early, but if first time seeing socket this will fail to find the socket
+    // Also, if UDP then socket params may hold junk?
     cust_socket = get_cust_socket(task, sk);
 
-    // if we found the socket and we have data buffered, then we don't need to do an early recvmsg with PEEK
 
     // Perform a PEEK request so we don't remove data from L4 yet, but can fill in missing msg params if they exist
     // perform recvmsg here because nonblock may be false and hold here until L4 has a message to return, which should
     // avoid deadlock on real recvmsg call
+
+
+    // if cust_socket is NULL, this could be because params were missing
+    // so we PEEK and fill them in and try again
+    if (cust_socket == NULL)
+    {
+#ifdef DEBUG1
+        trace_printk("L4.5: NULL cust socket before PEEK, pid %d, sk %lu\n", recvmsg_return, task->pid,
+                     (unsigned long)sk);
+#endif
+        recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
+        peek_performed_already = 1;
+        // Try again get cust socket now that params may be filled in that were previously junk, but if still first time
+        // seeing socket this will fail to find the socket
+        cust_socket = get_cust_socket(task, sk);
+    }
+
+
+    // if we found the socket and we have data buffered, then we don't need to do an early recvmsg with PEEK
+
+
     if (cust_socket != NULL)
     {
-        // buffered data is false by default
-        if (cust_socket->recv_buf_st.buffered_bytes == 0)
+        // buffered data is 0 by default
+        if (cust_socket->recv_buf_st.buffered_bytes == 0 &&peek_performed_already = 0)
         {
             recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
         }
-    }
-    // otherwise, we do a normal recvmsg with app specified nonblock parameter
-    else
-    {
-        recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
     }
 
 
@@ -441,7 +459,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     if (cust_socket == NULL)
     {
 #ifdef DEBUG3
-        trace_printk("L4.5: NULL cust socket in recvmsg, creating cust socket for pid %d\n", task->pid);
+        trace_printk("L4.5: NULL cust socket in recvmsg (after PEEK), creating cust socket for pid %d\n", task->pid);
 #endif
 
 #ifdef APP
@@ -457,7 +475,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
 #ifdef DEBUG1
             trace_printk("L4.5: cust_socket NULL not expected, pid %d\n", task->pid);
 #endif
-            return recvmsg_return;
+            return -EAGAIN;
         }
 
 // allow logging for TARGET_APP regardless of customization status
