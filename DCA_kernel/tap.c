@@ -433,7 +433,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     if (cust_socket != NULL)
     {
         // buffered data is 0 by default
-        if (cust_socket->recv_buf_st.buffered_bytes == 0 &&peek_performed_already = 0)
+        if (cust_socket->recv_buf_st.buffered_bytes == 0 && peek_performed_already == 0)
         {
             recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
         }
