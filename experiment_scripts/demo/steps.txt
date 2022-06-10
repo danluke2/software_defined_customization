@@ -1,0 +1,28 @@
+Demo Steps:
+
+1. Install Layer 4.5 on client and server 
+
+2. Start NCO on client machine
+
+3. Start DCA on client then server
+
+4. Start Middlebox DCA on server
+
+5. Deploy DNS front customization to server
+   with inverse module to middlebox 
+
+6. Deploy DNS front customization to client
+
+7. Start middlebox collection
+
+8. Send DNS traffic
+
+9. Revoke front customization modules
+
+10. Deploy DNS end customization to client only
+
+11. Send DNS traffic
+
+11. Verify middlebox inverse 
+
+12. Review logs (challenge/response)

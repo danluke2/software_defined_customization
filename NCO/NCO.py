@@ -216,7 +216,6 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     if temp == cfg.CLOSE_SOCK:
                         conn.close()
                         break
-                    # if temp == cfg.RETIRE_MOD:
                     if temp == cfg.REVOKE_MOD:
                         logger.info(
                             "************ Failed challenge/respnse, Revoking module************")

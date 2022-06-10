@@ -87,7 +87,7 @@ python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --ho
 sleep $SLEEP_INT
 
 # start middlebox collection process
-echo "*************** Starting Middlebox DCA on Server  ***************"
+echo "*************** Starting Middlebox on Server  ***************"
 gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump udp port 53 -i any -w $GIT_DIR/middle_demo.pcap"
 
 sleep $SLEEP_INT

@@ -1,5 +1,5 @@
-// @file core_modules/demo_dns_app_tag.c
-// @brief The customization module to insert dns app tag for demo
+// @file core_modules/demo_dns_app_end_tag.c
+// @brief The customization module to insert dns app end tag for demo
 
 #include <linux/inet.h>
 #include <linux/init.h>
@@ -48,7 +48,7 @@ static unsigned int protocol = 17; // UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-char cust_tag_test[21] = "XTAGdig";
+char cust_tag_test[23] = "XTAGmy dns custom data";
 
 struct customization_node *dns_cust;
 
@@ -79,7 +79,7 @@ u8 byte_key[SYMMETRIC_KEY_LENGTH] = "";
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 20 bytes
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1;
     send_buf_st->copy_length = 0;
     send_buf_st->no_cust = false;
     send_buf_st->set_cust_to_skip = false;
@@ -93,11 +93,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
     // trace_print_hex_dump("Original DNS packet: ", DUMP_PREFIX_ADDRESS, 16, 1, src_iter->iov->iov_base, length, true);
 
-    memcpy(send_buf_st->buf, cust_tag_test, cust_tag_test_size);
-    send_buf_st->copy_length += cust_tag_test_size;
-
-    copy_success =
-        copy_from_iter_full(send_buf_st->buf + cust_tag_test_size, send_buf_st->length, send_buf_st->src_iter);
+    copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
     if (copy_success == false)
     {
         trace_printk("L4.5 ALERT: Failed to copy DNS packet into buffer\n");
@@ -105,6 +101,10 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     }
 
     send_buf_st->copy_length += send_buf_st->length;
+
+    memcpy(send_buf_st->buf + send_buf_st->length, cust_tag_test, cust_tag_test_size);
+    send_buf_st->copy_length += cust_tag_test_size;
+
     return;
 }
 

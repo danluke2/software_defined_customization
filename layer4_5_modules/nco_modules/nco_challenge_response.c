@@ -182,7 +182,7 @@ void challenge_response(char *message, char *iv, char *challenge)
     // response will just be module_id as a 6 char hex string added to end of challenge
     sprintf(response_id, "%06x", module_id);
     memcpy(response_id + 6, "0505050505", 10); // required padding
-    // print_hex_dump(KERN_DEBUG, "L4.5 response_id: ", DUMP_PREFIX_ADDRESS, 16, 1, response_id, 16, true);
+    print_hex_dump(KERN_DEBUG, "L4.5 response_id: ", DUMP_PREFIX_ADDRESS, 16, 1, response_id, 16, true);
 
     // print_hex_dump(KERN_DEBUG, "L4.5 hex-key: ", DUMP_PREFIX_ADDRESS, 16, 1, hex_key, 64, true);
     // print_hex_dump(KERN_DEBUG, "L4.5 bytes-key: ", DUMP_PREFIX_ADDRESS, 16, 1, byte_key, 32, true);
@@ -269,7 +269,7 @@ void challenge_response(char *message, char *iv, char *challenge)
 
 
     trace_printk("L4.5: Decryption triggered successfully\n");
-    // print_hex_dump(KERN_DEBUG, "L4.5 decrypted data: ", DUMP_PREFIX_ADDRESS, 16, 1, scratchpad, 16, true);
+    print_hex_dump(KERN_DEBUG, "L4.5 decrypted data: ", DUMP_PREFIX_ADDRESS, 16, 1, scratchpad, 16, true);
 
     // now ivdata holds a different IV value that we use for now as encrypt IV
     // print_hex_dump(KERN_DEBUG, "L4.5 encrypt iv: ", DUMP_PREFIX_ADDRESS, 16, 1, ivdata, 16, true);
@@ -279,8 +279,7 @@ void challenge_response(char *message, char *iv, char *challenge)
     // scratchpad first 8 bytes is challenge bytes, append response_id for encryption
     hex_to_bytes(response_id, scratchpad + 8, 8); // 8 = half of response size
 
-    // print_hex_dump(KERN_DEBUG, "L4.5 decrypted data+response+pad: ", DUMP_PREFIX_ADDRESS, 16, 1, scratchpad, 16,
-    // true);
+    print_hex_dump(KERN_DEBUG, "L4.5 decrypted data+response+pad: ", DUMP_PREFIX_ADDRESS, 16, 1, scratchpad, 16, true);
 
     // now we need to update scratchpad with padding values
     // hex_to_bytes(padding_hex, scratchpad+8+3, 5); // 5 = half of pad size
