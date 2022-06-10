@@ -17,6 +17,9 @@ with open("../logs/batch_base.txt") as fp:
             break
         dns_data_base.append(int(time))
 
+dns_data_base = [x/1000000 for x in dns_data_base]
+print(dns_data_base)
+
 
 dns_data_tap_buff = []
 with open("../logs/buffer_batch_tap.txt") as fp:
@@ -95,8 +98,7 @@ for tick, label in zip(range(5), ax.get_xticklabels()):
             horizontalalignment='center', weight=weights[k], color="red")
 
 plt.xticks(fontsize=14)
-plt.xticks([1, 2, 3, 4, 5], ["Baseline", "L4.5 Tap",
-           "L4.5 Tap+Cust"], rotation=45)
+plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"])
 plt.ylabel('Seconds')
 plt.title("DNS Batch Query/Response Time")
 

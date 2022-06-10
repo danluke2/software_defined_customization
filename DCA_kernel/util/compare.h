@@ -1,7 +1,7 @@
 #ifndef _COMPARISON_UTILS_H
 #define _COMPARISON_UTILS_H
 
-#include "../common_structs.h"
+#include <common_structs.h>
 
 
 // Compares a customization nodes application/task name to the given socket
