@@ -26,6 +26,25 @@ if [[ "$(id -u)" != "0" ]]; then
   exit -1
 fi
 
+# ----------------------------------------------------------------
+# Function for bulk test
+#   Accepts 1 argument:
+#     number of trials
+# ----------------------------------------------------------------
+conduct_bulk() {
+  for ((i = 1; i <= $1; i++)); do
+    echo "Download $i"
+    before=$(date '+%s%3N')
+    curl http://$SERVER_IP:8080/overhead.iso -o overhead.iso
+    after=$(date '+%s%3N')
+    sum=($(md5sum overhead.iso))
+    echo "$sum" >>$OUTPUT
+    echo "$((after - before)) " >>$OUTPUT
+    rm overhead.iso
+    sleep 2
+  done
+}
+
 #check if overhead file is present before starting
 FILE=$NCO_DIR/overhead.iso
 if [ -f "$FILE" ]; then
@@ -40,17 +59,21 @@ MD5=($(md5sum $NCO_DIR/overhead.iso))
 
 # client connect to server over ssh, launch web server, then on client run experiment, save data to file
 
-# create file to store download times and md5 sum
-OUTPUT=$EXP_SCRIPT_DIR/logs/buffer_bulk_tap.txt
-touch $OUTPUT
-# store md5 sum at start of file for comparison
-echo $MD5 >>$OUTPUT
+sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; pkill python; cd $GIT_DIR/../Desktop; cp $NCO_DIR/overhead.iso .; python3 $SIMPLE_SERVER_DIR/python_simple_server.py >/dev/null 2>&1 &"
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 -o StrictHostKeyChecking=no root@$SERVER_IP "rmmod layer4_5; pkill python; cd $GIT_DIR/../Desktop; cp $NCO_DIR/overhead.iso ."
-
-sleep 1
+sleep 2
 
 rmmod layer4_5
+
+OUTPUT=$EXP_SCRIPT_DIR/logs/bulk_primer.txt
+touch $OUTPUT
+echo $MD5 >>$OUTPUT
+
+echo "*************** starting baseline priming ***************"
+
+conduct_bulk 1
+
+echo "*************** finished baseline priming ***************"
 
 # client connect to server over ssh, install L4.5, launch server, client install L4.5, run experiment, save data to file
 
@@ -69,17 +92,7 @@ echo "*************** starting tap downloads ***************"
 # download file to VM desktop to avoid using shared disk space
 cd $GIT_DIR/../Desktop
 
-for ((i = 1; i <= $1; i++)); do
-  echo "Download $i"
-  before=$(date '+%s%3N')
-  curl http://$SERVER_IP:8080/overhead.iso -o overhead.iso
-  after=$(date '+%s%3N')
-  sum=($(md5sum overhead.iso))
-  echo "$sum" >>$OUTPUT
-  echo "$((after - before)) " >>$OUTPUT
-  rm overhead.iso
-  sleep 2
-done
+conduct_bulk $1
 
 echo "*************** finished tap test ***************"
 
@@ -104,17 +117,7 @@ echo "*************** starting cust downloads ***************"
 # download file to VM desktop to avoid using shared disk space
 cd $GIT_DIR/../Desktop
 
-for ((i = 1; i <= $1; i++)); do
-  echo "Download $i"
-  before=$(date '+%s%3N')
-  curl http://$SERVER_IP:8080/overhead.iso -o overhead.iso
-  after=$(date '+%s%3N')
-  sum=($(md5sum overhead.iso))
-  echo "$sum" >>$OUTPUT
-  echo "$((after - before)) " >>$OUTPUT
-  rm overhead.iso
-  sleep 2
-done
+conduct_bulk $1
 
 echo "*************** finished cust test ***************"
 

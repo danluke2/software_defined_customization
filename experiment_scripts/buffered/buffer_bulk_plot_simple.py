@@ -119,8 +119,7 @@ for tick, label in zip(range(5), ax.get_xticklabels()):
             horizontalalignment='center', weight=weights[k], color="red")
 
 plt.xticks(fontsize=14)
-plt.xticks([1, 2, 3, 4, 5], ["Baseline", "L4.5 Tap",
-           "L4.5 Tap+Cust"], rotation=45)
+plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"])
 plt.ylabel('Seconds')
 plt.title("Bulk File Transfer Time")
 
