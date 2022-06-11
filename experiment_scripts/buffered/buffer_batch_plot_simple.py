@@ -78,7 +78,7 @@ bottom = minimum-0.2
 ax.set_ylim(bottom, top)
 ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
 pos = np.arange(5) + 1
-meanLabels = [str(np.round(s, 4)) for s in means]
+meanLabels = [str(np.round(s, 2)) for s in means]
 # upperLabels2 = [str(np.round(s, 2)) for s in medians]
 
 
