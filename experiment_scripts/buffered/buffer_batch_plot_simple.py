@@ -1,6 +1,7 @@
 # box plots of test scipts
 
 # Import libraries
+from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
@@ -10,7 +11,7 @@ from matplotlib.patches import Polygon
 
 # open each file, compare md5sum and fill in list of times
 dns_data_base = []
-with open("../logs/batch_base.txt") as fp:
+with open("../logs/buffer_batch_base.txt") as fp:
     while True:
         time = fp.readline()
         if not time:
@@ -72,8 +73,8 @@ for x in dns_data:
     if temp < minimum:
         minimum = temp
 
-top = maximum+0.2
-bottom = minimum-0.2
+top = maximum+0.1
+bottom = minimum-0.1
 
 ax.set_ylim(bottom, top)
 ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
@@ -101,6 +102,13 @@ plt.xticks(fontsize=14)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"])
 plt.ylabel('Seconds')
 plt.title("DNS Batch Query/Response Time")
+
+
+custom_lines = [Line2D([0], [0], color="green", lw=4),
+                Line2D([0], [0], color="red", lw=4)]
+
+
+ax.legend(custom_lines, ['Mean', 'Overhead'])
 
 
 # plt.show()

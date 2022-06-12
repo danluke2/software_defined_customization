@@ -122,7 +122,7 @@ for i in range(num_boxes):
         box_y.append(box.get_ydata()[j])
     box_coords = np.column_stack([box_x, box_y])
     # Alternate between Dark Khaki and Royal Blue
-    ax1.add_patch(Polygon(box_coords, facecolor=box_colors[i]))
+    # ax1.add_patch(Polygon(box_coords, facecolor=box_colors[i]))
     # Now draw the median lines back over what we just filled in
     med = bp['medians'][i]
     median_x = []
@@ -152,8 +152,7 @@ for x in tcp_data:
 top = maximum+0.25
 bottom = minimum-0.25
 ax1.set_ylim(bottom, top)
-ax1.set_xticklabels(["Baseline", "L4.5 Tap\n(Flexible Model)",
-                    "L4.5 Tap+Cust\n(Flexible Model)"],
+ax1.set_xticklabels(["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"],
                     rotation=0, fontsize=12)
 
 # Due to the Y-axis scale being different across samples, it can be

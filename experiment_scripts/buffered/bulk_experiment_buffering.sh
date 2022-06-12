@@ -71,7 +71,7 @@ echo $MD5 >>$OUTPUT
 
 echo "*************** starting baseline priming ***************"
 
-conduct_bulk 1
+conduct_bulk 2
 
 echo "*************** finished baseline priming ***************"
 

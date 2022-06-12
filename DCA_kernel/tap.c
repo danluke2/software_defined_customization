@@ -365,7 +365,7 @@ int new_udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 
 // Processes recvmsg request and passes to DCA for any changes
 // @param recvmsg Pointer to appropriate L4 recv function
-// @see tcp.h for standard parameters
+// @see tcp.h/udp.c for standard parameters
 // @see customization_socket.c:get_cust_socket
 // @see customization_socket.c:create_cust_socket
 // @return the amount of bytes from L4 if no customization performed
@@ -416,8 +416,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
     if (cust_socket == NULL)
     {
 #ifdef DEBUG1
-        trace_printk("L4.5: NULL cust socket before PEEK, pid %d, sk %lu\n", recvmsg_return, task->pid,
-                     (unsigned long)sk);
+        trace_printk("L4.5: NULL cust socket before PEEK, pid %d, sk %lu\n", task->pid, (unsigned long)sk);
 #endif
         recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
         peek_performed_already = 1;

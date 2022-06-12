@@ -11,7 +11,7 @@ from matplotlib.patches import Polygon
 
 # open each file, compare md5sum and fill in list of times
 tcp_data_base = []
-with open("../logs/bulk_base.txt") as fp:
+with open("../logs/buffer_tls_bulk_base.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -31,7 +31,7 @@ print(tcp_data_base)
 
 
 tcp_data_tap_buff = []
-with open("../logs/buffer_bulk_tap.txt") as fp:
+with open("../logs/buffer_tls_bulk_tap.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -51,7 +51,7 @@ print(tcp_data_tap_buff)
 
 
 tcp_data_cust_buff = []
-with open("../logs/buffer_bulk_cust.txt") as fp:
+with open("../logs/buffer_tls_bulk_cust.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -122,7 +122,7 @@ for tick, label in zip(range(5), ax.get_xticklabels()):
 plt.xticks(fontsize=14)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"])
 plt.ylabel('Seconds')
-plt.title("Bulk File Transfer Time over HTTP")
+plt.title("Bulk File Transfer Time over HTTPS")
 
 custom_lines = [Line2D([0], [0], color="green", lw=4),
                 Line2D([0], [0], color="red", lw=4)]
@@ -130,5 +130,6 @@ custom_lines = [Line2D([0], [0], color="green", lw=4),
 
 ax.legend(custom_lines, ['Mean', 'Overhead'])
 
+
 # plt.show()
-plt.savefig('buffer_bulk_overhead.png')
+plt.savefig('buffer_tls_bulk_overhead.png')

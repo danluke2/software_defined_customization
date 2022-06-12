@@ -57,7 +57,6 @@ size_t total_tags = 0;
 size_t BYTE_POSIT = 1000;
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
-size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
 
 struct customization_node *client_cust;
 
@@ -93,6 +92,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // @post recv_buf holds customized message for DCA to send to app instead
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
     size_t temp_buff_index = 0;
     size_t i = 0;
     int remaining_length = recv_buf_st->recv_return;
@@ -362,9 +362,9 @@ int __init sample_client_start(void)
     client_cust->send_buffer_size = 0; //  normal buffer size
     client_cust->recv_buffer_size = 65536 * 2;
     // temp_buffer_size <= recv_buffer_size
-    client_cust->temp_buffer_size = 102400 + 3000;
+    client_cust->temp_buffer_size = 102400 + 3200;
     // curl buffer length from trace messages = 102400
-    // there will be about 3000 tag bytes so we can put more in temp that will just be removed
+    // there will be at least 3200 tag bytes so we can put more in temp that will just be removed
 
     result = register_customization(client_cust);
 
