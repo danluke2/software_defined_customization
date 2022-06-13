@@ -268,6 +268,9 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     if (cust_sock->recv_buf_st.copy_length == 0)
     {
         spin_unlock(&cust_sock->active_customization_lock);
+#ifdef DEBUG3
+        trace_printk("L4.5: cust module copy length = 0, pid %d\n", cust_sock->pid);
+#endif
         return 0;
     }
 

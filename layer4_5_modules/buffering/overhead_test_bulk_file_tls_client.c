@@ -57,7 +57,6 @@ size_t total_tags = 0;
 size_t BYTE_POSIT = 1000;
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
-size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
 
 struct customization_node *client_cust;
 
@@ -93,6 +92,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // @post recv_buf holds customized message for DCA to send to app instead
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
     size_t temp_buff_index = 0;
     size_t i = 0;
     int remaining_length = recv_buf_st->recv_return;

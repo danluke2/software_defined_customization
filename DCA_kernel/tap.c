@@ -435,6 +435,10 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
         if (cust_socket->recv_buf_st.buffered_bytes == 0 && peek_performed_already == 0)
         {
             recvmsg_return = recvmsg(sk, msg, 0, nonblock, MSG_PEEK, addr_len);
+#ifdef DEBUG1
+            trace_printk("L4.5: recvmsg peek: return value=%d, pid %d, sk %lu\n", recvmsg_return, task->pid,
+                         (unsigned long)sk);
+#endif
         }
     }
 
