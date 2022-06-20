@@ -23,4 +23,10 @@ Demo Steps:
 
 11. Revoke front customization modules
 
-12. Verify middlebox inverse 
+12. Deploy DNS end customization to client only
+
+13. Send DNS traffic
+
+14. Cleanup
+
+15. Verify middlebox inverse 

@@ -12,7 +12,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/nco.sh dflukasz" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/nco.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/nco.tar.gz" install_path="/local"/>
 </services>
 		<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-6">
 
@@ -32,7 +32,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/dns.sh dflukasz" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/dns.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/dns.tar.gz" install_path="/local"/>
 </services>
 		<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-0">
 
@@ -52,7 +52,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/web.sh dflukasz" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/web.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/web.tar.gz" install_path="/local"/>
 </services>
 		<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-4">
 
@@ -107,7 +107,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/ovs_setup.sh 5 10.10.0.100 204.102.228.173" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/ovs-script.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/ovs-script.tar.gz" install_path="/local"/>
 </services>
 		<interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-1">
 
@@ -173,7 +173,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/ovs_setup.sh 3 10.10.0.200 204.102.228.173" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/ovs-script.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/ovs-script.tar.gz" install_path="/local"/>
 </services>
 <interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-2">
 <ip address="10.10.0.200" netmask="255.255.255.0" type="ipv4"/>
@@ -200,7 +200,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/host.sh dflukasz" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/host.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/host.tar.gz" install_path="/local"/>
 </services>
 <interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-8">
 
@@ -220,7 +220,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/host.sh dflukasz" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/host.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/host.tar.gz" install_path="/local"/>
 </services>
 <interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-10">
 
@@ -241,8 +241,8 @@
 
 
 
-<execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/ovs_setup.sh 3 10.10.0.103 204.102.228.171" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/ovs-script.tar.gz" install_path="/local"/>
+<execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/ovs_setup.sh 3 10.10.0.103 204.102.228.173" shell="/bin/sh"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/ovs-script.tar.gz" install_path="/local"/>
 </services>
 <interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-12">
 <ip xmlns="http://www.geni.net/resources/rspec/3" address="10.10.0.103" type="ipv4" netmask="255.255.255.0"/>
@@ -267,7 +267,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/host.sh dflukasz" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/host.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/host.tar.gz" install_path="/local"/>
 </services>
 <interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-16">
 <ip xmlns="http://www.geni.net/resources/rspec/3" address="10.10.0.6" type="ipv4" netmask="255.255.255.0"/>
@@ -286,7 +286,7 @@
 
 
 <execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/host.sh dflukasz" shell="/bin/sh"/>
-<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.171/geni/host.tar.gz" install_path="/local"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://204.102.228.173/geni/host.tar.gz" install_path="/local"/>
 </services>
 <interface xmlns="http://www.geni.net/resources/rspec/3" client_id="interface-14">
 <ip xmlns="http://www.geni.net/resources/rspec/3" address="10.10.0.7" type="ipv4" netmask="255.255.255.0"/>

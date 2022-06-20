@@ -3,6 +3,7 @@
 # Import libraries
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
 
 
 # run the bulk transfer shell script to collect the data, then generate the plots
@@ -72,8 +73,8 @@ for x in dns_data:
     if temp < minimum:
         minimum = temp
 
-top = maximum+0.2
-bottom = minimum-0.2
+top = maximum+0.1
+bottom = minimum-0.1
 
 ax.set_ylim(bottom, top)
 ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
@@ -94,13 +95,20 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
     k = tick % 2
     ax.text(pos[tick]+0.35, float(meanLabels[tick]), meanLabels[tick],
             horizontalalignment='center', weight=weights[k], color="green")
-    ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.15, percentLabels[tick],
+    ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.04, percentLabels[tick],
             horizontalalignment='center', weight=weights[k], color="red")
 
 plt.xticks(fontsize=14)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 plt.ylabel('Seconds')
 plt.title("DNS Batch Query/Response Time")
+
+
+custom_lines = [Line2D([0], [0], color="green", lw=4),
+                Line2D([0], [0], color="red", lw=4)]
+
+
+ax.legend(custom_lines, ['Mean', 'Overhead'], loc="upper left")
 
 # plt.show()
 plt.savefig('batch_overhead.png')

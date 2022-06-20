@@ -42,7 +42,7 @@ fi
 #     test name
 # ----------------------------------------------------------------
 conduct_dns() {
-    for ((j = 1; j <= 5; j++)); do
+    for ((j = 1; j <= 3; j++)); do
         query="www.test_$1_$j.com"
         echo "$query"
         dig @$SERVER_IP -p 53 $query >/dev/null
@@ -60,12 +60,12 @@ user_wait() {
 }
 
 echo "Cleaning up just in case"
+rmmod demo_dns_client_app_end_tag
 rmmod demo_dns_client_app_tag
 rmmod layer4_5
 sudo pkill python3
 
 sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python3; pkill dnsmasq; pkill tcpdump; systemctl start systemd-resolved.service; rmmod demo_dns_server_app_tag; rmmod layer4_5"
-
 cd $NCO_DIR
 rm cib.db
 cd device_modules
@@ -179,26 +179,26 @@ sleep 10
 
 user_wait
 
-# echo
-# echo "*************** Starting DNS End Tagging from Client ***************"
+echo
+echo "*************** Starting DNS End Tagging from Client ***************"
 
-# # Insert client module in DB for deployment to host_id = 1
-# echo
-# echo "*************** Deploy Client DNS End Module  ***************"
-# python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_end_tag" --host 1 --activate
+# Insert client module in DB for deployment to host_id = 1
+echo
+echo "*************** Deploy Client DNS End Module  ***************"
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_end_tag" --host 1 --activate
 
-# sleep 5
+sleep 5
 
-# user_wait
+user_wait
 
-# echo
-# echo "*************** starting DNS traffic ***************"
+echo
+echo "*************** starting DNS traffic ***************"
 
-# conduct_dns "client_end"
+conduct_dns "client_end"
 
-# echo "*************** finished DNS traffic ***************"
+echo "*************** finished DNS traffic ***************"
 
-# user_wait
+user_wait
 
 echo
 echo "cleaning up and saving logs"
@@ -206,7 +206,7 @@ echo "cleaning up and saving logs"
 # save tracelog files from each host
 sudo cp /sys/kernel/tracing/trace $EXP_SCRIPT_DIR/demo/demo_client.txt
 
-# rmmod demo_dns_client_app_end_tag
+rmmod demo_dns_client_app_end_tag
 rmmod layer4_5
 
 sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill python3; pkill dnsmasq; pkill tcpdump; systemctl start systemd-resolved.service; sudo cp /sys/kernel/tracing/trace $EXP_SCRIPT_DIR/demo/demo_server.txt; rmmod layer4_5"
