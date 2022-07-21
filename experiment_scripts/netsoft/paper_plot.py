@@ -3,6 +3,7 @@
 # Import libraries
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
 
 
 tcp_data_base = [25.300, 24.651, 25.091, 25.675, 25.106, 24.588, 24.788,
@@ -48,6 +49,12 @@ plt.xticks(fontsize=14)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
 plt.ylabel('Seconds')
 plt.title("Bulk File Transfer Time")
+
+custom_lines = [Line2D([0], [0], color="green", lw=4),
+                Line2D([0], [0], color="red", lw=4)]
+
+
+ax.legend(custom_lines, ['Mean', 'Overhead'], loc="upper left")
 
 # plt.show()
 plt.savefig('tcp_overhead.png')
@@ -97,6 +104,14 @@ plt.ylabel('Seconds')
 plt.xticks(fontsize=14)
 plt.title("DNS Batch Query/Response Time")
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
+
+custom_lines = [Line2D([0], [0], color="green", lw=4),
+                Line2D([0], [0], color="red", lw=4)]
+
+
+ax.legend(custom_lines, ['Mean', 'Overhead'], loc="upper left")
+
+
 # plt.show()
 plt.savefig('udp_overhead_sec.png')
 
@@ -146,5 +161,12 @@ plt.xlabel('Devices')
 plt.title("NCO Module Deployment Time")
 plt.xticks([1, 2, 3, 4, 5, 6], ["10", "50",
            "100", "175", "250", ""], rotation=0)
+
+
+custom_lines = [Line2D([0], [0], color="green", lw=4)]
+
+
+ax.legend(custom_lines, ['Mean'], loc="upper left")
+
 # plt.show()
 plt.savefig('nco_deploy.png')

@@ -100,12 +100,14 @@ user_wait
 
 # start client DCA process, which will have host_id = 1
 echo
-echo "*************** Starting DCA on Client/Server  ***************"
+echo "*************** Starting DCA on Client  ***************"
 gnome-terminal --window-with-profile=demo -- bash -c "echo '*************** Client DCA  ***************'; python3 $DCA_USER_DIR/DCA.py --print --logfile $DCA_USER_DIR/client_demo_messages.log --ip $CLIENT_IP"
 
 sleep 2
 
 user_wait
+
+echo "*************** Starting DCA on Server  ***************"
 
 # start DCA process on server, which will have host_id = 2
 # echo "*************** Starting DCA on Server  ***************"

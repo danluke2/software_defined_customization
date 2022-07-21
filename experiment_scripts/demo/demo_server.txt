@@ -1,0 +1,523 @@
+# tracer: nop
+#
+# entries-in-buffer/entries-written: 512/512   #P:2
+#
+#                                _-----=> irqs-off
+#                               / _----=> need-resched
+#                              | / _---=> hardirq/softirq
+#                              || / _--=> preempt-depth
+#                              ||| /     delay
+#           TASK-PID     CPU#  ||||   TIMESTAMP  FUNCTION
+#              | |         |   ||||      |         |
+ systemd-modules-239     [001] ....     4.211588: sys_imageblit: L4.5: TCP/UDP taps registered
+            sshd-708     [000] ....   420.636084: 0xffffffffc04ae8e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43234, source_ip:port=10.0.0.20:22, cust=0
+           rmmod-2121    [001] ....   420.976220: bpf_prog_6deef7357e7b4530: L4.5: TCP/UDP taps unregistered
+           rmmod-2121    [001] ....   420.976222: 0xffffffffc04ac78d: L4.5 Normal Socket: Deleting things in bucket [414] with pid value 583 and socket value 18446612734799924608
+           rmmod-2121    [001] ....   420.976224: 0xffffffffc04ac78d: L4.5 Normal Socket: Deleting things in bucket [486] with pid value 2027 and socket value 18446612734784362368
+           rmmod-2121    [001] ....   420.976225: 0xffffffffc04ac78d: L4.5 Normal Socket: Deleting things in bucket [506] with pid value 708 and socket value 18446612734784362368
+           rmmod-2121    [001] ....   420.976226: 0xffffffffc04ac78d: L4.5 Normal Socket: Deleting things in bucket [877] with pid value 2028 and socket value 18446612734784362368
+           rmmod-2121    [001] ....   420.976227: 0xffffffffc04ac78d: L4.5 Normal Socket: Deleting things in bucket [1011] with pid value 551 and socket value 18446612734832017408
+           rmmod-2121    [001] ....   420.976227: 0xffffffffc04ac78d: L4.5 Normal Socket: Deleting things in bucket [1022] with pid value 550 and socket value 18446612734799933824
+           rmmod-2121    [001] ....   420.976230: 0xffffffffc04ac8e2: Socket kallocs minus kfrees: 0
+          insmod-3170    [000] ....   429.629582: 0xffffffffc04ab05b: L4.5: TCP/UDP taps registered
+            sshd-708     [000] ....   472.122625: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43238, source_ip:port=10.0.0.20:22, cust=0
+         python3-3280    [001] ....   472.509162: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   479.558807: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   486.575046: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   493.618052: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   500.673415: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   507.747387: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   513.778041: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   520.791290: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   527.806452: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   534.824264: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   541.842770: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   548.994920: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   556.057748: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   563.074876: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   570.121749: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   577.143932: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   584.159787: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   591.184525: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   598.206057: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....   598.832846: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43240, source_ip:port=10.0.0.20:22, cust=0
+         python3-3280    [001] ....   605.237284: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   612.249272: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   619.267358: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   625.365233: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+          insmod-3343    [000] ....   625.389440: 0xffffffffc0797a50: L4.5: Registering module
+          insmod-3343    [000] ....   625.389441: 0xffffffffc0799a45: Node protocol = 17
+          insmod-3343    [000] ....   625.389442: 0xffffffffc0799a45: Node pid task = dnsmasq
+          insmod-3343    [000] ....   625.389442: 0xffffffffc0799a45: Node tgid task = dnsmasq
+          insmod-3343    [000] ....   625.389442: 0xffffffffc0799a45: Node id = 1
+          insmod-3343    [000] ....   625.389442: 0xffffffffc0799a45: Node dest port = 0
+          insmod-3343    [000] ....   625.389442: 0xffffffffc0799a45: Node source port = 53
+          insmod-3343    [000] ....   625.389443: 0xffffffffc0799a45: Node dest_ip = 10.0.0.40
+          insmod-3343    [000] ....   625.389443: 0xffffffffc0799a45: Node src_ip = 10.0.0.20
+          insmod-3343    [000] ....   625.389443: 0xffffffffc07a714a: L4.5: server dns module loaded, id=1
+         python3-3280    [001] ....   625.432187: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   625.441190: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 f7b715d285f979e237ec9601fe6bb272 d9bb22425e5517f70b42d46b4ad3a084 END
+         python3-3280    [001] ....   625.443795: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   625.443796: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   632.455309: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   639.464740: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   646.516045: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   646.518848: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 608e68280341d14057316f34c32388da c5de3dde9e795e0824095b3297cac171 END
+         python3-3280    [001] ....   646.518860: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   646.518861: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   653.551500: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   660.581765: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   667.617800: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   667.621295: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 6f013ffe2a9af52da9c9d4284487e211 967865c5222459d244099dde95161eec END
+         python3-3280    [001] ....   667.621306: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   667.621307: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   674.655965: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   681.687547: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   688.712326: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   688.715551: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 0687e459f80e499ea463bc9fc535d2b1 f76978f8fe54043cc82be72c57f70201 END
+         python3-3280    [001] ....   688.715562: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   688.715563: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   695.730979: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   702.880578: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   709.924253: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   709.927182: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 cfe5ecd47899988ec42bfe924d9f691e b1f6bf8f67c837aa4fccb02d355ca9c9 END
+         python3-3280    [001] ....   709.927193: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   709.927193: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   716.979044: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   724.020831: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   731.063554: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   731.067014: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 4a0c9fb29fe47c180a407bddce95e8d6 b36abe3388493a741036c0a354f09923 END
+         python3-3280    [001] ....   731.067026: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   731.067026: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   738.162626: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   745.208846: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   752.253332: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   752.256519: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 d62543ef3e8442bc491f4e88c6313b92 8640828b24ce19bab9f6c0624bb786f8 END
+         python3-3280    [001] ....   752.256531: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   752.256532: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   759.270636: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   766.377448: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   773.415932: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   773.418206: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 e7966ad96ec1d630ed3e07eafbc8915d 681b0d37ac5060409c081ff6dcb3ab51 END
+         python3-3280    [001] ....   773.418218: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   773.418218: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   780.453457: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   787.461768: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   794.486197: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   794.488305: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 18eab20ebc9615da28f0d3fd614bced9 d1fbf6ddf2d3b8a02a9d411eaa0e8b33 END
+         python3-3280    [001] ....   794.488316: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   794.488316: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   801.503717: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   808.518888: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   815.535658: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   815.537169: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 1a0a485af624f609e88115bdf767de6a 6c6e0b1d0df7233807f4b62661f6c035 END
+         python3-3280    [001] ....   815.537178: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   815.537179: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-3280    [001] ....   822.572044: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....   825.028547: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43244, source_ip:port=10.0.0.20:22, cust=0
+            sshd-708     [000] ....   826.242730: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43246, source_ip:port=10.0.0.20:22, cust=0
+         python3-3280    [001] ....   829.591014: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   836.605634: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   836.608249: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 f9303f4ea5041e2ad648cf54f12c3274 899ebe0c669084301ff7b040a1b906e3 END
+         python3-3280    [001] ....   836.608260: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   836.608260: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         dnsmasq-3406    [000] ....   843.179498: 0xffffffffc0797006: L4.5: Assigning cust to socket, pid 3406
+         dnsmasq-3406    [000] ....   843.179500: 0xffffffffc0796b45: L4.5: Send buffer size = 4096
+         dnsmasq-3406    [000] ....   843.179500: 0xffffffffc0796b45: L4.5: Recv buffer size = 4096
+         dnsmasq-3406    [000] ....   843.179503: 0xffffffffc0796bff: L4.5 Assigned buffers, pid=3406, name=dnsmasq
+         dnsmasq-3406    [000] ....   843.179504: 0xffffffffc0796bff: L4.5: Socket count = 1
+         dnsmasq-3406    [000] ....   843.179507: 0xffffffffc07998e5: L4.5 recvmsg: dest_ip:port=10.0.0.40:37954, source_ip:port=10.0.0.20:53, cust=1
+         dnsmasq-3406    [000] ....   843.179775: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 3406
+         python3-3280    [001] ....   843.628682: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         dnsmasq-3406    [000] ....   845.189578: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 3406
+         dnsmasq-3406    [000] ....   847.204695: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 3406
+         dnsmasq-3406    [000] ....   849.214693: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 3406
+         python3-3280    [001] ....   850.652572: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         dnsmasq-3406    [000] ....   851.223945: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 3406
+         python3-3280    [001] ....   857.690055: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-3280    [001] ....   857.691835: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 804302018c3d28c851c2e60ebb34aa00 d27aaf6c4f0fce5b3566e9c0e7eb6c51 END
+         python3-3280    [001] ....   857.691845: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-3280    [001] ....   857.691845: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+           rmmod-3464    [000] ....   864.862470: 0xffffffffc0797c55: L4.5: Unregistering module
+           rmmod-3464    [000] ....   864.862471: 0xffffffffc0796d4c: L4.5: Freed send buff, pid=3406, name=dnsmasq
+           rmmod-3464    [000] ....   864.862472: 0xffffffffc0796d84: L4.5: Freed recv buff, pid=3406, name=dnsmasq
+           rmmod-3464    [000] ....   864.862472: 0xffffffffc0796dc1: L4.5: Cust removed, pid=3406, name=dnsmasq
+           rmmod-3464    [000] ....   864.862474: 0xffffffffc0786652: L4.5: server module unloaded
+         python3-3280    [000] ....   864.887604: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....   870.613587: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43248, source_ip:port=10.0.0.20:22, cust=0
+           rmmod-3531    [001] ....   871.062752: 0xffffffffc079aa21: L4.5: TCP/UDP taps unregistered
+           rmmod-3531    [001] ....   871.062754: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [372] with pid value 3467 and socket value 18446612734784366848
+           rmmod-3531    [001] ....   871.062755: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [414] with pid value 583 and socket value 18446612734799924608
+           rmmod-3531    [001] ....   871.062756: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [634] with pid value 708 and socket value 18446612734784366848
+           rmmod-3531    [001] ....   871.062757: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [763] with pid value 3468 and socket value 18446612734784366848
+           rmmod-3531    [001] ....   871.062759: 0xffffffffc07978e2: Socket kallocs minus kfrees: 0
+          insmod-4729    [000] ....  1083.895153: 0xffffffffc04b505b: L4.5: TCP/UDP taps registered
+            sshd-708     [000] ....  1125.352472: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43254, source_ip:port=10.0.0.20:22, cust=0
+         python3-4830    [001] ....  1125.727987: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1132.742804: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1139.860849: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1146.896591: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1153.916676: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1160.927873: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1167.944777: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1174.954299: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1181.965935: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1188.977039: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1196.010927: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  1196.214328: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43256, source_ip:port=10.0.0.20:22, cust=0
+         python3-4830    [001] ....  1203.058440: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1210.134626: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1210.135691: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-4830    [001] ....  1210.137198: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  1241.797942: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43258, source_ip:port=10.0.0.20:22, cust=0
+           rmmod-4959    [001] ....  1242.096634: 0xffffffffc079aa21: L4.5: TCP/UDP taps unregistered
+           rmmod-4959    [001] ....  1242.096636: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [110] with pid value 4897 and socket value 18446612734784366848
+           rmmod-4959    [001] ....  1242.096637: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [634] with pid value 708 and socket value 18446612734784366848
+           rmmod-4959    [001] ....  1242.096638: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [743] with pid value 4896 and socket value 18446612734784366848
+           rmmod-4959    [001] ....  1242.096640: 0xffffffffc07978e2: Socket kallocs minus kfrees: 0
+          insmod-5994    [000] ....  1253.034154: 0xffffffffc07a705b: L4.5: TCP/UDP taps registered
+            sshd-708     [000] ....  1316.126892: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43262, source_ip:port=10.0.0.20:22, cust=0
+         python3-6154    [001] ....  1316.499245: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1323.514550: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  1325.556359: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43264, source_ip:port=10.0.0.20:22, cust=0
+         python3-6154    [001] ....  1330.537140: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1337.786200: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1343.803078: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+          insmod-6212    [000] ....  1343.842604: 0xffffffffc0797a50: L4.5: Registering module
+          insmod-6212    [000] ....  1343.842605: 0xffffffffc0799a45: Node protocol = 17
+          insmod-6212    [000] ....  1343.842605: 0xffffffffc0799a45: Node pid task = dnsmasq
+          insmod-6212    [000] ....  1343.842606: 0xffffffffc0799a45: Node tgid task = dnsmasq
+          insmod-6212    [000] ....  1343.842606: 0xffffffffc0799a45: Node id = 1
+          insmod-6212    [000] ....  1343.842606: 0xffffffffc0799a45: Node dest port = 0
+          insmod-6212    [000] ....  1343.842606: 0xffffffffc0799a45: Node source port = 53
+          insmod-6212    [000] ....  1343.842607: 0xffffffffc0799a45: Node dest_ip = 10.0.0.40
+          insmod-6212    [000] ....  1343.842607: 0xffffffffc0799a45: Node src_ip = 10.0.0.20
+          insmod-6212    [000] ....  1343.842607: 0xffffffffc079014a: L4.5: server dns module loaded, id=1
+         python3-6154    [001] ....  1343.883172: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1343.892824: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 9c0230daf1d62b1510a785a98a553f6c aabac191622a524836ddf75184e9ea2f END
+         python3-6154    [001] ....  1343.892836: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-6154    [001] ....  1343.892837: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-6154    [001] ....  1350.908199: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1357.924445: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  1364.532034: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43266, source_ip:port=10.0.0.20:22, cust=0
+         python3-6154    [001] ....  1364.939918: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1364.941827: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 2353211d5d4bbc9212cd55d75b81aab9 866de816bb17530bc48ec147b34f12eb END
+         python3-6154    [001] ....  1364.941838: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-6154    [001] ....  1364.941839: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+            sshd-708     [001] ....  1365.753911: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43268, source_ip:port=10.0.0.20:22, cust=0
+         python3-6154    [001] ....  1371.957145: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         dnsmasq-6272    [000] ....  1372.895943: 0xffffffffc0797006: L4.5: Assigning cust to socket, pid 6272
+         dnsmasq-6272    [000] ....  1372.895944: 0xffffffffc0796b45: L4.5: Send buffer size = 4096
+         dnsmasq-6272    [000] ....  1372.895944: 0xffffffffc0796b45: L4.5: Recv buffer size = 4096
+         dnsmasq-6272    [000] ....  1372.895946: 0xffffffffc0796bff: L4.5 Assigned buffers, pid=6272, name=dnsmasq
+         dnsmasq-6272    [000] ....  1372.895946: 0xffffffffc0796bff: L4.5: Socket count = 1
+         dnsmasq-6272    [000] ....  1372.895948: 0xffffffffc07998e5: L4.5 recvmsg: dest_ip:port=10.0.0.40:50696, source_ip:port=10.0.0.20:53, cust=1
+         dnsmasq-6272    [000] ....  1372.896045: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 6272
+         dnsmasq-6272    [000] ....  1374.903999: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 6272
+         dnsmasq-6272    [000] ....  1376.922604: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 6272
+         python3-6154    [001] ....  1378.996731: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+           rmmod-6331    [000] ....  1386.150807: 0xffffffffc0797c55: L4.5: Unregistering module
+           rmmod-6331    [000] ....  1386.150833: 0xffffffffc0796d4c: L4.5: Freed send buff, pid=6272, name=dnsmasq
+           rmmod-6331    [000] ....  1386.150834: 0xffffffffc0796d84: L4.5: Freed recv buff, pid=6272, name=dnsmasq
+           rmmod-6331    [000] ....  1386.150834: 0xffffffffc0796dc1: L4.5: Cust removed, pid=6272, name=dnsmasq
+           rmmod-6331    [000] ....  1386.150836: 0xffffffffc0786652: L4.5: server module unloaded
+         python3-6154    [001] ....  1386.175809: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1393.202623: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1400.212171: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1407.220936: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1414.246704: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-6154    [001] ....  1421.262501: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [001] ....  1421.445633: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43270, source_ip:port=10.0.0.20:22, cust=0
+           rmmod-6399    [000] ....  1421.807715: 0xffffffffc079aa21: L4.5: TCP/UDP taps unregistered
+           rmmod-6399    [000] ....  1421.807716: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [240] with pid value 6335 and socket value 18446612734902313728
+           rmmod-6399    [000] ....  1421.807717: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [414] with pid value 583 and socket value 18446612734799924608
+           rmmod-6399    [000] ....  1421.807718: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [797] with pid value 708 and socket value 18446612734902313728
+           rmmod-6399    [000] ....  1421.807719: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [873] with pid value 6334 and socket value 18446612734902313728
+           rmmod-6399    [000] ....  1421.807720: 0xffffffffc07978e2: Socket kallocs minus kfrees: 0
+          insmod-7537    [000] ....  1710.117450: create_cust_socket: L4.5: TCP/UDP taps registered
+            sshd-708     [000] ....  1802.458941: 0xffffffffc079f8e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43276, source_ip:port=10.0.0.20:22, cust=0
+           rmmod-7645    [001] ....  1802.817657: 0xffffffffc07a0a21: L4.5: TCP/UDP taps unregistered
+           rmmod-7645    [001] ....  1802.817658: 0xffffffffc079d78d: L4.5 Normal Socket: Deleting things in bucket [71] with pid value 7577 and socket value 18446612734902313728
+           rmmod-7645    [001] ....  1802.817659: 0xffffffffc079d78d: L4.5 Normal Socket: Deleting things in bucket [704] with pid value 7576 and socket value 18446612734902313728
+           rmmod-7645    [001] ....  1802.817660: 0xffffffffc079d78d: L4.5 Normal Socket: Deleting things in bucket [797] with pid value 708 and socket value 18446612734902313728
+           rmmod-7645    [001] ....  1802.817662: 0xffffffffc079d8e2: Socket kallocs minus kfrees: 0
+          insmod-8686    [001] ....  1810.820039: 0xffffffffc078605b: L4.5: TCP/UDP taps registered
+            sshd-708     [000] ....  1883.183620: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43280, source_ip:port=10.0.0.20:22, cust=0
+         python3-8787    [000] ....  1883.545460: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  1890.555713: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  1893.117435: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43282, source_ip:port=10.0.0.20:22, cust=0
+         python3-8787    [000] ....  1897.581944: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  1904.591759: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  1906.598045: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+          insmod-8845    [001] ....  1906.632981: 0xffffffffc0797a50: L4.5: Registering module
+          insmod-8845    [001] ....  1906.632982: 0xffffffffc0799a45: Node protocol = 17
+          insmod-8845    [001] ....  1906.632983: 0xffffffffc0799a45: Node pid task = dnsmasq
+          insmod-8845    [001] ....  1906.632983: 0xffffffffc0799a45: Node tgid task = dnsmasq
+          insmod-8845    [001] ....  1906.632983: 0xffffffffc0799a45: Node id = 1
+          insmod-8845    [001] ....  1906.632983: 0xffffffffc0799a45: Node dest port = 0
+          insmod-8845    [001] ....  1906.632983: 0xffffffffc0799a45: Node source port = 53
+          insmod-8845    [001] ....  1906.632984: 0xffffffffc0799a45: Node dest_ip = 10.0.0.40
+          insmod-8845    [001] ....  1906.632985: 0xffffffffc0799a45: Node src_ip = 10.0.0.20
+          insmod-8845    [001] ....  1906.632985: 0xffffffffc079014a: L4.5: server dns module loaded, id=1
+         python3-8787    [001] ....  1906.677632: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1906.687922: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 274eaa39df18d6c4b3e6bd122c2e1d22 2c551630e5172500105e666dcec0b122 END
+         python3-8787    [001] ....  1906.687933: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  1906.687934: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  1913.700617: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1920.712735: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1927.777272: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1927.779200: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 9f36c82cddb6cfcb4bf482eff528a9e9 566d444cf3571cecfe6f2158625a7174 END
+         python3-8787    [001] ....  1927.779211: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  1927.779212: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  1934.788407: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1941.799773: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1948.815919: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1948.817992: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 9040f6b146be95f5ebbb05d7479e357a 1889370d73692350a9f51f85a9bd91df END
+         python3-8787    [001] ....  1948.818001: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  1948.818002: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  1955.845233: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1962.857470: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1969.897498: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1969.899539: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 27714c9cf54e0cc8ee6d9710932ec158 0adae239d7cf089df766f3bd242e2775 END
+         python3-8787    [001] ....  1969.899550: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  1969.899551: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  1976.912849: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1983.938748: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1990.948234: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  1990.951040: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 c037cddc1ab8b3b00cfd5712f24b0d71 a31cd90eac2d2d5447dbcf2490e91fa2 END
+         python3-8787    [001] ....  1990.951058: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  1990.951058: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  1997.976994: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2004.995452: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2012.017903: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2012.019678: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 dc436dd1d0b4bde91ee90683fc7d6908 08c0873393cc442cfb03040b550ee4e8 END
+         python3-8787    [001] ....  2012.019689: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  2012.019689: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  2018.031340: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2025.152809: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2032.177101: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2032.178993: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 062135752fb492369912dcc046bba7b5 639f63a30668820fd75782919e26a406 END
+         python3-8787    [001] ....  2032.179004: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  2032.179005: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  2039.190519: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2046.198158: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2053.209470: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2053.210940: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 7dff608e38ed8ae066e07894137dfb17 764b5dd6279d90c88a60d7896e1b6f9b END
+         python3-8787    [001] ....  2053.210950: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  2053.210950: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  2060.251225: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2067.480658: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2074.491809: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2074.494053: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 7376efba8fde7f93f894d9a9af479a4c 2b0eec040bcedc351d61f65f5cc02e9a END
+         python3-8787    [001] ....  2074.494062: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  2074.494063: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  2081.506906: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2088.520187: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2095.531337: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2095.533219: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 750ce6efae553e4391b4e85a286d0ed4 5105a599e7470cf31e73f783166d185d END
+         python3-8787    [001] ....  2095.533229: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  2095.533230: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  2102.558066: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2109.628784: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2116.708287: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2116.710210: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 839c21e904cdec5b447ee1582d7329b5 07864bc21fad03b3b2dcccec7bc35c6b END
+         python3-8787    [001] ....  2116.710221: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [001] ....  2116.710221: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [001] ....  2123.795827: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2130.882276: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  2134.965842: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43284, source_ip:port=10.0.0.20:22, cust=0
+            sshd-708     [000] ....  2136.174791: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43286, source_ip:port=10.0.0.20:22, cust=0
+         python3-8787    [000] ....  2137.916941: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2137.919327: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 08c07bcc8f23f98cec874057ab6b034f 271f8cf5560c99d81d0892b969d7646e END
+         python3-8787    [000] ....  2137.919337: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [000] ....  2137.919338: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [000] ....  2144.954436: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2150.977626: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2158.042531: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2158.045290: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 ed1b9a5233f6a4eedfc03bcfb0540c4d 5bbdb3842aa70b633ac5c1cf5d77fefa END
+         python3-8787    [000] ....  2158.045304: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [000] ....  2158.045305: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [000] ....  2165.079023: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2172.101435: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         dnsmasq-9035    [001] ....  2174.793693: 0xffffffffc0797006: L4.5: Assigning cust to socket, pid 9035
+         dnsmasq-9035    [001] ....  2174.793694: 0xffffffffc0796b45: L4.5: Send buffer size = 4096
+         dnsmasq-9035    [001] ....  2174.793694: 0xffffffffc0796b45: L4.5: Recv buffer size = 4096
+         dnsmasq-9035    [001] ....  2174.793696: 0xffffffffc0796bff: L4.5 Assigned buffers, pid=9035, name=dnsmasq
+         dnsmasq-9035    [001] ....  2174.793696: 0xffffffffc0796bff: L4.5: Socket count = 1
+         dnsmasq-9035    [001] ....  2174.793697: 0xffffffffc07998e5: L4.5 recvmsg: dest_ip:port=10.0.0.40:49185, source_ip:port=10.0.0.20:53, cust=1
+         dnsmasq-9035    [001] ....  2174.793776: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 9035
+         dnsmasq-9035    [001] ....  2176.801159: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 9035
+         dnsmasq-9035    [001] ....  2178.808463: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 9035
+         python3-8787    [000] ....  2179.160318: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2179.164007: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 065effc9d5b3cdef57f02176672c3b9e 19b865177053f3ebee5fd74bcb33bfe1 END
+         python3-8787    [000] ....  2179.164018: 0xffffffffc078649a: L4.5: Decryption triggered successfully
+         python3-8787    [000] ....  2179.164018: 0xffffffffc07865a4: L4.5: Encryption triggered successfully
+         python3-8787    [000] ....  2186.216091: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+           rmmod-9109    [001] ....  2193.240382: 0xffffffffc0797c55: L4.5: Unregistering module
+           rmmod-9109    [001] ....  2193.240386: 0xffffffffc0796d4c: L4.5: Freed send buff, pid=9035, name=dnsmasq
+           rmmod-9109    [001] ....  2193.240386: 0xffffffffc0796d84: L4.5: Freed recv buff, pid=9035, name=dnsmasq
+           rmmod-9109    [001] ....  2193.240387: 0xffffffffc0796dc1: L4.5: Cust removed, pid=9035, name=dnsmasq
+           rmmod-9109    [001] ....  2193.240387: 0xffffffffc0786652: L4.5: server module unloaded
+         python3-8787    [000] ....  2193.258831: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2200.276267: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2207.329428: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2214.342768: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2221.383791: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2228.396549: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2235.421763: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2242.459572: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2249.510699: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [001] ....  2256.642550: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2263.652665: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2270.664632: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2277.678233: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2284.688655: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-8787    [000] ....  2291.694806: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  2291.745287: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43288, source_ip:port=10.0.0.20:22, cust=0
+           rmmod-9204    [001] ....  2292.123970: 0xffffffffc079aa21: L4.5: TCP/UDP taps unregistered
+           rmmod-9204    [001] ....  2292.123971: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [205] with pid value 9141 and socket value 18446612734784353408
+           rmmod-9204    [001] ....  2292.123972: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [217] with pid value 708 and socket value 18446612734784353408
+           rmmod-9204    [001] ....  2292.123972: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [414] with pid value 583 and socket value 18446612734799924608
+           rmmod-9204    [001] ....  2292.123973: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [838] with pid value 9140 and socket value 18446612734784353408
+           rmmod-9204    [001] ....  2292.123975: 0xffffffffc07978e2: Socket kallocs minus kfrees: 0
+          insmod-10698   [000] ....  6279.487698: nl_receive_request: L4.5: TCP/UDP taps registered
+            sshd-708     [000] ....  6331.890768: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43294, source_ip:port=10.0.0.20:22, cust=0
+         python3-10800   [001] ....  6332.220881: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [001] ....  6339.261775: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  6342.301353: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43296, source_ip:port=10.0.0.20:22, cust=0
+         python3-10800   [001] ....  6346.358872: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [001] ....  6353.504723: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [001] ....  6359.759351: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [001] ....  6364.791308: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+          insmod-10858   [000] ....  6364.814995: 0xffffffffc0797a50: L4.5: Registering module
+          insmod-10858   [000] ....  6364.814996: 0xffffffffc0799a45: Node protocol = 17
+          insmod-10858   [000] ....  6364.814996: 0xffffffffc0799a45: Node pid task = dnsmasq
+          insmod-10858   [000] ....  6364.814997: 0xffffffffc0799a45: Node tgid task = dnsmasq
+          insmod-10858   [000] ....  6364.814997: 0xffffffffc0799a45: Node id = 1
+          insmod-10858   [000] ....  6364.814997: 0xffffffffc0799a45: Node dest port = 0
+          insmod-10858   [000] ....  6364.814997: 0xffffffffc0799a45: Node source port = 53
+          insmod-10858   [000] ....  6364.814998: 0xffffffffc0799a45: Node dest_ip = 10.0.0.40
+          insmod-10858   [000] ....  6364.814998: 0xffffffffc0799a45: Node src_ip = 10.0.0.20
+          insmod-10858   [000] ....  6364.814998: nl_receive_request: L4.5: server dns module loaded, id=1
+         python3-10800   [000] ....  6364.855238: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6364.863885: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 a0d7d36459d84efc422b9ffbc3ea7312 742a35f4c6f9de2f9cfbd0bc07d23bf9 END
+         python3-10800   [000] ....  6364.863896: 0xffffffffc078449a: L4.5: Decryption triggered successfully
+         python3-10800   [000] ....  6364.863896: 0xffffffffc07845a4: L4.5: Encryption triggered successfully
+         python3-10800   [000] ....  6371.907598: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6378.966086: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6385.986226: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6385.988148: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 0971364cc5552095476abd58c5c065b5 87578e4c5f3a63df60f0490571b2c657 END
+         python3-10800   [000] ....  6385.988161: 0xffffffffc078449a: L4.5: Decryption triggered successfully
+         python3-10800   [000] ....  6385.988161: 0xffffffffc07845a4: L4.5: Encryption triggered successfully
+         python3-10800   [000] ....  6393.018532: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6400.042428: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6407.127828: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6407.130283: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 10a6992838d216ae9aa054d7746bc998 20fcad9dc6bda5b492610a14f1f2122f END
+         python3-10800   [000] ....  6407.130294: 0xffffffffc078449a: L4.5: Decryption triggered successfully
+         python3-10800   [000] ....  6407.130295: 0xffffffffc07845a4: L4.5: Encryption triggered successfully
+         python3-10800   [000] ....  6414.152086: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6421.180057: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  6426.815510: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43298, source_ip:port=10.0.0.20:22, cust=0
+            sshd-708     [000] ....  6428.107449: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43300, source_ip:port=10.0.0.20:22, cust=0
+         python3-10800   [000] ....  6428.195627: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6428.198714: 0xffffffffc0796059: L4.5: NLMSG_DATA = CHALLENGE 1 236d9ee878dd7ab78a9765987cce9202 c49294fc7c382d2a064bc2740e04084f END
+         python3-10800   [000] ....  6428.198724: 0xffffffffc078449a: L4.5: Decryption triggered successfully
+         python3-10800   [000] ....  6428.198724: 0xffffffffc07845a4: L4.5: Encryption triggered successfully
+         dnsmasq-10916   [000] ....  6434.760347: 0xffffffffc0797006: L4.5: Assigning cust to socket, pid 10916
+         dnsmasq-10916   [000] ....  6434.760347: 0xffffffffc0796b45: L4.5: Send buffer size = 4096
+         dnsmasq-10916   [000] ....  6434.760348: 0xffffffffc0796b45: L4.5: Recv buffer size = 4096
+         dnsmasq-10916   [000] ....  6434.760349: 0xffffffffc0796bff: L4.5 Assigned buffers, pid=10916, name=dnsmasq
+         dnsmasq-10916   [000] ....  6434.760349: 0xffffffffc0796bff: L4.5: Socket count = 1
+         dnsmasq-10916   [000] ....  6434.760351: 0xffffffffc07998e5: L4.5 recvmsg: dest_ip:port=10.0.0.40:38714, source_ip:port=10.0.0.20:53, cust=1
+         dnsmasq-10916   [000] ....  6434.760442: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 10916
+         python3-10800   [000] ....  6435.220181: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         dnsmasq-10916   [000] ....  6436.772355: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 10916
+         dnsmasq-10916   [000] ....  6438.783719: 0xffffffffc07991f7: L4.5: cust module no cust set for send, pid 10916
+         python3-10800   [000] ....  6442.252546: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+           rmmod-10975   [001] ....  6449.271838: 0xffffffffc0797c55: L4.5: Unregistering module
+           rmmod-10975   [001] ....  6449.271840: 0xffffffffc0796d4c: L4.5: Freed send buff, pid=10916, name=dnsmasq
+           rmmod-10975   [001] ....  6449.271841: 0xffffffffc0796d84: L4.5: Freed recv buff, pid=10916, name=dnsmasq
+           rmmod-10975   [001] ....  6449.271841: 0xffffffffc0796dc1: L4.5: Cust removed, pid=10916, name=dnsmasq
+           rmmod-10975   [001] ....  6449.271844: 0xffffffffc0784652: L4.5: server module unloaded
+         python3-10800   [000] ....  6449.293636: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6456.315686: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6463.337050: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6470.385930: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6477.416004: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6484.435575: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6491.605955: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-10800   [000] ....  6497.780162: 0xffffffffc0796059: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  6501.597637: 0xffffffffc07998e5: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43302, source_ip:port=10.0.0.20:22, cust=0
+           rmmod-11042   [001] ....  6501.943005: 0xffffffffc079aa21: L4.5: TCP/UDP taps unregistered
+           rmmod-11042   [001] ....  6501.943007: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [602] with pid value 10978 and socket value 18446612734784344448
+           rmmod-11042   [001] ....  6501.943008: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [816] with pid value 708 and socket value 18446612734784344448
+           rmmod-11042   [001] ....  6501.943009: 0xffffffffc079778d: L4.5 Normal Socket: Deleting things in bucket [993] with pid value 10979 and socket value 18446612734784344448
+           rmmod-11042   [001] ....  6501.943011: 0xffffffffc07978e2: Socket kallocs minus kfrees: 0
+          insmod-12268   [000] ....  8018.992839: 0xffffffffc079c05b: L4.5: TCP/UDP taps registered
+            sshd-708     [000] ....  8056.894374: trace_print_cust_socket: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43308, source_ip:port=10.0.0.20:22, cust=0
+         python3-12387   [000] ....  8057.246928: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8064.304383: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8071.321494: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  8076.608783: trace_print_cust_socket: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43310, source_ip:port=10.0.0.20:22, cust=0
+         python3-12387   [000] ....  8078.337217: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8085.354697: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8092.390320: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8099.433213: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8104.446550: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+          insmod-12446   [001] ....  8104.481494: register_customization: L4.5: Registering module
+          insmod-12446   [001] ....  8104.481495: trace_print_module_params: Node protocol = 17
+          insmod-12446   [001] ....  8104.481496: trace_print_module_params: Node pid task = dnsmasq
+          insmod-12446   [001] ....  8104.481496: trace_print_module_params: Node tgid task = dnsmasq
+          insmod-12446   [001] ....  8104.481496: trace_print_module_params: Node id = 1
+          insmod-12446   [001] ....  8104.481496: trace_print_module_params: Node dest port = 0
+          insmod-12446   [001] ....  8104.481496: trace_print_module_params: Node source port = 53
+          insmod-12446   [001] ....  8104.481497: trace_print_module_params: Node dest_ip = 10.0.0.40
+          insmod-12446   [001] ....  8104.481497: trace_print_module_params: Node src_ip = 10.0.0.20
+          insmod-12446   [001] ....  8104.481497: 0xffffffffc04b714a: L4.5: server dns module loaded, id=1
+         python3-12387   [000] ....  8104.521519: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8104.532309: nl_receive_request: L4.5: NLMSG_DATA = CHALLENGE 1 d098b74e3a06f73be5883dd0c3f5d189 e8260f8ca6096dd04896614b4fd995cd END
+         python3-12387   [000] ....  8104.532319: 0xffffffffc079649a: L4.5: Decryption triggered successfully
+         python3-12387   [000] ....  8104.532319: 0xffffffffc07965a4: L4.5: Encryption triggered successfully
+         python3-12387   [000] ....  8110.547633: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8117.568508: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8124.586547: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [000] ....  8124.590038: nl_receive_request: L4.5: NLMSG_DATA = CHALLENGE 1 d1276c6db60e6b03b73580a8de8c21df f08cbedae63e4d93b7367448d835eb65 END
+         python3-12387   [000] ....  8124.590049: 0xffffffffc079649a: L4.5: Decryption triggered successfully
+         python3-12387   [000] ....  8124.590050: 0xffffffffc07965a4: L4.5: Encryption triggered successfully
+         python3-12387   [001] ....  8131.617432: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8138.631863: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8145.664793: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8145.666701: nl_receive_request: L4.5: NLMSG_DATA = CHALLENGE 1 35329841c3ce4b7d0f61ae8bb1b5e823 8b597c26fbcf327f24415a1c17922e62 END
+         python3-12387   [001] ....  8145.666711: 0xffffffffc079649a: L4.5: Decryption triggered successfully
+         python3-12387   [001] ....  8145.666712: 0xffffffffc07965a4: L4.5: Encryption triggered successfully
+         python3-12387   [001] ....  8152.709965: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  8157.326802: trace_print_cust_socket: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43312, source_ip:port=10.0.0.20:22, cust=0
+            sshd-708     [000] ....  8158.531966: trace_print_cust_socket: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43316, source_ip:port=10.0.0.20:22, cust=0
+         python3-12387   [001] ....  8159.737388: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         dnsmasq-12507   [000] ....  8166.249148: create_cust_socket: L4.5: Assigning cust to socket, pid 12507
+         dnsmasq-12507   [000] ....  8166.249149: assign_customization: L4.5: Send buffer size = 4096
+         dnsmasq-12507   [000] ....  8166.249149: assign_customization: L4.5: Recv buffer size = 4096
+         dnsmasq-12507   [000] ....  8166.249150: assign_customization: L4.5 Assigned buffers, pid=12507, name=dnsmasq
+         dnsmasq-12507   [000] ....  8166.249151: assign_customization: L4.5: Socket count = 1
+         dnsmasq-12507   [000] ....  8166.249152: trace_print_cust_socket: L4.5 recvmsg: dest_ip:port=10.0.0.40:60105, source_ip:port=10.0.0.20:53, cust=1
+         dnsmasq-12507   [000] ....  8166.249237: dca_sendmsg: L4.5: cust module no cust set for send, pid 12507
+         python3-12387   [001] ....  8166.777992: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8166.781863: nl_receive_request: L4.5: NLMSG_DATA = CHALLENGE 1 f80cdd63a34d93c483a26fe5395fa6b5 6eb4d79bc746cbf4d741e50dd61f7d2f END
+         python3-12387   [001] ....  8166.781874: 0xffffffffc079649a: L4.5: Decryption triggered successfully
+         python3-12387   [001] ....  8166.781875: 0xffffffffc07965a4: L4.5: Encryption triggered successfully
+         dnsmasq-12507   [000] ....  8168.259885: dca_sendmsg: L4.5: cust module no cust set for send, pid 12507
+         dnsmasq-12507   [000] ....  8170.270279: dca_sendmsg: L4.5: cust module no cust set for send, pid 12507
+         python3-12387   [001] ....  8173.814419: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+           rmmod-12567   [000] ....  8180.882073: unregister_customization: L4.5: Unregistering module
+           rmmod-12567   [000] ....  8180.882076: unassign_customization: L4.5: Freed send buff, pid=12507, name=dnsmasq
+           rmmod-12567   [000] ....  8180.882076: unassign_customization: L4.5: Freed recv buff, pid=12507, name=dnsmasq
+           rmmod-12567   [000] ....  8180.882077: unassign_customization: L4.5: Cust removed, pid=12507, name=dnsmasq
+           rmmod-12567   [000] ....  8180.882078: 0xffffffffc0796652: L4.5: server module unloaded
+         python3-12387   [001] ....  8180.901200: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8187.928759: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8194.950389: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8201.971719: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8209.009945: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8216.032295: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+         python3-12387   [001] ....  8223.085083: nl_receive_request: L4.5: NLMSG_DATA = CUST_REPORT
+            sshd-708     [000] ....  8224.935017: trace_print_cust_socket: L4.5 tcp_accept: dest_ip:port=10.0.0.40:43320, source_ip:port=10.0.0.20:22, cust=0
