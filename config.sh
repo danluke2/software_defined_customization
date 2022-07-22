@@ -69,6 +69,9 @@ delete_lines() {
   ((END = END - 1))
   if [ $START -lt $END ]; then
     sed -i "${START},${END}d" $1
+
+  elif [ $START -eq $END ]; then
+    sed -i "${START},${END}d" $1
   fi
 }
 

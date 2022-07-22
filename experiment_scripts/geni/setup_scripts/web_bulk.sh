@@ -37,12 +37,10 @@ if [ ! -f "./web_bulk_installed.txt" ]; then
 
     # Install custom software
     cd /users/$GENI_USERNAME
-    sudo git clone https://github.com/danluke2/software_defined_customization.git &
+    sudo git clone -b rotating https://github.com/danluke2/software_defined_customization.git &
     EPID=$!
     wait $EPID
     sudo chown -R $GENI_USERNAME $GIT_DIR
-    cd $GIT_DIR
-    git checkout rotating
 
     # Update the config file
     FILE=$GIT_DIR/config.sh
