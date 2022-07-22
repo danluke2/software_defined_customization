@@ -55,7 +55,7 @@ static bool applyNow = false;
 module_param(applyNow, bool, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
-unsigned short activate = 0;
+unsigned short activate = 1;
 module_param(activate, ushort, 0600);
 MODULE_PARM_DESC(activate, "Place customization in active mode, which enables customization");
 
@@ -88,8 +88,11 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 // Function to customize the msg sent from the application to layer 4
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-    // must pass active_mode check to customize
+    send_buf_st->copy_length = 0;
+    send_buf_st->no_cust = false;
+    send_buf_st->set_cust_to_skip = false;
 
+    // if module hasn't been activated, then don't perform customization
     if (*client_cust->active_mode == 0)
     {
         send_buf_st->try_next = true;
@@ -110,12 +113,22 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
     size_t i = 0;
     size_t remaining_length = recv_buf_st->recv_return;
     size_t loop_length = recv_buf_st->recv_return;
     u32 number_of_tags_removed = 0;
     u32 number_of_partial_tags_removed = 0;
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
+    recv_buf_st->no_cust = false;
+    recv_buf_st->set_cust_to_skip = false;
+
+    // if module hasn't been activated, then don't perform customization
+    if (*client_cust->active_mode == 0)
+    {
+        recv_buf_st->no_cust = true;
+        return;
+    }
+
     recv_buf_st->copy_length = 0;
 
     total_bytes_from_server += recv_buf_st->recv_return;

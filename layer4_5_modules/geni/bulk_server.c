@@ -28,11 +28,11 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
 
 
 // Kernel module parameters with default values
-static char *destination_ip = "10.0.0.40";
+static char *destination_ip = "0.0.0.0";
 module_param(destination_ip, charp, 0600); // root only access to change
 MODULE_PARM_DESC(destination_ip, "Dest IP to match");
 
-static char *source_ip = "10.0.0.20";
+static char *source_ip = "0.0.0.0";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
@@ -56,7 +56,7 @@ static bool applyNow = false;
 module_param(applyNow, bool, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
-unsigned short activate = 0;
+unsigned short activate = 1;
 module_param(activate, ushort, 0600);
 MODULE_PARM_DESC(activate, "Place customization in active mode, which enables customization");
 
@@ -94,12 +94,21 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1;
     size_t i = 0;
     size_t remaining_length = send_buf_st->length;
     size_t loop_length = send_buf_st->length;
     u32 number_of_tags_added = 0;
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1;
     send_buf_st->copy_length = 0;
+    send_buf_st->no_cust = false;
+    send_buf_st->set_cust_to_skip = false;
+
+    // if module hasn't been activated, then don't perform customization
+    if (*server_cust->active_mode == 0)
+    {
+        send_buf_st->no_cust = true;
+        return;
+    }
 
     total_bytes_from_app += send_buf_st->length;
     // trace_printk("L4.5: Total bytes from app to cust mod = %lu\n", total_bytes_from_app);
@@ -196,8 +205,10 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // Function to customize the msg recieved from L4 prior to delivery to application
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-    // must pass active_mode check to customize
+    recv_buf_st->no_cust = false;
+    recv_buf_st->set_cust_to_skip = false;
 
+    // if module hasn't been activated, then don't perform customization
     if (*server_cust->active_mode == 0)
     {
         recv_buf_st->try_next = true;
