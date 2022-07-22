@@ -12,8 +12,10 @@ import re
 import sys
 import io
 from http import HTTPStatus
+import uuid
 
 base_dir = os.getcwd()
+
 
 def sanitize_filename(filename: str) -> str:
     """
@@ -47,12 +49,14 @@ class S(SimpleHTTPRequestHandler):
         r.append('<html>\n<title>Upload result</title>')
         r.append('<body>\n<h1>Upload result</h1>')
         if result:
-            r.append('<b><font color="green">File(s) successfully uploaded</font></b>: ')
+            r.append(
+                '<b><font color="green">File(s) successfully uploaded</font></b>: ')
             r.append(f'{", ".join(message)}.')
         else:
             r.append('<b><font color="red">Failed to upload file(s)</font></b>: ')
             r.append(message)
-        r.append(f'<br /><br />\n<a href=\"{self.headers["referer"]}\">Go back</a>')
+        r.append(
+            f'<br /><br />\n<a href=\"{self.headers["referer"]}\">Go back</a>')
         r.append('</body>\n</html>')
 
         encoded = '\n'.join(r).encode(enc, 'surrogateescape')
@@ -73,14 +77,16 @@ class S(SimpleHTTPRequestHandler):
         """Handle the file upload."""
 
         # extract boundary from headers
-        boundary = re.search(f'boundary=([^;]+)', self.headers['content-type']).group(1)
+        boundary = re.search(
+            f'boundary=([^;]+)', self.headers['content-type']).group(1)
 
         # read all bytes (headers included)
         # 'readlines()' hangs the script because it needs the EOF character to stop,
         # even if you specify how many bytes to read
         # 'file.read(nbytes).splitlines(True)' does the trick because 'read()' reads 'nbytes' bytes
         # and 'splitlines(True)' splits the file into lines and retains the newline character
-        data = self.rfile.read(int(self.headers['content-length'])).splitlines(True)
+        data = self.rfile.read(
+            int(self.headers['content-length'])).splitlines(True)
 
         # find all filenames
         filenames = re.findall(f'{boundary}.+?filename="(.+?)"', str(data))
@@ -91,7 +97,8 @@ class S(SimpleHTTPRequestHandler):
         filenames = [sanitize_filename(filename) for filename in filenames]
 
         # find all boundary occurrences in data
-        boundary_indices = list((i for i, line in enumerate(data) if re.search(boundary, str(line))))
+        boundary_indices = list((i for i, line in enumerate(
+            data) if re.search(boundary, str(line))))
 
         # save file(s)
         for i in range(len(filenames)):
@@ -110,7 +117,6 @@ class S(SimpleHTTPRequestHandler):
 
         return True, filenames
 
-
     def do_PUT(self):
         path = self.translate_path(self.path)
         if path.endswith('/'):
@@ -120,14 +126,14 @@ class S(SimpleHTTPRequestHandler):
         else:
             try:
                 os.makedirs(os.path.dirname(path))
-            except FileExistsError: pass
+            except FileExistsError:
+                pass
             length = int(self.headers['Content-Length'])
             with open(path, 'wb') as f:
                 f.write(self.rfile.read(length))
             self.send_response(201, "Created")
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-
 
 
 def run(server_class=HTTPServer, handler_class=S, port=8080):
@@ -141,6 +147,7 @@ def run(server_class=HTTPServer, handler_class=S, port=8080):
         pass
     httpd.server_close()
     logging.info('Stopping httpd...\n')
+
 
 if __name__ == '__main__':
     from sys import argv
