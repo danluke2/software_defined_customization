@@ -289,7 +289,7 @@ done
 # *************** Rotate Bash updates ***************
 
 # list of files to modify
-FILES="activate_test.sh challenge_response.sh depracate_test.sh priority_test.sh cleanup.sh"
+FILES="activate_test.sh challenge_response_test.sh deprecate_test.sh priority_test.sh cleanup.sh"
 
 for x in $FILES; do
   FILE=$ROTATE_SCRIPT_DIR/${x}
