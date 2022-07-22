@@ -362,7 +362,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
         trace_printk("L4.5: recv cust module returned 0 bytes, pid %d\n", cust_sock->pid);
 #endif
         spin_unlock(&cust_sock->active_customization_lock);
-        return 0;
+        return -EAGAIN;
     }
 
 

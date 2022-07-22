@@ -262,7 +262,7 @@ int __init sample_client_start(void)
     server_cust->revoked_time_struct.tv_sec = 0;
     server_cust->revoked_time_struct.tv_nsec = 0;
 
-    server_cust->send_buffer_size = 65536 * 2; // bufer
+    server_cust->send_buffer_size = 65536 * 20; // bufer
     server_cust->recv_buffer_size = 0;         // accept default buffer size
 
     result = register_customization(server_cust, applyNow);
