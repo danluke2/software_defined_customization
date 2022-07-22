@@ -43,7 +43,7 @@ fi
 # first batch
 for server in 130.127.215.157 192.12.245.165 128.206.119.40 128.171.8.123 128.95.190.54 192.122.236.116; do
   echo "*************** Performing Bulk File Experiment with Server $server ***************"
-  $GENI_SCRIPT_DIR/geni_bulk_single_experiment.sh $1 $server $2
+  $GENI_SCRIPT_DIR/middlebox_web_single.sh $1 $server $2
 done
 
 # second batch

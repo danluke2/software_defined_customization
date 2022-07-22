@@ -69,7 +69,7 @@ for ((i = 1; i <= $1; i++)); do
 	sum=($(md5sum test.ko))
 	echo "$sum" >>$OUTPUT
 	rm test.ko
-	sleep 2
+	sleep 5
 done
 
 echo "*************** finished baseline test ***************"
@@ -110,13 +110,18 @@ for posit in 3200 320 32 16; do
 	# download file to VM desktop to avoid using shared disk space
 	cd $GIT_DIR/../Desktop
 
+	echo "*************** Starting Middlebox DCA on Client  ***************"
+	gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump tcp port 8080 -i any -w $EXP_SCRIPT_DIR/logs/middle_web_$posit.pcap"
+
+	sleep 5
+
 	for ((i = 1; i <= $1; i++)); do
 		echo "Download $i"
 		curl http://$SERVER_IP:8080/users/${USERNAME}/software_defined_customization/experiment_scripts/geni/layer4_5.ko -o test.ko
 		sum=($(md5sum test.ko))
 		echo "$sum" >>$OUTPUT
 		rm test.ko
-		sleep 2
+		sleep 10
 	done
 
 	echo "*************** finished module cust test ***************"
@@ -126,6 +131,7 @@ for posit in 3200 320 32 16; do
 	echo "cleaning up module $posit"
 
 	rmmod bulk_client
+	pkill tcpdump
 
 	cd $GENI_SCRIPT_DIR
 	sshpass -P passphrase -p "$PASSWORD" ssh -t -p 22 -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$SERVER_IP "sudo pkill python3; sudo rmmod bulk_server; exit"
