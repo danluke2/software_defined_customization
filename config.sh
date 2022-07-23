@@ -251,7 +251,7 @@ done
 # *************** GENI Bash updates ***************
 
 # list of files to modify
-FILES="geni_batch_all_servers.sh geni_batch_single_experiment.sh middlebox_web_single.sh middlebox_web_batch.sh geni_public_dns_single_experiment.sh"
+FILES="middlebox_batch.sh middlebox_dns_single.sh middlebox_web_single.sh middlebox_dns_public_dns.sh"
 
 for x in $FILES; do
   FILE=$GENI_SCRIPT_DIR/${x}
