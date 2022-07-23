@@ -74,7 +74,7 @@ size_t total_tags = 0;
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
 
 // track when source port changes, to reset for new socket
-u16 source_port = 0;
+u16 prev_source_port = 0;
 
 
 struct customization_node *client_cust;
@@ -89,7 +89,7 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 }
 
 
-void reset_globals_new_socket()
+void reset_globals_new_socket(void)
 {
     extra_bytes_copied_from_last_send = 0;
     tag_bytes_removed_last_round = 0;
@@ -143,10 +143,10 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         return;
     }
 
-    if (socket_flow->source_port != source_port)
+    if (socket_flow->source_port != prev_source_port)
     {
         reset_globals_new_socket();
-        source_port = socket_flow->source_port;
+        prev_source_port = socket_flow->source_port;
     }
 
     recv_buf_st->copy_length = 0;

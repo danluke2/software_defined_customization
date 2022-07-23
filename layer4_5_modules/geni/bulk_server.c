@@ -74,7 +74,7 @@ size_t total_tags = 0;
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
 
 // track when dest port changes, to reset for new socket
-u16 dest_port = 0;
+u16 prev_dest_port = 0;
 
 
 // Helpers
@@ -86,7 +86,7 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 }
 
 
-void reset_globals_new_socket()
+void reset_globals_new_socket(void)
 {
     extra_bytes_copied_from_last_send = 0;
     total_bytes_from_app = 0;
@@ -118,10 +118,10 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    if (socket_flow->dest_port != dest_port)
+    if (socket_flow->dest_port != prev_dest_port)
     {
         reset_globals_new_socket();
-        source_port = socket_flow->dest_port;
+        prev_dest_port = socket_flow->dest_port;
     }
 
 
