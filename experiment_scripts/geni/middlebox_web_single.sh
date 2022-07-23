@@ -43,7 +43,7 @@ echo "Calculating file checksum"
 MD5=($(md5sum $FILE))
 
 # create file to store md5 sums
-OUTPUT=$EXP_SCRIPT_DIR/logs/middlebox_web_${2}.txt
+OUTPUT=$EXP_SCRIPT_DIR/logs/$SERVER_IP/middlebox_web_${2}.txt
 touch $OUTPUT
 
 echo "$SERVER_IP" >>$OUTPUT
@@ -86,7 +86,7 @@ echo "*************** Installing Layer 4.5 local ***************"
 
 $DCA_KERNEL_DIR/bash/installer.sh
 
-for posit in 32000 3200 320 32; do
+for posit in 32000 3200 320 32 16; do
 
 	echo "*************** Installing module on server ($posit) ***************"
 
@@ -111,7 +111,7 @@ for posit in 32000 3200 320 32; do
 	cd $GIT_DIR/../Desktop
 
 	echo "*************** Starting Middlebox DCA on Client  ***************"
-	gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump tcp port 8080 -i any -w $EXP_SCRIPT_DIR/logs/middle_web_$posit.pcap"
+	gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump tcp port 8080 -i any -w $EXP_SCRIPT_DIR/logs/$SERVER_IP/middle_web_$posit.pcap"
 
 	sleep 5
 
@@ -121,7 +121,7 @@ for posit in 32000 3200 320 32; do
 		sum=($(md5sum test.ko))
 		echo "$sum" >>$OUTPUT
 		rm test.ko
-		sleep 10
+		sleep 5
 	done
 
 	echo "*************** finished module cust test ***************"

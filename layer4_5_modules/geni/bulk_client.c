@@ -178,7 +178,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         else
         {
             trace_printk("L4.5 ALERT: Hit edge case, just tag bytes left in packet\n");
-            // just drop packet = TODO handle edge case
+            tag_bytes_removed_last_round += remaining_length;
+            // just drop packet
             return;
         }
     }

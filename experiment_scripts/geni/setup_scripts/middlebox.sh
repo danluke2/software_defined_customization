@@ -16,9 +16,9 @@ GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
 ##### Check if file is there #####
-if [ ! -f "./web_bulk_installed.txt" ]; then
+if [ ! -f "./middlebox_installed.txt" ]; then
     #### Create the file ####
-    sudo touch "./web_bulk_installed.txt"
+    sudo touch "./middlebox_installed.txt"
 
     #### Run  one-time commands ####
 
@@ -31,7 +31,7 @@ if [ ! -f "./web_bulk_installed.txt" ]; then
     sudo apt-get update &
     EPID=$!
     wait $EPID
-    sudo apt install -y sshpass curl iperf3 net-tools &
+    sudo apt install -y sshpass curl dnsmasq iperf3 net-tools &
     EPID=$!
     wait $EPID
 
@@ -62,6 +62,9 @@ if [ ! -f "./web_bulk_installed.txt" ]; then
     EPID=$!
     wait $EPID
 
+    #replace dnsmasq config to match experiments
+    sudo cp $GENI_SCRIPT_DIR/dnsmasq.conf /etc/dnsmasq.conf
+
 fi
 ##### Run Boot-time commands
 # Start my service -- assume it was installed at /usr/local/bin
@@ -71,3 +74,9 @@ sudo git pull
 sleep 10
 
 sudo su $GENI_USERNAME -c 'sudo systemctl restart simple_server.service'
+
+sudo systemctl stop systemd-resolved.service
+
+sudo systemctl enable dnsmasq.service
+
+sudo systemctl restart dnsmasq.service

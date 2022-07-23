@@ -10,6 +10,6 @@ tar cvfz nco.tar.gz nco.sh
 
 tar cvfz ovs-script.tar.gz ovs_setup.sh
 
-tar cvfz web-bulk.tar.gz web_bulk.sh
+tar cvfz middlebox.tar.gz middlebox.sh
 
 tar cvfz web.tar.gz web.sh

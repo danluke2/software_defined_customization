@@ -1,0 +1,200 @@
+<rspec xmlns="http://www.geni.net/resources/rspec/3" xmlns:emulab="http://www.protogeni.net/resources/rspec/ext/emulab/1" xmlns:tour="http://www.protogeni.net/resources/rspec/ext/apt-tour/1" xmlns:jacks="http://www.protogeni.net/resources/rspec/ext/jacks/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3    http://www.geni.net/resources/rspec/3/request.xsd" type="request">
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-1" component_manager_id="urn:publicid:IDN+genirack.nyu.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU20-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/middlebox.sh dflukasz" shell="/bin/sh"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://171.67.92.156/geni/middlebox.tar.gz" install_path="/local"/>
+</services>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-2" component_manager_id="urn:publicid:IDN+instageni.arc.vt.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU20-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/middlebox.sh dflukasz" shell="/bin/sh"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://171.67.92.156/geni/middlebox.tar.gz" install_path="/local"/>
+</services>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-3" component_manager_id="urn:publicid:IDN+instageni.osu.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU20-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/middlebox.sh dflukasz" shell="/bin/sh"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://171.67.92.156/geni/middlebox.tar.gz" install_path="/local"/>
+</services>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-4" component_manager_id="urn:publicid:IDN+instageni.northwestern.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU20-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/middlebox.sh dflukasz" shell="/bin/sh"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://171.67.92.156/geni/middlebox.tar.gz" install_path="/local"/>
+</services>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-5" component_manager_id="urn:publicid:IDN+instageni.illinois.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU20-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/middlebox.sh dflukasz" shell="/bin/sh"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://171.67.92.156/geni/middlebox.tar.gz" install_path="/local"/>
+</services>
+</node>
+<node xmlns="http://www.geni.net/resources/rspec/3" client_id="node-6" component_manager_id="urn:publicid:IDN+instageni.utdallas.edu+authority+cm">
+<icon xmlns="http://www.protogeni.net/resources/rspec/ext/jacks/1" url="https://portal.geni.net/images/Xen-VM.svg"/>
+<routable_control_ip xmlns="http://www.protogeni.net/resources/rspec/ext/emulab/1"/>
+<sliver_type xmlns="http://www.geni.net/resources/rspec/3" name="emulab-xen">
+<disk_image xmlns="http://www.geni.net/resources/rspec/3" name="urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU20-64-STD"/>
+</sliver_type>
+<services xmlns="http://www.geni.net/resources/rspec/3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<execute xmlns="http://www.geni.net/resources/rspec/3" command="sh /local/middlebox.sh dflukasz" shell="/bin/sh"/>
+<install xmlns="http://www.geni.net/resources/rspec/3" url="http://171.67.92.156/geni/middlebox.tar.gz" install_path="/local"/>
+</services>
+</node>
+</rspec>
