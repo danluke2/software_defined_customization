@@ -73,7 +73,8 @@ size_t total_tags = 0;
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
 
-
+// track when dest port changes, to reset for new socket
+u16 dest_port = 0;
 
 
 // Helpers
@@ -84,6 +85,13 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
     trace_printk("Number of iovec structures (nr_segs) = %lu\n", src_iter->nr_segs);
 }
 
+
+void reset_globals_new_socket()
+{
+    extra_bytes_copied_from_last_send = 0;
+    total_bytes_from_app = 0;
+    total_tags = 0;
+}
 
 
 // Function to customize the msg sent from the application to layer 4
@@ -109,6 +117,13 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         send_buf_st->no_cust = true;
         return;
     }
+
+    if (socket_flow->dest_port != dest_port)
+    {
+        reset_globals_new_socket();
+        source_port = socket_flow->dest_port;
+    }
+
 
     total_bytes_from_app += send_buf_st->length;
     // trace_printk("L4.5: Total bytes from app to cust mod = %lu\n", total_bytes_from_app);
@@ -263,7 +278,7 @@ int __init sample_client_start(void)
     server_cust->revoked_time_struct.tv_nsec = 0;
 
     server_cust->send_buffer_size = 65536 * 20; // bufer
-    server_cust->recv_buffer_size = 0;         // accept default buffer size
+    server_cust->recv_buffer_size = 0;          // accept default buffer size
 
     result = register_customization(server_cust, applyNow);
 

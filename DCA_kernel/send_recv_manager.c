@@ -186,7 +186,7 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     if (sendmsg_return < 0)
     {
 #ifdef DEBUG
-        trace_printk("L4.5 ALERT: Sendmsg returned error code = %d\n", sendmsg_return);
+        trace_printk("L4.5 ALERT: Sendmsg returned error code = %d, copy length = %lu\n", sendmsg_return, cust_sock->send_buf_st.copy_length);
 #endif
         return sendmsg_return;
     }

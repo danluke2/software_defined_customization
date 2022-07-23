@@ -86,7 +86,7 @@ echo "*************** Installing Layer 4.5 local ***************"
 
 $DCA_KERNEL_DIR/bash/installer.sh
 
-for posit in 3200 320 32 16; do
+for posit in 32000 3200 320 32; do
 
 	echo "*************** Installing module on server ($posit) ***************"
 

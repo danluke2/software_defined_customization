@@ -73,6 +73,10 @@ size_t total_tags = 0;
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
 
+// track when source port changes, to reset for new socket
+u16 source_port = 0;
+
+
 struct customization_node *client_cust;
 
 
@@ -82,6 +86,16 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
     trace_printk("msg iov len = %lu; offset = %lu\n", src_iter->iov->iov_len, src_iter->iov_offset);
     trace_printk("Total amount of data pointed to by the iovec array (count) = %lu\n", src_iter->count);
     trace_printk("Number of iovec structures (nr_segs) = %lu\n", src_iter->nr_segs);
+}
+
+
+void reset_globals_new_socket()
+{
+    extra_bytes_copied_from_last_send = 0;
+    tag_bytes_removed_last_round = 0;
+    total_bytes_from_server = 0;
+    app_bytes_from_server = 0;
+    total_tags = 0;
 }
 
 
@@ -127,6 +141,12 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     {
         recv_buf_st->no_cust = true;
         return;
+    }
+
+    if (socket_flow->source_port != source_port)
+    {
+        reset_globals_new_socket();
+        source_port = socket_flow->source_port;
     }
 
     recv_buf_st->copy_length = 0;
@@ -360,7 +380,7 @@ int __init sample_client_start(void)
     client_cust->revoked_time_struct.tv_sec = 0;
     client_cust->revoked_time_struct.tv_nsec = 0;
 
-    client_cust->send_buffer_size = 0;         //  normal buffer size
+    client_cust->send_buffer_size = 0;          //  normal buffer size
     client_cust->recv_buffer_size = 65536 * 10; // accept default buffer size
 
     result = register_customization(client_cust, applyNow);
