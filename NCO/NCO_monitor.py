@@ -67,6 +67,9 @@ def handle_host_insert(db_connection, mac, ip, port, kernel_release, interval):
     while counter <= max_tries:
         if cfg.random_hosts:
             generated_id = random.randint(1, 65535)
+        elif cfg.ip_hosts:
+            ip_split = ip.split(".")
+            generated_id = int(ip_split[-1])
         else:
             generated_id = cfg.next_module_id
             cfg.next_module_id += 1

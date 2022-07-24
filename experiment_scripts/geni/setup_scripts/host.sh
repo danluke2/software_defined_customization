@@ -2,8 +2,6 @@
 # Usual directory for downloading software in ProtoGENI hosts is `/local`
 cd /local
 
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GENI_USERNAME=$1
 
@@ -15,16 +13,10 @@ EXP_SCRIPT_DIR=$GIT_DIR/experiment_scripts
 SIMPLE_SERVER_DIR=$EXP_SCRIPT_DIR/client_server
 GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
 
-
-
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
-
-
 ##### Check if file is there #####
-if [ ! -f "./layer4_5_installed.txt" ]
-then
+if [ ! -f "./layer4_5_installed.txt" ]; then
     #### Create the file ####
     sudo touch "./layer4_5_installed.txt"
 
@@ -34,33 +26,35 @@ then
     sudo apt-mark hold linux-headers-generic
 
     #Install necessary packages
-    sudo apt-get update & EPID=$!
+    sudo apt-get update &
+    EPID=$!
     wait $EPID
-    sudo apt install -y sshpass curl iperf3 net-tools & EPID=$!
+    sudo apt install -y sshpass curl iperf3 net-tools &
+    EPID=$!
     wait $EPID
 
     # Install custom software
     cd /users/$GENI_USERNAME
-    sudo git clone https://github.com/danluke2/software_defined_customization.git & EPID=$!
+    sudo git clone -b rotating https://github.com/danluke2/software_defined_customization.git &
+    EPID=$!
     wait $EPID
     sudo chown -R $GENI_USERNAME $GIT_DIR
 
-
-    LINE=14
     FILE=$GIT_DIR/config.sh
+    LINE="$(grep -n "GIT_DIR=" $FILE | head -n 1 | cut -d: -f1)"
     sudo sed -i "${LINE}d" $FILE
     sudo sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
 
     # Update NCO IP address
-    LINE=49
-    FILE=$GIT_DIR/config.sh
+    LINE="$(grep -n "SERVER_IP=" $FILE | head -n 1 | cut -d: -f1)"
     sudo sed -i "${LINE}d" $FILE
     sudo sed -i "${LINE}i\SERVER_IP=10.10.0.5" $FILE
 
     cd $GIT_DIR
     sudo ./config.sh
 
-    sudo $DCA_KERNEL_DIR/bash/installer.sh & EPID=$!
+    sudo $DCA_KERNEL_DIR/bash/installer.sh &
+    EPID=$!
     wait $EPID
 
 fi
@@ -72,4 +66,4 @@ sudo git pull
 sleep 10
 
 cd $DCA_USER_DIR
-sudo su $GENI_USERNAME -c 'sudo python3 DCA.py --iface eth1 --logging &'
+sudo su $GENI_USERNAME -c 'sudo python3 DCA.py --iface eth1 &'

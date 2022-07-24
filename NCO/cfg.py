@@ -19,6 +19,7 @@ KEY_SIZE = 32
 IV_SIZE = 16
 
 random_hosts = True
+ip_hosts = False
 next_module_id = 1
 
 # default values that builder can overwrite

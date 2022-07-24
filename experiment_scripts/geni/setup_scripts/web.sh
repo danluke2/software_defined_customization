@@ -37,7 +37,7 @@ if [ ! -f "./web_installed.txt" ]; then
 
     # Install custom software
     cd /users/$GENI_USERNAME
-    sudo git clone https://github.com/danluke2/software_defined_customization.git &
+    sudo git clone -b rotating https://github.com/danluke2/software_defined_customization.git &
     EPID=$!
     wait $EPID
     sudo chown -R $GENI_USERNAME $GIT_DIR
@@ -60,18 +60,24 @@ if [ ! -f "./web_installed.txt" ]; then
     EPID=$!
     wait $EPID
 
+    #install python simple server service
+    cd $SIMPLE_SERVER_DIR
+    sudo chmod +755 service.sh
+    sudo ./service.sh &
+    EPID=$!
+    wait $EPID
+
 fi
 ##### Run Boot-time commands
 # Start my service -- assume it was installed at /usr/local/bin
 cd $GIT_DIR
 sudo git pull
 
-sleep 10
+sleep 5
 
 cd $DCA_USER_DIR
-sudo su $GENI_USERNAME -c 'sudo python3 DCA.py --iface eth1 --logging &'
+sudo su $GENI_USERNAME -c 'sudo python3 DCA.py --iface eth1 &'
 
-sleep 10
+sleep 5
 
-cd $SIMPLE_SERVER_DIR
-sudo su $GENI_USERNAME -c 'sudo python3 python_simple_server.py &'
+sudo su $GENI_USERNAME -c 'sudo systemctl restart simple_server.service'

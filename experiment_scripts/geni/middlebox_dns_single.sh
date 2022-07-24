@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Purpose: perform dns requests to test overhead of tagging for each config
+#Purpose: perform dns requests to test middlebox interference
 # $1 = number of trials
 # $2 = server to connect to
 # $3 = client IP address to mach customization
@@ -49,7 +49,6 @@ echo "starting dns requests to ensure connectivity"
 
 for ((i = 1; i <= $1; i++)); do
 	echo "DNS test $i"
-	total=0
 	for ((j = 1; j <= 5; j++)); do
 		query="www.test_base$i$j.com"
 		dig +time=5 +tries=2 @$SERVER_IP -p 53 $query | grep -A 2 "ANSWER SECTION" >>$OUTPUT
@@ -97,7 +96,6 @@ for module in front_dns middle_dns end_dns compress_dns; do
 
 	for ((i = 1; i <= $1; i++)); do
 		echo "DNS test $i"
-		total=0
 		for ((j = 1; j <= 5; j++)); do
 			query="www.test_cust$i$j.com"
 			dig +time=5 +tries=2 @$SERVER_IP -p 53 $query | grep -A 2 "ANSWER SECTION" >>$OUTPUT

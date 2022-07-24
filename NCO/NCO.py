@@ -47,6 +47,8 @@ parser.add_argument('--window', type=int, required=False,
 parser.add_argument(
     '--linear', help="Assign host names in predictable fashion", action="store_true")
 parser.add_argument(
+    '--host_name_ip', help="Assign host names based on IP address", action="store_true")
+parser.add_argument(
     '--print', help="Enables logging to console", action="store_true")
 parser.add_argument('--logfile', type=str, required=False,
                     help="Full log file path to use, defaults to layer4_5 directory")
@@ -82,6 +84,10 @@ if args.challenge:
 
 if args.linear:
     cfg.random_hosts = False
+
+if args.host_name_ip:
+    cfg.random_hosts = False
+    cfg.ip_hosts = True
 
 if args.print:
     cfg.log_console = True
