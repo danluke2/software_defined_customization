@@ -28,20 +28,21 @@ fi
 
 # first batch:
 
-# 130.127.215.157 = clemson
+# 130.127.215.159 = clemson
 # 192.12.245.165 = colorado
 # 128.206.119.40 = missouri
 # 128.171.8.123 = hawaii
 # 128.95.190.54 = washington
 # 192.122.236.116 = cornell
 
-for server in 130.127.215.157 192.12.245.165 128.206.119.40 128.171.8.123 128.95.190.54 192.122.236.116; do
-  mkdir -p $EXP_SCRIPT_DIR/logs/$SERVER_IP
+# for server in 130.127.215.159 192.12.245.165 128.206.119.40 128.171.8.123 128.95.190.54 192.122.236.116; do
+for server in 130.127.215.159 128.171.8.123; do
+  mkdir -p $EXP_SCRIPT_DIR/logs/$server
   echo "*************** Performing Batch DNS Experiment with Server $server ***************"
   $GENI_SCRIPT_DIR/middlebox_dns_single.sh $1 $server $2
 
-  echo "*************** Performing Bulk File Experiment with Server $server ***************"
-  $GENI_SCRIPT_DIR/middlebox_web_single.sh $1 $server $2
+  # echo "*************** Performing Bulk File Experiment with Server $server ***************"
+  # $GENI_SCRIPT_DIR/middlebox_web_single.sh $1 $server $2
 done
 
 # second batch:
@@ -53,14 +54,14 @@ done
 # 140.254.14.101 = ohio state
 # 129.110.253.31 = UT
 
-for server in 198.82.156.49 72.36.65.88 165.124.51.192 192.86.139.73 140.254.14.101 129.110.253.31; do
-  mkdir -p $EXP_SCRIPT_DIR/logs/$SERVER_IP
-  echo "*************** Performing Batch DNS Experiment with Server $server ***************"
-  $GENI_SCRIPT_DIR/middlebox_dns_single.sh $1 $server $2
+# for server in 198.82.156.49 72.36.65.88 165.124.51.192 192.86.139.73 140.254.14.101 129.110.253.31; do
+#   mkdir -p $EXP_SCRIPT_DIR/logs/$SERVER_IP
+#   echo "*************** Performing Batch DNS Experiment with Server $server ***************"
+#   $GENI_SCRIPT_DIR/middlebox_dns_single.sh $1 $server $2
 
-  echo "*************** Performing Bulk File Experiment with Server $server ***************"
-  $GENI_SCRIPT_DIR/middlebox_web_single.sh $1 $server $2
-done
+#   echo "*************** Performing Bulk File Experiment with Server $server ***************"
+#   $GENI_SCRIPT_DIR/middlebox_web_single.sh $1 $server $2
+# done
 
 # public DNS servers: testing End DNS module
 

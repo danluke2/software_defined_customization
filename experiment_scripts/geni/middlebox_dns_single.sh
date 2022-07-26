@@ -45,6 +45,9 @@ rmmod layer4_5
 
 echo "*************** starting baseline batch ***************"
 
+echo "*************** Starting Middlebox DCA on Client  ***************"
+gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump -i any -w $EXP_SCRIPT_DIR/logs/$SERVER_IP/middle_dns_base.pcap"
+
 echo "starting dns requests to ensure connectivity"
 
 for ((i = 1; i <= $1; i++)); do
@@ -57,6 +60,8 @@ for ((i = 1; i <= $1; i++)); do
 done
 
 echo "*************** finished baseline test ***************"
+
+pkill tcpdump
 
 echo "*************** Installing Layer 4.5 on server ***************"
 
@@ -90,7 +95,7 @@ for module in front_dns middle_dns end_dns compress_dns; do
 	echo "*************** starting cust batch ***************"
 
 	echo "*************** Starting Middlebox DCA on Client  ***************"
-	gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump udp port 53 -i any -w $EXP_SCRIPT_DIR/logs/$SERVER_IP/middle_$module.pcap"
+	gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump -i any -w $EXP_SCRIPT_DIR/logs/$SERVER_IP/middle_dns_$module.pcap"
 
 	sleep 5
 

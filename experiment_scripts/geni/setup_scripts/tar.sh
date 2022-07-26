@@ -13,3 +13,5 @@ tar cvfz ovs-script.tar.gz ovs_setup.sh
 tar cvfz middlebox.tar.gz middlebox.sh
 
 tar cvfz web.tar.gz web.sh
+
+tar cvfz kernel.tar.gz kernel.sh

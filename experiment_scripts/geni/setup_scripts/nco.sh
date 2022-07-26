@@ -15,9 +15,34 @@ GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
 ##### Check if file is there #####
-if [ ! -f "./nco_installed.txt" ]; then
+if [ ! -f "./kernel_update.txt" ]; then
     #### Create the file ####
-    sudo touch "./nco_installed.txt"
+    sudo touch "./kernel_update.txt"
+
+    #### Run  one-time commands ####
+    sudo apt-get update &
+    EPID=$!
+    wait $EPID
+
+    sudo apt install -y linux-image-5.4.0-122-generic &
+    EPID=$!
+    wait $EPID
+
+    sudo reboot &
+    EPID=$!
+    wait $EPID
+
+    #just trying to stop it from reaching next part of code
+    sudo apt-get update &
+    EPID=$!
+    wait $EPID
+    sudo apt install -y sshpass curl dnsmasq iperf3 net-tools trace-cmd &
+    EPID=$!
+    wait $EPID
+
+fi
+
+if [ ! -f "./nco_installed.txt" ]; then
 
     #### Run  one-time commands ####
 
@@ -30,7 +55,7 @@ if [ ! -f "./nco_installed.txt" ]; then
     sudo apt-get update &
     EPID=$!
     wait $EPID
-    sudo apt install -y python3-pip sshpass curl iperf3 net-tools &
+    sudo apt install -y python3-pip sshpass curl iperf3 net-tools trace-cmd linux-headers-$(uname -r) &
     EPID=$!
     wait $EPID
 
@@ -61,6 +86,9 @@ if [ ! -f "./nco_installed.txt" ]; then
     sudo pip3 install pycryptodome &
     EPID=$!
     wait $EPID
+
+    #### Create the file ####
+    sudo touch "./nco_installed.txt"
 
 fi
 ##### Run Boot-time commands
