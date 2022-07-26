@@ -97,4 +97,4 @@ cd $GIT_DIR
 sudo git pull
 # sudo systemctl restart nco.service
 cd $NCO_DIR
-sudo su $GENI_USERNAME -c 'sudo python3 NCO.py &'
+sudo su $GENI_USERNAME -c 'sudo python3 NCO.py --host_name_ip &'
