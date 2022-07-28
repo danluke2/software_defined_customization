@@ -48,17 +48,17 @@ sleep 20
 #H1 file request to Web server
 sshpass -P passphrase -p "$PASSWORD" ssh -t -p $HOST_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$HOST "curl http://10.10.0.4:8080/users/${USERNAME}/software_defined_customization/experiment_scripts/geni/layer4_5.ko -o test_with_cust.ko &"
 
-sleep 2
+sleep 1
 
 #deploy web server 100-msec module in active state with lower priority and immediate attachment
 sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 deploy_module_helper.py --module activate_web_server --host 4 --activate --priority 20 --applyNow"
 
-sleep 15
+sleep 7
 
 #update priority of web server 100-msec module
 sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 priority_module_helper.py --module activate_web_server --host 4  --priority 5"
 
-sleep 30
+sleep 45
 
 #revoke server modules
 sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 revoke_module_helper.py --module deprecate_web_server --host 4; sudo python3 revoke_module_helper.py --module activate_web_server --host 4"
