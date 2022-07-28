@@ -438,8 +438,8 @@ int set_customization_priority(u16 cust_id, u16 priority)
     // now we need to sort sockets with module attached again since order may change
     if (module_cust->sock_count > 0)
     {
-        // trigger sort
-        sort_each_socket_with_matching_cust(module_cust);
+        // mark socket for sorting when next used
+        sort_mark_each_socket_with_matching_cust(module_cust);
     }
 
     return found;

@@ -83,7 +83,7 @@ if [ ! -f "./layer4_5_installed.txt" ]; then
     wait $EPID
 
     #### Create the file ####
-    sudo touch "./layer4_5_installed.txt"
+    sudo touch "/local/layer4_5_installed.txt"
 
 fi
 ##### Run Boot-time commands

@@ -84,6 +84,16 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     bool copy_success;
     size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
     recv_buf_st->copy_length = 0;
+    recv_buf_st->no_cust = false;
+    recv_buf_st->set_cust_to_skip = false;
+    recv_buf_st->try_next = false;
+
+    if (*dns_cust->active_mode == 0)
+    {
+        trace_printk("L4.5: Module is not activated\n");
+        recv_buf_st->try_next = true;
+        return;
+    }
 
     // trace_print_hex_dump("Cust DNS packet recv: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base,
     // recv_buf_st->recv_return, true);

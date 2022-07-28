@@ -46,7 +46,7 @@ module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
 
-static unsigned int sleep_time = 100; // TCP or UDP
+static unsigned int sleep_time = 10000; // TCP or UDP
 module_param(sleep_time, uint, 0600);
 MODULE_PARM_DESC(sleep_time, "Number of msec to sleep for");
 
@@ -95,7 +95,10 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     {
         msleep(sleep_time);
         send_buf_st->no_cust = true;
+        msleep(sleep_time);
     }
+
+    msleep(sleep_time);
 
     return;
 }
@@ -162,7 +165,7 @@ int __init sample_client_start(void)
     server_cust->revoked_time_struct.tv_sec = 0;
     server_cust->revoked_time_struct.tv_nsec = 0;
 
-    server_cust->send_buffer_size = 65536 * 2; // bufer
+    server_cust->send_buffer_size = 65536 * 2; // buffer
     server_cust->recv_buffer_size = 0;         // accept default buffer size
 
     result = register_customization(server_cust, applyNow);

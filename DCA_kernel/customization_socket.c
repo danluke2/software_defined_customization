@@ -417,6 +417,7 @@ void sort_each_socket_with_matching_cust(struct customization_node *cust)
 #ifdef DEBUG1
                 trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
 #endif
+                // NOTE: for some reason this lock won't release and will freeze the machine
                 spin_lock(&cust_socket_iterator->active_customization_lock);
 
                 // there are at least i customizations attached, but need to know exact
@@ -435,7 +436,6 @@ void sort_each_socket_with_matching_cust(struct customization_node *cust)
                     sort(cust_socket_iterator->customizations, j, sizeof(void *), &priority_compare, NULL);
                 }
 
-
                 spin_unlock(&cust_socket_iterator->active_customization_lock);
 
                 break;
@@ -446,6 +446,65 @@ void sort_each_socket_with_matching_cust(struct customization_node *cust)
     return;
 }
 
+
+
+// Hash for each b/c we need to find matching sockets, so don't know keys
+void sort_mark_each_socket_with_matching_cust(struct customization_node *cust)
+{
+    u32 cust_id = cust->cust_id;
+    struct customization_socket *cust_socket_iterator;
+    struct customization_node *cust_node;
+    int bucket;
+    struct hlist_node tmp;
+    struct hlist_node *tmpptr = &tmp;
+    size_t i;
+
+    // Prevent customized socket access while potentially sorting it
+    spin_lock(&cust_socket_lock);
+    hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket_iterator, socket_hash)
+    {
+        for (i = 0; i < MAX_CUST_ATTACH; i++)
+        {
+            cust_node = cust_socket_iterator->customizations[i];
+            if (cust_node == NULL)
+            {
+                // no need to keep checking
+                break;
+            }
+
+            if (cust_node->cust_id == cust_id)
+            {
+#ifdef DEBUG1
+                trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
+#endif
+                cust_socket_iterator->update_cust_sort = true;
+                break;
+            }
+        }
+    }
+    spin_unlock(&cust_socket_lock);
+    return;
+}
+
+
+void sort_attached_cust(struct customization_socket *cust_sock)
+{
+    size_t i;
+    // need to loop through cust nodes to find out how many there are
+    for (i = 0; i < MAX_CUST_ATTACH; i++)
+    {
+        if (cust_sock->customizations[i] == NULL)
+        {
+            break;
+        }
+    }
+#ifdef DEBUG1
+    trace_printk("L4.5: sorting %lu cust nodes\n", i);
+#endif
+
+    // for loop index = number of elements of customization array
+    sort(cust_sock->customizations, i, sizeof(void *), &priority_compare, NULL);
+}
 
 
 
@@ -576,6 +635,7 @@ static void assign_customizations(struct customization_socket *cust_sock,
 
     trace_printk("L4.5: assigning %lu nodes to socket\n", node_counter);
 
+
     // determine which customization node requires the largest buffer, and assign
     for (i = 0; i < node_counter; i++)
     {
@@ -583,6 +643,7 @@ static void assign_customizations(struct customization_socket *cust_sock,
         {
             break;
         }
+        trace_printk("L4.5: socket %lu = %u\n", i, cust_node[i]->cust_id);
         if (cust_node[i]->send_buffer_size > send_buffer_size)
         {
             send_buffer_size = cust_node[i]->send_buffer_size;

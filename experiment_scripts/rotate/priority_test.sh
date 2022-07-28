@@ -65,7 +65,7 @@ gnome-terminal -- bash -c "echo '*************** Client DCA  ***************'; p
 
 sleep 5
 
-# Insert client module in DB for deployment to host_id = 1, with active mode set to false (default)
+# Insert client module in DB for deployment to host_id = 1, with active mode set to true
 echo "*************** Deploy Client Module High  ***************"
 python3 $NCO_DIR/deploy_module_helper.py --module "dns_client_high_priority" --host 1 --priority 42 --activate
 
@@ -82,7 +82,7 @@ sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "python3 $DCA_USER_DIR/DCA
 
 sleep 5
 
-# Insert server module in DB for deployment to host_id = 2, with active mode set to false and with applyNow set
+# Insert server module in DB for deployment to host_id = 2, with active mode set to true and with applyNow set
 echo "*************** Deploy Server Module Low  ***************"
 python3 $NCO_DIR/deploy_module_helper.py --module "dns_server_low_priority" --host 2 --priority 99 --applyNow --activate
 

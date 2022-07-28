@@ -166,6 +166,8 @@ def retrieve_set_priority_list(db_connection, host_id):
     priority_list = select_all_req_set_priority(db_connection, host_id)
     if priority_list == cfg.DB_ERROR:
         return -1
+    if type(priority_list) != list:
+        priority_list = []
     mod_id = [x[1] for x in priority_list]
     mode = [x[2] for x in priority_list]
     return mod_id, mode

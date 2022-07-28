@@ -31,13 +31,13 @@ HOST_PORT=$4
 NCO=$5
 NCO_PORT=$6
 
-#start tcpdump on DNS server
+#start tcpdump on web server
 sshpass -P passphrase -p "$PASSWORD" ssh -t -p $SERVER_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$SERVER "sudo tcpdump tcp port 8080 -i any -w $GIT_DIR/activate_exp.pcap &"
 
 sleep 2
 
-#deploy web and H2 server modules in non-active state
-sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 deploy_module_helper.py --module activate_web_server --host 4  --priority 1; sudo python3 deploy_module_helper.py --module activate_client --host 2  --priority 1"
+#deploy web server module in non-active state
+sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 deploy_module_helper.py --module activate_web_server --host 4  --priority 1"
 
 sleep 20
 
@@ -46,8 +46,8 @@ sshpass -P passphrase -p "$PASSWORD" ssh -t -p $HOST_PORT -i id_geni_ssh_rsa -o 
 
 sleep 5
 
-#activate web and H2 server modules
-sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 toggle_module_helper.py --module activate_web_server --host 4  --activate; sudo python3 toggle_module_helper.py --module activate_client --host 2  --activate; "
+#activate web server module
+sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 toggle_module_helper.py --module activate_web_server --host 4  --activate"
 
 sleep 20
 
@@ -56,8 +56,8 @@ sshpass -P passphrase -p "$PASSWORD" ssh -t -p $HOST_PORT -i id_geni_ssh_rsa -o 
 
 sleep 5
 
-#revoke server and client module
-sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 revoke_module_helper.py --module activate_web_server --host 4; sudo python3 revoke_module_helper.py --module activate_client --host 2 "
+#revoke server module
+sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 revoke_module_helper.py --module activate_web_server --host 4"
 
 sleep 15
 

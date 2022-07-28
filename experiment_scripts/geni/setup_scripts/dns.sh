@@ -88,7 +88,7 @@ if [ ! -f "./dns_installed.txt" ]; then
     sudo cp $GENI_SCRIPT_DIR/dnsmasq.conf /etc/dnsmasq.conf
 
     #### Create the file ####
-    sudo touch "./dns_installed.txt"
+    sudo touch "/local/dns_installed.txt"
 
 fi
 

@@ -88,7 +88,7 @@ if [ ! -f "./nco_installed.txt" ]; then
     wait $EPID
 
     #### Create the file ####
-    sudo touch "./nco_installed.txt"
+    sudo touch "/local/nco_installed.txt"
 
 fi
 ##### Run Boot-time commands

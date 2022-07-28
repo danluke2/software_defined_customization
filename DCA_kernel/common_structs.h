@@ -83,6 +83,9 @@ struct customization_socket
     // flag used to signal a new module registered and we should check cust matching
     bool update_cust_check;
 
+    // flag used to signal attached customizations need to be sorted again before use
+    bool update_cust_sort;
+
     // customization must register both send/recv to simplify cust array processing
     enum customization_state customize_or_skip;
 

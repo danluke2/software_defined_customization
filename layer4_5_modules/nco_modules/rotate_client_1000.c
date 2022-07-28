@@ -44,7 +44,7 @@ static unsigned int protocol = 6; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-static unsigned int BYTE_POSIT = 100;
+static unsigned int BYTE_POSIT = 1000;
 module_param(BYTE_POSIT, uint, 0600);
 MODULE_PARM_DESC(BYTE_POSIT, "Byte offset to insert/remove tags");
 
@@ -64,13 +64,13 @@ u16 prev_source_port = 0;
 
 struct customization_node *client_cust;
 
+
 // NCO VARIABLES GO HERE
 u16 module_id = 1;
 char hex_key[HEX_KEY_LENGTH] = "";
 u16 activate = 0;
 u16 priority = 0;
 u16 applyNow = 0;
-
 
 // END NCO VARIABLES
 
@@ -100,6 +100,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     send_buf_st->copy_length = 0;
     send_buf_st->no_cust = false;
     send_buf_st->set_cust_to_skip = false;
+    send_buf_st->try_next = false;
 
     // if module hasn't been activated, then don't perform customization
     if (*client_cust->active_mode == 0)
@@ -130,11 +131,12 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
     recv_buf_st->no_cust = false;
     recv_buf_st->set_cust_to_skip = false;
+    recv_buf_st->try_next = false;
 
     // if module hasn't been activated, then don't perform customization
     if (*client_cust->active_mode == 0)
     {
-        recv_buf_st->no_cust = true;
+        recv_buf_st->try_next = true;
         return;
     }
 
@@ -370,14 +372,14 @@ int __init sample_client_start(void)
     client_cust->send_function = modify_buffer_send;
     client_cust->recv_function = modify_buffer_recv;
 
-    client_cust->cust_id = 78;
+    client_cust->cust_id = module_id;
     client_cust->registration_time_struct.tv_sec = 0;
     client_cust->registration_time_struct.tv_nsec = 0;
     client_cust->revoked_time_struct.tv_sec = 0;
     client_cust->revoked_time_struct.tv_nsec = 0;
 
-    client_cust->send_buffer_size = 0;          //  normal buffer size
-    client_cust->recv_buffer_size = 65536 * 10; // accept default buffer size
+    client_cust->send_buffer_size = 0;         //  normal buffer size
+    client_cust->recv_buffer_size = 65536 * 2; // accept default buffer size
 
     result = register_customization(client_cust, applyNow);
 

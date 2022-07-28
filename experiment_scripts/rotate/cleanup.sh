@@ -52,6 +52,8 @@ if [ "$1" = "PRI" ]; then
   rm cib.db
   cd device_modules
   rm -rf host*
+  cd $EXP_SCRIPT_DIR/rotate
+  rm test*.ko
 fi
 
 # Challenge

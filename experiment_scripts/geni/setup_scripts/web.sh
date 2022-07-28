@@ -93,7 +93,7 @@ if [ ! -f "./web_installed.txt" ]; then
     wait $EPID
 
     #### Create the file ####
-    sudo touch "./web_installed.txt"
+    sudo touch "/local/web_installed.txt"
 
 fi
 ##### Run Boot-time commands

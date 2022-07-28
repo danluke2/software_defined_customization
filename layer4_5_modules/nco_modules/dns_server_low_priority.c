@@ -95,7 +95,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     if (*dns_cust->active_mode == 0)
     {
         trace_printk("L4.5: Module is not activated\n");
-        recv_buf_st->no_cust = true;
+        recv_buf_st->try_next = true;
         return;
     }
 

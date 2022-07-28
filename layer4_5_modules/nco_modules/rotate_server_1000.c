@@ -23,6 +23,9 @@ extern int register_customization(struct customization_node *cust, bool applyNow
 
 extern int unregister_customization(struct customization_node *cust);
 
+extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf,
+                                 size_t len, bool ascii);
+
 
 // Kernel module parameters with default values
 static char *destination_ip = "0.0.0.0";
@@ -45,12 +48,25 @@ static unsigned int protocol = 6; // TCP or UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
+static unsigned int BYTE_POSIT = 1000;
+module_param(BYTE_POSIT, uint, 0600);
+MODULE_PARM_DESC(BYTE_POSIT, "Byte offset to insert/remove tags");
 
-static unsigned int sleep_time = 100; // TCP or UDP
+static unsigned int sleep_time = 500; // TCP or UDP
 module_param(sleep_time, uint, 0600);
 MODULE_PARM_DESC(sleep_time, "Number of msec to sleep for");
 
 struct customization_node *server_cust;
+
+size_t extra_bytes_copied_from_last_send = 0;
+
+size_t total_bytes_from_app = 0;
+size_t total_tags = 0;
+
+char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
+
+// track when dest port changes, to reset for new socket
+u16 prev_dest_port = 0;
 
 
 // NCO VARIABLES GO HERE
@@ -59,7 +75,6 @@ char hex_key[HEX_KEY_LENGTH] = "";
 u16 activate = 0;
 u16 priority = 0;
 u16 applyNow = 0;
-
 
 // END NCO VARIABLES
 
@@ -73,6 +88,14 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 }
 
 
+void reset_globals_new_socket(void)
+{
+    extra_bytes_copied_from_last_send = 0;
+    total_bytes_from_app = 0;
+    total_tags = 0;
+}
+
+
 // Function to customize the msg sent from the application to layer 4
 // @param[I] send_buf_st Pointer to the send buffer structure
 // @param[I] socket_flow Pointer to the socket flow parameters
@@ -80,6 +103,12 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 // @post src_buf holds customized message for PCM to send to Layer 4
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
+    bool copy_success;
+    size_t i = 0;
+    size_t remaining_length = send_buf_st->length;
+    size_t loop_length = send_buf_st->length;
+    u32 number_of_tags_added = 0;
+    size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1;
     send_buf_st->copy_length = 0;
     send_buf_st->no_cust = false;
     send_buf_st->set_cust_to_skip = false;
@@ -89,14 +118,105 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     if (*server_cust->active_mode == 0)
     {
         send_buf_st->try_next = true;
+        return;
     }
 
-    else
+    if (socket_flow->dest_port != prev_dest_port)
     {
-        msleep(sleep_time);
-        send_buf_st->no_cust = true;
+        reset_globals_new_socket();
+        prev_dest_port = socket_flow->dest_port;
+    }
+    msleep(sleep_time);
+
+    total_bytes_from_app += send_buf_st->length;
+    // trace_printk("L4.5: Total bytes from app to cust mod = %lu\n", total_bytes_from_app);
+
+    if (extra_bytes_copied_from_last_send > 0)
+    {
+        // we had bytes counting towards BYTE_POSIT from last send call
+        if (BYTE_POSIT - extra_bytes_copied_from_last_send > send_buf_st->length)
+        {
+            // copy entire buffer because still under BYTE_POSIT value
+            copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
+            if (copy_success == false)
+            {
+                trace_printk("L4.5 ALERT: Length not big enough, Failed to copy all bytes to cust buffer\n");
+                trace_print_cust_iov_params(send_buf_st->src_iter);
+                return;
+            }
+            send_buf_st->copy_length += send_buf_st->length;
+            extra_bytes_copied_from_last_send += send_buf_st->length;
+            remaining_length -= send_buf_st->length;
+        }
+        else
+        {
+            // first copy remaining bytes to reach BYTE_POSIT
+            copy_success = copy_from_iter_full(send_buf_st->buf, BYTE_POSIT - extra_bytes_copied_from_last_send,
+                                               send_buf_st->src_iter);
+            if (copy_success == false)
+            {
+                // not all bytes were copied, so pick scenario 1 or 2 below
+                trace_printk("L4.5 ALERT: Length check good, Failed to copy bytes to cust buffer\n");
+                // Scenario 1: keep cust loaded and allow normal msg to be sent
+                send_buf_st->copy_length = 0;
+                trace_print_cust_iov_params(send_buf_st->src_iter);
+                return;
+            }
+            send_buf_st->copy_length += BYTE_POSIT - extra_bytes_copied_from_last_send;
+            remaining_length -= send_buf_st->copy_length;
+            extra_bytes_copied_from_last_send = 0;
+
+            // reached tag posit, so put in our generic tag
+            memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
+            send_buf_st->copy_length += cust_tag_test_size;
+            number_of_tags_added += 1;
+        }
     }
 
+    loop_length = remaining_length;
+    // at this point we have 0 bytes inserted toward BYTE_POSIT tag positiion
+    for (i = 0; i + BYTE_POSIT <= loop_length; i += BYTE_POSIT)
+    {
+        copy_success =
+            copy_from_iter_full(send_buf_st->buf + send_buf_st->copy_length, BYTE_POSIT, send_buf_st->src_iter);
+        if (copy_success == false)
+        {
+            // not all bytes were copied, so pick scenario 1 or 2 below
+            trace_printk("L4.5 ALERT: For loop, Failed to copy bytes to cust buffer\n");
+            // Scenario 1: keep cust loaded and allow normal msg to be sent
+            send_buf_st->copy_length = 0;
+            trace_print_cust_iov_params(send_buf_st->src_iter);
+            return;
+        }
+        send_buf_st->copy_length += BYTE_POSIT;
+        remaining_length -= BYTE_POSIT;
+
+        // now insert tag
+        memcpy(send_buf_st->buf + send_buf_st->copy_length, cust_tag_test, cust_tag_test_size);
+        send_buf_st->copy_length += cust_tag_test_size;
+        number_of_tags_added += 1;
+    }
+
+
+    if (remaining_length > 0)
+    {
+        // copy over leftover bytes from loop
+        copy_success =
+            copy_from_iter_full(send_buf_st->buf + send_buf_st->copy_length, remaining_length, send_buf_st->src_iter);
+        if (copy_success == false)
+        {
+            trace_printk("L4.5 ALERT: Failed to copy remaining bytes to cust buffer\n");
+            send_buf_st->copy_length = 0;
+            trace_print_cust_iov_params(send_buf_st->src_iter);
+            return;
+        }
+        extra_bytes_copied_from_last_send += remaining_length;
+        send_buf_st->copy_length += remaining_length;
+    }
+    total_tags += number_of_tags_added;
+
+    // trace_printk("L4.5: Number of tags inserted = %u, total = %lu\n", number_of_tags_added, total_tags);
+    msleep(sleep_time);
     return;
 }
 
@@ -162,7 +282,7 @@ int __init sample_client_start(void)
     server_cust->revoked_time_struct.tv_sec = 0;
     server_cust->revoked_time_struct.tv_nsec = 0;
 
-    server_cust->send_buffer_size = 65536 * 2; // bufer
+    server_cust->send_buffer_size = 65536 * 2; // buffer
     server_cust->recv_buffer_size = 0;         // accept default buffer size
 
     result = register_customization(server_cust, applyNow);

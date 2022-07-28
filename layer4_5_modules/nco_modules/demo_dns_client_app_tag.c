@@ -72,7 +72,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
     if (*dns_cust->active_mode == 0)
     {
-        send_buf_st->no_cust = true;
+        send_buf_st->try_next = true;
         return;
     }
 

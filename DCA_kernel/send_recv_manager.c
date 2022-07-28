@@ -4,6 +4,7 @@
 #include <linux/sched.h>
 #include <linux/timekeeping.h> // for timestamps
 
+#include "customization_socket.h"
 #include "send_recv_manager.h"
 #include "util/printing.h"
 
@@ -24,12 +25,18 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     trace_printk("L4.5: Start of DCA sendmsg, given size = %lu\n", size);
     trace_print_msg_params(msg);
 #endif
-
     spin_lock(&cust_sock->active_customization_lock);
 
     cust_sock->send_buf_st.src_iter = &msg->msg_iter;
     cust_sock->send_buf_st.copy_length = 0; // default value
     cust_sock->send_buf_st.length = size;
+
+    // check if modules should be sorted before using them
+    if (cust_sock->update_cust_sort)
+    {
+        sort_attached_cust(cust_sock);
+        cust_sock->update_cust_sort = false;
+    }
 
     // loop through cust modules until one performs a customization
     for (i = 0; i < MAX_CUST_ATTACH; i++)
@@ -93,6 +100,7 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
             trace_printk("L4.5: send %lu error message from module, pid %d\n", cust_sock->send_buf_st.copy_length,
                          cust_sock->pid);
 #endif
+
             spin_unlock(&cust_sock->active_customization_lock);
             return cust_sock->send_buf_st.copy_length;
         }
@@ -144,6 +152,7 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 #ifdef DEBUG
         trace_printk("L4.5: send cust module returned 0 bytes, pid %d\n", cust_sock->pid);
 #endif
+
         spin_unlock(&cust_sock->active_customization_lock);
         // make buffer reflect that we actually sent everything we claimed to send
         iov_iter_advance(&msg->msg_iter, size);
@@ -186,7 +195,8 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     if (sendmsg_return < 0)
     {
 #ifdef DEBUG
-        trace_printk("L4.5 ALERT: Sendmsg returned error code = %d, copy length = %lu\n", sendmsg_return, cust_sock->send_buf_st.copy_length);
+        trace_printk("L4.5 ALERT: Sendmsg returned error code = %d, copy length = %lu\n", sendmsg_return,
+                     cust_sock->send_buf_st.copy_length);
 #endif
         return sendmsg_return;
     }
@@ -248,6 +258,13 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     // grab this lock to prevent a cust module from unregistering and creating
     // a NULL pointer problem
     spin_lock(&cust_sock->active_customization_lock);
+
+    // check if modules should be sorted before using them
+    if (cust_sock->update_cust_sort)
+    {
+        sort_attached_cust(cust_sock);
+        cust_sock->update_cust_sort = false;
+    }
 
     // loop through cust modules until one performs a customization
     for (i = 0; i < MAX_CUST_ATTACH; i++)
@@ -361,6 +378,7 @@ int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
 #ifdef DEBUG
         trace_printk("L4.5: recv cust module returned 0 bytes, pid %d\n", cust_sock->pid);
 #endif
+
         spin_unlock(&cust_sock->active_customization_lock);
         return -EAGAIN;
     }
