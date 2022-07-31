@@ -10,7 +10,7 @@ from matplotlib.lines import Line2D
 
 # open each file, compare md5sum and fill in list of times
 dns_data_base = []
-with open("../logs/batch_base.txt") as fp:
+with open("../logs/keep/batch_base.txt") as fp:
     while True:
         time = fp.readline()
         if not time:
@@ -23,7 +23,7 @@ print(dns_data_base)
 
 
 dns_data_tap = []
-with open("../logs/batch_tap.txt") as fp:
+with open("../logs/keep/batch_tap.txt") as fp:
     while True:
         time = fp.readline()
         if not time:
@@ -36,7 +36,7 @@ print(dns_data_tap)
 
 
 dns_data_cust = []
-with open("../logs/batch_cust.txt") as fp:
+with open("../logs/keep/batch_cust.txt") as fp:
     while True:
         time = fp.readline()
         if not time:
@@ -49,10 +49,6 @@ print(dns_data_cust)
 
 dns_data = [dns_data_base, dns_data_tap, dns_data_cust]
 
-
-plt.rc('axes', titlesize=16)     # fontsize of the axes title
-plt.rc('axes', labelsize=14)
-plt.rc('figure', titlesize=16)
 
 fig, ax = plt.subplots()
 bp = ax.boxplot(dns_data, showmeans=True)
@@ -98,17 +94,17 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
     ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.04, percentLabels[tick],
             horizontalalignment='center', weight=weights[k], color="red")
 
-plt.xticks(fontsize=14)
+plt.xticks(fontsize=16)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
-plt.ylabel('Seconds')
-plt.title("DNS Batch Query/Response Time")
+plt.ylabel('Seconds', fontsize=16)
+plt.title("DNS Batch Query/Response Time", fontsize=20)
 
 
 custom_lines = [Line2D([0], [0], color="green", lw=4),
                 Line2D([0], [0], color="red", lw=4)]
 
 
-ax.legend(custom_lines, ['Mean', 'Overhead'], loc="upper left")
+ax.legend(custom_lines, ['Mean', 'Overhead'], loc="upper left", framealpha=0)
 
 # plt.show()
-plt.savefig('batch_overhead.png')
+plt.savefig('batch_overhead.png', transparent=True)

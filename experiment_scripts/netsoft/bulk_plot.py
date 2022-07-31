@@ -71,10 +71,6 @@ print(tcp_data_cust)
 tcp_data = [tcp_data_base, tcp_data_tap, tcp_data_cust]
 
 
-plt.rc('axes', titlesize=16)     # fontsize of the axes title
-plt.rc('axes', labelsize=14)
-plt.rc('figure', titlesize=16)
-
 fig, ax = plt.subplots()
 bp = ax.boxplot(tcp_data, showmeans=True)
 
@@ -119,17 +115,18 @@ for tick, label in zip(range(3), ax.get_xticklabels()):
     ax.text(pos[tick]+0.35, float(meanLabels[tick])-0.15, percentLabels[tick],
             horizontalalignment='center', weight=weights[k], color="red")
 
+plt.xticks(fontsize=16)
 plt.xticks([1, 2, 3], ["Baseline", "L4.5 Tap", "L4.5 Tap+Cust"], rotation=0)
-plt.ylabel('Seconds')
-plt.title("Bulk File Transfer Time")
+plt.ylabel('Seconds', fontsize=16)
+plt.title("Bulk File Transfer Time", fontsize=20)
 
 
 custom_lines = [Line2D([0], [0], color="green", lw=4),
                 Line2D([0], [0], color="red", lw=4)]
 
 
-ax.legend(custom_lines, ['Mean', 'Overhead'], loc="upper left")
+ax.legend(custom_lines, ['Mean', 'Overhead'], loc="upper left", framealpha=0)
 
 
 # plt.show()
-plt.savefig('bulk_overhead.png')
+plt.savefig('bulk_overhead.png', transparent=True)
