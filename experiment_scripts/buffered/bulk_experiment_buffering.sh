@@ -132,4 +132,4 @@ cd $BUFFER_SCRIPT_DIR
 
 echo "generating plot"
 
-python3 buffer_bulk_plot_simple.py
+python3 buffer_bulk_plot.py
