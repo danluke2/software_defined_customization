@@ -10,7 +10,7 @@ from matplotlib.lines import Line2D
 
 # open each file, compare md5sum and fill in list of times
 tcp_data_base = []
-with open("../logs/bulk_base.txt") as fp:
+with open("../logs/keep/bulk_base.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -30,7 +30,7 @@ print(tcp_data_base)
 
 
 tcp_data_tap = []
-with open("../logs/bulk_tap.txt") as fp:
+with open("../logs/keep/bulk_tap.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -50,7 +50,7 @@ print(tcp_data_tap)
 
 
 tcp_data_cust = []
-with open("../logs/bulk_cust.txt") as fp:
+with open("../logs/keep/bulk_cust.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -101,9 +101,9 @@ meanLabels = [str(np.round(s, 2)) for s in means]
 
 
 baseline = float(meanLabels[0])
-tapOverhead = ((float(meanLabels[1]) - baseline)/baseline)*100
-custOverhead = ((float(meanLabels[2]) - baseline)/baseline)*100
-percentLabels = ["", f'{tapOverhead:.2f}', f'{custOverhead:.2f}']
+tapOverhead = ((float(meanLabels[1]) - baseline)/baseline)
+custOverhead = ((float(meanLabels[2]) - baseline)/baseline)
+percentLabels = ["", f'{tapOverhead:.2%}', f'{custOverhead:.2%}']
 
 
 weights = ['bold', 'semibold']
