@@ -91,10 +91,13 @@ for x in tcp_data:
         minimum = temp
 
 top = maximum+0.15
+# top = 25.6
+# bottom = 24.4
 bottom = minimum-0.15
 
 ax.set_ylim(bottom, top)
-ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
+ax.yaxis.grid(True, linestyle='-', which='major',
+              color='lightgrey', alpha=0.5, )
 pos = np.arange(3) + 1
 meanLabels = [str(np.round(s, 2)) for s in means]
 
@@ -123,7 +126,7 @@ custom_lines = [Line2D([0], [0], color="green", lw=4),
                 Line2D([0], [0], color="red", lw=4)]
 
 
-ax.legend(custom_lines, ['Mean', 'Overhead'], framealpha=0)
+ax.legend(custom_lines, ['Mean', 'Overhead'], framealpha=0, loc="upper left")
 
 
 # plt.show()

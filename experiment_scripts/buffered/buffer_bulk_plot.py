@@ -92,7 +92,9 @@ for x in tcp_data:
         minimum = temp
 
 top = maximum+0.15
+# top = 25.6
 bottom = minimum-0.15
+# bottom = 24.4
 
 ax.set_ylim(bottom, top)
 ax.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
@@ -124,7 +126,7 @@ custom_lines = [Line2D([0], [0], color="green", lw=4),
                 Line2D([0], [0], color="red", lw=4)]
 
 
-ax.legend(custom_lines, ['Mean', 'Overhead'], framealpha=0)
+ax.legend(custom_lines, ['Mean', 'Overhead'], framealpha=0, loc="upper left")
 
 # plt.show()
 plt.savefig('buffer_bulk_overhead.png', transparent=True)
