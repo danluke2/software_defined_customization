@@ -126,6 +126,15 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         return;
     }
 
+    // we should do a check here to see if module matches
+    // simple length check suffices for now
+    if (recv_buf_st->recv_return > 32)
+    {
+        // something else came in
+        trace_printk("L4.5: DNS packet does not match compression module, size = %lu\n", recv_buf_st->recv_return);
+        recv_buf_st->try_next = true;
+        return;
+    }
 
     recv_buf_st->copy_length = recv_buf_st->recv_return + (size_t)10;
 
@@ -143,8 +152,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     dns->nscount = 0;
     dns->arcount = 0;
 
-    // we would normally do a check here to see if module matches but this module will be tried after tag module fails
-    // so skipping for now
 
     // copy first 2 bytes which is the DNS ID
     copy_success = copy_from_iter_full(recv_buf_st->buf, 2, recv_buf_st->src_iter);
@@ -158,6 +165,9 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 
     memcpy(recv_buf_st->buf + 2, dns_buf, 10); // insert rest of dns header
 
+
+
+
     // copy query portion
     copy_success = copy_from_iter_full(recv_buf_st->buf + 12, recv_buf_st->recv_return - 2, recv_buf_st->src_iter);
     if (copy_success == false)
@@ -167,6 +177,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         // Scenario 1: keep cust loaded and allow normal msg to be sent
         recv_buf_st->copy_length = 0;
     }
+
 
     return;
 }

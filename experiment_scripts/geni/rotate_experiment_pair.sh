@@ -35,7 +35,7 @@ HOST_PORT2=$6
 NCO=$7
 NCO_PORT=$8
 
-#start tcpdump on web server
+#start tcpdump on dns server
 sshpass -P passphrase -p "$PASSWORD" ssh -t -p $SERVER_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$SERVER "sudo tcpdump udp port 53 -i any -w $GIT_DIR/rotate_pair_exp.pcap &"
 
 sleep 2
@@ -55,13 +55,13 @@ sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o S
 
 sleep 10
 
-#update priority of host tagging module
-sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 priority_module_helper.py --module rotate_host_front --host 1  --priority 30"
+#update priority of server tagging module
+sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 priority_module_helper.py --module rotate_dns_server_front --host 3  --priority 30"
 
 sleep 10
 
-#update priority of server tagging module
-sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 priority_module_helper.py --module rotate_dns_server_front --host 3  --priority 30"
+#update priority of host tagging module
+sshpass -P passphrase -p "$PASSWORD" ssh -t -p $NCO_PORT -i id_geni_ssh_rsa -o StrictHostKeyChecking=no $USERNAME@$NCO "cd $NCO_DIR; sudo python3 priority_module_helper.py --module rotate_host_front --host 1  --priority 30"
 
 sleep 10
 
