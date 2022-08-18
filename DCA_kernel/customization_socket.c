@@ -19,11 +19,8 @@ unsigned int socket_allocsminusfrees;
 #define HASH_TABLE_BITSIZE 10
 
 static DEFINE_HASHTABLE(cust_socket_table, HASH_TABLE_BITSIZE);
-static DEFINE_HASHTABLE(normal_socket_table, HASH_TABLE_BITSIZE);
-
 
 static DEFINE_SPINLOCK(cust_socket_lock);
-static DEFINE_SPINLOCK(normal_socket_lock);
 
 
 // helpers
@@ -36,7 +33,6 @@ void init_socket_tables(void)
 {
     socket_allocsminusfrees = 0;
     hash_init(cust_socket_table);
-    hash_init(normal_socket_table);
     return;
 }
 
@@ -104,25 +100,16 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
         assign_customization(new_cust_socket, cust_node);
     }
 
+#ifdef DEBUG2
+    trace_printk("L4.5: Adding pid %d to customization table, sk=%lu\n", task->pid, (unsigned long)new_cust_socket->sk);
     if (new_cust_socket->customization == NULL)
     {
-#ifdef DEBUG2
-        trace_printk("L4.5: Adding pid %d to normal table, sk = %lu\n", task->pid, (unsigned long)new_cust_socket->sk);
-#endif
-        spin_lock(&normal_socket_lock);
-        hash_add(normal_socket_table, &new_cust_socket->socket_hash, new_cust_socket->hash_key);
-        spin_unlock(&normal_socket_lock);
+        trace_printk("L4.5: pid %d not customized, sk = %lu\n", task->pid, (unsigned long)new_cust_socket->sk);
     }
-    else
-    {
-#ifdef DEBUG2
-        trace_printk("L4.5: Adding pid %d to customization table, sk=%lu\n", task->pid,
-                     (unsigned long)new_cust_socket->sk);
 #endif
-        spin_lock(&cust_socket_lock);
-        hash_add(cust_socket_table, &new_cust_socket->socket_hash, new_cust_socket->hash_key);
-        spin_unlock(&cust_socket_lock);
-    }
+    spin_lock(&cust_socket_lock);
+    hash_add(cust_socket_table, &new_cust_socket->socket_hash, new_cust_socket->hash_key);
+    spin_unlock(&cust_socket_lock);
     return new_cust_socket;
 }
 
@@ -152,26 +139,6 @@ void update_cust_status(struct customization_socket *cust_socket, struct task_st
         trace_printk("L4.5: Assigning cust to socket, pid %d\n", task->pid);
 #endif
         assign_customization(cust_socket, cust_node);
-
-
-        // if we are now customizing the socket, we must move the socket to cust table
-        if (cust_socket->customization != NULL)
-        {
-#ifdef DEBUG2
-            trace_printk("L4.5: Adding pid %d to customization table\n", task->pid);
-#endif
-            // remove from normal table
-            spin_lock(&normal_socket_lock);
-
-            hash_del(&cust_socket->socket_hash);
-
-            // add to cust table before releasing normal lock?
-            spin_lock(&cust_socket_lock);
-            hash_add(cust_socket_table, &cust_socket->socket_hash, cust_socket->hash_key);
-            spin_unlock(&cust_socket_lock);
-
-            spin_unlock(&normal_socket_lock);
-        }
     }
 }
 
@@ -185,39 +152,21 @@ struct customization_socket *get_cust_socket(struct task_struct *task, struct so
     struct customization_socket *cust_socket_iterator;
     unsigned long key = task->pid ^ (unsigned long)sk;
 
-    // expedite normal over cust
-    spin_lock(&normal_socket_lock);
-    hash_for_each_possible(normal_socket_table, cust_socket_iterator, socket_hash, key)
+    spin_lock(&cust_socket_lock);
+    hash_for_each_possible(cust_socket_table, cust_socket_iterator, socket_hash, key)
     {
         if (cust_socket_iterator->pid == task->pid && cust_socket_iterator->sk == sk)
         {
             cust_socket = cust_socket_iterator;
 #ifdef DEBUG3
-            trace_printk("L4.5: cust socket found in normal table, current pid %d, cust_pid %d\n", task->pid,
+            trace_printk("L4.5: cust socket found in customization table, current pid %d, cust_pid %d\n", task->pid,
                          cust_socket_iterator->pid);
 #endif
             break;
         }
     }
-    spin_unlock(&normal_socket_lock);
+    spin_unlock(&cust_socket_lock);
 
-    if (cust_socket == NULL)
-    {
-        spin_lock(&cust_socket_lock);
-        hash_for_each_possible(cust_socket_table, cust_socket_iterator, socket_hash, key)
-        {
-            if (cust_socket_iterator->pid == task->pid && cust_socket_iterator->sk == sk)
-            {
-                cust_socket = cust_socket_iterator;
-#ifdef DEBUG3
-                trace_printk("L4.5: cust socket found in customization table, current pid %d, cust_pid %d\n", task->pid,
-                             cust_socket_iterator->pid);
-#endif
-                break;
-            }
-        }
-        spin_unlock(&cust_socket_lock);
-    }
     return cust_socket;
 }
 
@@ -232,17 +181,20 @@ void set_update_cust_check(void)
     struct hlist_node tmp;
     struct hlist_node *tmpptr = &tmp;
 
-    // all sockets in normal table are set
-    spin_lock(&normal_socket_lock);
-    hash_for_each_safe(normal_socket_table, bucket, tmpptr, cust_socket, socket_hash)
+    // all sockets without cust attached are set
+    spin_lock(&cust_socket_lock);
+    hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket, socket_hash)
     {
+        if (cust_socket->customization == NULL)
+        {
 #ifdef DEBUG
-        trace_printk("L4.5 Normal Socket: Resetting things with pid %d and socket %p\n", cust_socket->pid,
-                     cust_socket->sk);
+            trace_printk("L4.5 Socket: Resetting things with pid %d and socket %p\n", cust_socket->pid,
+                         cust_socket->sk);
 #endif
-        cust_socket->update_cust_check = true;
+            cust_socket->update_cust_check = true;
+        }
     }
-    spin_unlock(&normal_socket_lock);
+    spin_unlock(&cust_socket_lock);
 
     return;
 }
@@ -273,18 +225,6 @@ void remove_customization_from_each_socket(struct customization_node *cust)
                 spin_lock(&cust_socket_iterator->active_customization_lock);
                 unassign_customization(cust_socket_iterator);
                 spin_unlock(&cust_socket_iterator->active_customization_lock);
-
-                // Remove socket from customization list
-                hash_del(&cust_socket_iterator->socket_hash);
-
-#ifdef DEBUG1
-                trace_printk("L4.5: Adding pid %d to normal table, sk = %lu\n", cust_socket_iterator->pid,
-                             (unsigned long)cust_socket_iterator->sk);
-#endif
-                // Now add to the normal list
-                spin_lock(&normal_socket_lock);
-                hash_add(normal_socket_table, &cust_socket_iterator->socket_hash, cust_socket_iterator->hash_key);
-                spin_unlock(&normal_socket_lock);
             }
         }
     }
@@ -304,21 +244,6 @@ int delete_cust_socket(struct task_struct *task, struct sock *sk)
     struct hlist_node tmp;
     struct hlist_node *tmpptr = &tmp;
 
-    spin_lock(&normal_socket_lock);
-    hash_for_each_safe(normal_socket_table, bucket, tmpptr, cust_socket, socket_hash)
-    {
-        if (cust_socket->sk == sk)
-        {
-            hash_del(&cust_socket->socket_hash);
-            kfree(cust_socket);
-            socket_allocsminusfrees--;
-            found = 1;
-        }
-    }
-    spin_unlock(&normal_socket_lock);
-
-    // even if in normal table, could still be in cust table under different pid
-    // so we kind of need a new key mechanism (mostly b/c UDP)
     spin_lock(&cust_socket_lock);
     hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket, socket_hash)
     {
@@ -347,20 +272,6 @@ void delete_all_cust_socket(void)
     struct customization_socket *cust_socket;
     struct hlist_node tmp;
     struct hlist_node *tmpptr = &tmp;
-
-
-    spin_lock(&normal_socket_lock);
-    hash_for_each_safe(normal_socket_table, bucket, tmpptr, cust_socket, socket_hash)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5 Normal Socket: Deleting things in bucket [%d] with pid value %d and socket value %lu\n",
-                     bucket, cust_socket->pid, (unsigned long)cust_socket->sk);
-#endif
-        hash_del(&cust_socket->socket_hash);
-        kfree(cust_socket);
-        socket_allocsminusfrees--;
-    }
-    spin_unlock(&normal_socket_lock);
 
 
     // nothing should be in this table, but check anyway to be safe

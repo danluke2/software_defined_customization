@@ -253,7 +253,7 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size,
 
     cust_socket = get_cust_socket(task, sk);
 
-    // this section generall only runs on first tap attempt (client, UDP)
+    // this section generally only runs on first tap attempt (client, UDP)
     if (cust_socket == NULL)
     {
 #ifdef DEBUG3

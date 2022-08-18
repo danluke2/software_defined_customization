@@ -80,7 +80,6 @@ struct customization_socket
     // flag used to signal a new module registered and we should check cust matching
     bool update_cust_check;
 
-    // customization can be one way, so allow for send/recv differentiation
     enum customization_state customize_or_skip;
 
     struct customization_flow socket_flow;

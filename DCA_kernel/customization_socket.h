@@ -6,15 +6,13 @@
 #include "common_structs.h"
 
 
-// Creates the customization and normal socket tables
-// Normal: holds all sockets without customization applied
-// Cust: holds all sockets that have active customization nodes
+// Creates the customization socket table to hold processed sockets
 // @see hashtable.h for hash_init
-// @post initialized tables and memory tracking
+// @post initialized table and memory tracking
 void init_socket_tables(void);
 
 
-// Creates a customizable socket and adds it to the appropriate hash table.
+// Creates a customizable socket and adds it to the hash table.
 // Determines if customization will apply to socket based on registered custs
 // @param[I] pid The desired Process ID
 // @param[I] sk A pointer to socket struct for the connection
@@ -25,8 +23,7 @@ void init_socket_tables(void);
 struct customization_socket *create_cust_socket(struct task_struct *task, struct sock *sk, struct msghdr *msg);
 
 
-// Checks if the customizable socket now matches any new cust modules and transfers
-// it to the cust table if necessary
+// Checks if the customizable socket now matches any new cust modules
 // @param[I] cust_socket The customizable socket
 // @param[I] task current task pointer
 // @param[I] sk A pointer to socket struct for the connection
@@ -35,7 +32,6 @@ void update_cust_status(struct customization_socket *cust_socket, struct task_st
 
 
 // Finds a customizable socket in the hash table
-// Starts with search of normal table b/c more likely to find there
 // @param[I] pid The desired connection's Process ID.
 // @param[I] sk A pointer to socket struct for the connection.
 // @return The customizable socket
@@ -43,8 +39,7 @@ struct customization_socket *get_cust_socket(struct task_struct *task, struct so
 
 
 
-// Sets customization update check to true for each socket in normal table
-// For sockets in cust table, sets check if cust array not full
+// Sets customization update check to true for each socket in table not customized
 // Called when new cust module registered with applyNow flag set
 void set_update_cust_check(void);
 
