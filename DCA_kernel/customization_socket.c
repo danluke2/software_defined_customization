@@ -250,7 +250,11 @@ int delete_cust_socket(struct task_struct *task, struct sock *sk)
         if (cust_socket->sk == sk)
         {
             hash_del(&cust_socket->socket_hash);
-            unassign_customization(cust_socket);
+            if (cust_socket->customization != NULL)
+            {
+                unassign_customization(cust_socket);
+            }
+
             kfree(cust_socket);
             socket_allocsminusfrees--;
             found = 1;

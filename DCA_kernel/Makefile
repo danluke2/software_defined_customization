@@ -1,7 +1,7 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
-DISTRO_DIR=/lib/modules/5.13.0-35-generic
+INSTALL_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5
+DISTRO_DIR=/lib/modules/5.15.0-46-generic
 # ************** END STANDARD PARAMS ****************
 
 
@@ -25,7 +25,7 @@ KCFLAGS = -Wall -O3 -g
 # DEBUG2 has very situational comments that can just clog up the file
 # DEBUG3 most amount of comments
 # DEBUG_FLAGS = -DDEBUG -DDEBUG1 -DDEBUG2 -DDEBUG3
-DEBUG_FLAGS = -DDEBUG
+DEBUG_FLAGS = -DDEBUG 
 
 all: layer4_5
 

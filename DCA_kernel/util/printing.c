@@ -73,29 +73,13 @@ void trace_print_cust_socket(struct customization_socket *cust_socket, char *con
 
 void trace_print_msg_params(struct msghdr *msg)
 {
-    // trace_printk("msg control is user = %u\n", msg->msg_control_is_user); //how to pick correct control buffer
     trace_printk("msg control len = %lu\n", msg->msg_controllen); // control buffer length
     trace_printk("msg flags as integer= %d\n", msg->msg_flags);
-    trace_printk("msg iter type = %u\n", msg->msg_iter.type);
+    trace_printk("msg iter type = %u\n", iov_iter_type(&msg->msg_iter));
     trace_printk("msg iov len = %lu\n", msg->msg_iter.iov->iov_len);
     trace_printk("msg iov offset = %lu\n", msg->msg_iter.iov_offset);
     trace_printk("Total amount of data pointed to by the iovec array (count) = %lu\n", msg->msg_iter.count);
     trace_printk("Number of iovec structures (nr_segs) = %lu\n", msg->msg_iter.nr_segs);
-
-    // dump the contol buffer if data present
-    // if (msg->msg_controllen > 0)
-    // {
-    //   if (msg->msg_control_is_user)
-    //   {
-    //     trace_print_hex_dump("User control buffer: ", DUMP_PREFIX_ADDRESS, 16, 1, msg->msg_control_user,
-    //     msg->msg_controllen, true);
-    //   }
-    //   else
-    //   {
-    //     trace_print_hex_dump("Kernel control buffer: ", DUMP_PREFIX_ADDRESS, 16, 1, msg->msg_control,
-    //     msg->msg_controllen, true);
-    //   }
-    // }
 }
 
 void trace_print_iov_params(struct iov_iter *src_iter)

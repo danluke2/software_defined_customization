@@ -8,11 +8,11 @@ CURDIR="$(pwd)"
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
-INCLUDE_DIR=/usr/lib/modules/5.13.0-35-generic/build/include
-CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
+INSTALL_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5
+INCLUDE_DIR=/usr/lib/modules/5.15.0-46-generic/build/include
+CUST_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5/customizations
 GIT_DIR=/home/vagrant/software_defined_customization
-DCA_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/DCA
+DCA_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5/DCA
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 # ************** END STANDARD PARAMS ****************
 

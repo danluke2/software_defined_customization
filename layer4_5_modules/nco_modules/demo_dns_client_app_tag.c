@@ -28,15 +28,17 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
                                  size_t len, bool ascii);
 
 // Kernel module parameters with default values
-static char *destination_ip = "10.0.0.20";
+// NOTE: In Ubuntu 22.04 the default is the dest=0.0.0.0:0 and src is set
+// I don't know why this changed yet
+static char *destination_ip = "0.0.0.0";
 module_param(destination_ip, charp, 0600); // root only access to change
 MODULE_PARM_DESC(destination_ip, "Dest IP to match");
 
-static char *source_ip = "0.0.0.0";
+static char *source_ip = "10.0.0.40";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
-static unsigned int destination_port = 53;
+static unsigned int destination_port = 0;
 module_param(destination_port, uint, 0600);
 MODULE_PARM_DESC(destination_port, "DPORT to match");
 
@@ -334,8 +336,8 @@ out:
 int __init sample_client_start(void)
 {
     int result;
-    char thread_name[16] = "isc-worker0000"; // this applies to dig requests
-    char application_name[16] = "dig";       // this applies to dig requests
+    char thread_name[16] = "*";
+    char application_name[16] = "dig"; // this applies to dig requests
 
     dns_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
     if (dns_cust == NULL)

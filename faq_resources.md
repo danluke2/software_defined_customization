@@ -124,6 +124,8 @@ Common items I refer to when trying to understand code and functions in the kern
 
 1) prevent ubuntu updates:
 
+    https://askubuntu.com/questions/678630/how-can-i-avoid-kernel-updates/678633#678633
+
     https://askubuntu.com/questions/938494/how-to-i-prevent-ubuntu-from-kernel-version-upgrade-and-notification
 
 
@@ -135,3 +137,11 @@ Common items I refer to when trying to understand code and functions in the kern
 1) python multiprocessing/logging:
 
     https://fanchenbao.medium.com/python3-logging-with-multiprocessing-f51f460b8778
+
+1) VBox on mac display issues:
+
+    https://apple.stackexchange.com/questions/429673/low-resolution-mode-in-macos-monterey
+
+    https://www.reddit.com/r/virtualbox/comments/houi9k/how_to_fix_virtualbox_61_running_slow_on_mac/
+
+    

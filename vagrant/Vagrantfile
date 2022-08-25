@@ -10,29 +10,16 @@ Vagrant.configure("2") do |config|
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
 
-  # Ubuntu 20.04 VM, kernel 5.13 has been loaded with:
-  # guest additions included
-  # add-apt-repository -y ppa:wireshark-dev/stable
-  # add-apt-repository -y ppa:linuxgndu/sqlitebrowser
-  # apt update
-  # apt install -y git sshpass curl dnsmasq sqlitebrowser wireshark openssh-server iperf3 net-tools
-  # usermod -a -G wireshark vagrant
-  # sudo pip install matplotlib #so avail for all users
-  # echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
-  # systemctl restart ssh
-  # pip install pycryptodome # for python encryption support in NCO
-
-
-
+  
   # Single machine for running sample modules
   # config.vm.box = "squanchy/layer4.5"
-  # config.vm.box_version = "1.1"
+  # config.vm.box_version = "2.0"
 
 
   # Multiple machines for running experiment modules
   config.vm.define "server" do |server|
     server.vm.box = "squanchy/layer4.5"
-    server.vm.box_version = "1.1"
+    server.vm.box_version = "2.0"
     server.vm.network "private_network", ip: "10.0.0.20", virtualbox__intnet: "layer", nic_type: "virtio"
     server.vm.provider "virtualbox" do |vb|
       # Display the VirtualBox GUI when booting the machine
@@ -47,7 +34,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "client" do |client|
     client.vm.box = "squanchy/layer4.5"
-    client.vm.box_version = "1.1"
+    client.vm.box_version = "2.0"
     client.vm.network "private_network", ip: "10.0.0.40", virtualbox__intnet: "layer", nic_type: "virtio"
     client.vm.provider "virtualbox" do |vb|
       # Display the VirtualBox GUI when booting the machine
@@ -59,9 +46,6 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
     end
   end
-
-
-
 
 
 

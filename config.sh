@@ -95,7 +95,7 @@ sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
 
 # *************** Other Makefile updates ***************
 
-MAKEFILE_PATHS="$DCA_KERNEL_DIR/test_modules $LAYER_MOD_DIR/sample_modules  $GENI_MOD_DIR $NETSOFT_MOD_DIR"
+MAKEFILE_PATHS="$LAYER_MOD_DIR/sample_modules  $GENI_MOD_DIR $NETSOFT_MOD_DIR"
 
 for x in $MAKEFILE_PATHS; do
   FILE=$x/Makefile
