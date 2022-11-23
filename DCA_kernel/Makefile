@@ -1,7 +1,7 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5
-DISTRO_DIR=/lib/modules/5.15.0-46-generic
+INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
+DISTRO_DIR=/lib/modules/5.13.0-35-generic
 # ************** END STANDARD PARAMS ****************
 
 
@@ -10,7 +10,7 @@ layer4_5-objs := init.o \
 		       customization_socket.o \
 					 register_cust.o \
 					 send_recv_manager.o \
-		       util/printing.o \
+		       util/helpers.o \
 					 util/compare.o \
 					 util/json-maker.o
 

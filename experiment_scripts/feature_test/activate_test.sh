@@ -3,8 +3,6 @@
 # Purpose: deploy non-activated module and ensure it attaches to socket but not customize it
 # Then we send an activate command to ensure cust happens
 
-# Run from client VM
-
 # ************** STANDARD PARAMS MUST GO HERE ****************
 GIT_DIR=/home/vagrant/software_defined_customization
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
@@ -17,7 +15,7 @@ GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
-CUST_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5/customizations
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
@@ -69,7 +67,7 @@ sleep 5
 
 # Insert client module in DB for deployment to host_id = 1, with active mode set to false (default)
 echo "*************** Deploy Client Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 1
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_client_app_tag" --host 1 --priority 42
 
 sleep 5
 
@@ -81,7 +79,7 @@ sleep 5
 
 # Insert server module in DB for deployment to host_id = 2, with active mode set to false and with applyNow set
 echo "*************** Deploy Server Module  ***************"
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 2 --applyNow
+python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 2 --priority 42 --applyNow
 
 sleep 5
 

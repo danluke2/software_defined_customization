@@ -159,3 +159,45 @@ def toggle_active(conn_socket, db_connection, host_id, mod_id, mode):
             return 0
     except Exception as e:
         logger.info(f"Toggle exception: {e}")
+
+
+# Handle toggling of modules; part of NCO controlled enabling of new module
+def retrieve_set_priority_list(db_connection, host_id):
+    priority_list = select_all_req_set_priority(db_connection, host_id)
+    if priority_list == cfg.DB_ERROR:
+        return -1
+    if type(priority_list) != list:
+        priority_list = []
+    mod_id = [x[1] for x in priority_list]
+    mode = [x[2] for x in priority_list]
+    return mod_id, mode
+
+
+def set_priority(conn_socket, db_connection, host_id, mod_id, priority):
+    logger.info(
+        f"Setting module {mod_id} priority to {priority} for host {host_id}")
+    # send active update command
+    command = {"cmd": "set_priority", "id": mod_id, "priority": priority}
+    send_string = json.dumps(command, indent=4)
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+    try:
+        data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
+        json_data = json.loads(data)
+    except json.decoder.JSONDecodeError as e:
+        logger.info(f"Error on active mode update recv call\n {e}")
+        return
+
+    # Need to check for ERROR key if failed
+    try:
+        id = json_data["ID"]
+        success = json_data["Result"]
+
+        if success == 0:
+            logger.info(f"Device error: {data}")
+            return cfg.REVOKE_ERROR
+        else:
+            # remove module from require table; next report will handle table updates
+            delete_req_set_priority_by_id(db_connection, host_id, id)
+            return 0
+    except Exception as e:
+        logger.info(f"Prioirty exception: {e}")

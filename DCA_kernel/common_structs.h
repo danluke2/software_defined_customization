@@ -8,6 +8,8 @@
 #include <linux/types.h>
 #include <net/sock.h>
 
+
+#define MAX_CUST_ATTACH 5
 #define TASK_NAME_LEN 16 // defined in sched.h as TASK_COMM_LEN 16
 #define SEND_BUF_SIZE 65536
 #define RECV_BUF_SIZE 65536
@@ -66,6 +68,7 @@ struct customization_buffer
     size_t recv_return;        // amount of data L4 returned from recvmsg call
     bool set_cust_to_skip;     // no more cust performed on socket
     bool no_cust;              // module didn't alter message (save a copy operation)
+    bool try_next;             // module didn't match and next module in array should be checked
 };
 
 
@@ -80,12 +83,18 @@ struct customization_socket
     // flag used to signal a new module registered and we should check cust matching
     bool update_cust_check;
 
+    // flag used to signal attached customizations need to be sorted again before use
+    bool update_cust_sort;
+
+    // customization must register both send/recv to simplify cust array processing
     enum customization_state customize_or_skip;
 
     struct customization_flow socket_flow;
 
-    // custimation will be cast to customization node
-    void *customization;
+    // custimation pointer will be cast to customization node
+    // we now keep an array of pointers to customization nodes, sorted by priority
+    void *customizations[MAX_CUST_ATTACH];
+    // all customization modules will use the same customization buffers
     struct customization_buffer send_buf_st;
     struct customization_buffer recv_buf_st;
     struct timespec64 last_cust_send_time_struct; // last time cust was applied
@@ -109,7 +118,7 @@ struct customization_node
     u16 *active_mode;
     // counter to track number of sockets cust is applied to
     u16 sock_count;
-    // for future use
+    // used to sort customizations in cust array
     u16 *cust_priority;
 
     // cust can set these to override the defualt SEND_BUF_SIZE, RECV_BUF_SIZE

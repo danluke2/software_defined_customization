@@ -1,6 +1,7 @@
 
 import argparse
 import time
+import random
 
 
 from CIB_helper import *
@@ -18,6 +19,8 @@ parser.add_argument('--type', type=str, required=False,
                     help="type of middlebox for dependency")
 parser.add_argument(
     '--activate', help="Activates module", action="store_true")
+parser.add_argument('--priority', type=int, required=False,
+                    help="Module priority level, defaults to random value")
 parser.add_argument(
     '--applyNow', help="Apply module check to all sockets, including previously checked", action="store_true")
 
@@ -40,7 +43,12 @@ if args.activate:
 if args.applyNow:
     applyNow = 1  # overwrite default
 
+if args.priority:
+    priority = args.priority
+else:
+    priority = random.randint(1, 65534)
+
 time.sleep(5)
 
 insert_req_build_module(db_connection, args.host,
-                        args.module, active_mode, applyNow)
+                        args.module, active_mode, priority, applyNow)

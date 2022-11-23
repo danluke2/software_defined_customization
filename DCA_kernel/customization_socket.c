@@ -5,13 +5,15 @@
 #include <linux/hashtable.h>
 #include <linux/slab.h>
 #include <linux/socket.h>
+#include <linux/sort.h>
 #include <linux/timekeeping.h> // for timestamps
 #include <linux/uio.h>         // For iovec structures
 #include <net/inet_sock.h>
 
 #include "customization_socket.h"
 #include "register_cust.h" //for get_customization
-#include "util/printing.h"
+#include "util/compare.h"
+#include "util/helpers.h"
 #include <linux/cred.h> //uid testing
 
 
@@ -25,8 +27,17 @@ static DEFINE_SPINLOCK(cust_socket_lock);
 
 // helpers
 static void set_four_tuple(struct sock *sk, struct customization_socket *cust_socket, struct msghdr *msg);
-static void assign_customization(struct customization_socket *cust_sock, struct customization_node *cust_node);
-static void unassign_customization(struct customization_socket *cust_sock);
+
+static void assign_customizations(struct customization_socket *cust_sock,
+                                  struct customization_node *cust_node[MAX_CUST_ATTACH], size_t node_counter);
+
+static size_t assign_customization_to_array(struct customization_socket *cust_sock,
+                                            struct customization_node *cust_node);
+
+static void unassign_all_customization(struct customization_socket *cust_sock);
+static int unassign_single_customization(struct customization_socket *cust_sock, struct customization_node *cust_node);
+
+
 
 
 void init_socket_tables(void)
@@ -42,8 +53,10 @@ void init_socket_tables(void)
 struct customization_socket *create_cust_socket(struct task_struct *task, struct sock *sk, struct msghdr *msg)
 {
     struct customization_socket *new_cust_socket = NULL;
-    struct customization_node *cust_node = NULL;
+    struct customization_node *cust_nodes[MAX_CUST_ATTACH] = {NULL};
     struct task_struct *tgid_task = pid_task(find_vpid(task->tgid), PIDTYPE_PID);
+    size_t node_counter = 0;
+    size_t i;
 
     new_cust_socket = kmalloc(sizeof(struct customization_socket), GFP_KERNEL);
     if (new_cust_socket == NULL)
@@ -64,15 +77,22 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
     new_cust_socket->socket_flow.protocol = sk->sk_protocol;
     memcpy(new_cust_socket->socket_flow.task_name_pid, task->comm, TASK_NAME_LEN);
     memcpy(new_cust_socket->socket_flow.task_name_tgid, tgid_task->comm, TASK_NAME_LEN);
+
     // default pointer values to prevent random errors
-    new_cust_socket->customization = NULL;
+    for (i = 0; i < MAX_CUST_ATTACH; i++)
+    {
+        // put NULL pointers into customization array
+        new_cust_socket->customizations[i] = NULL;
+    }
     new_cust_socket->send_buf_st.buf = NULL;
     new_cust_socket->send_buf_st.no_cust = false;
     new_cust_socket->send_buf_st.set_cust_to_skip = false;
+    new_cust_socket->send_buf_st.try_next = false;
 
     new_cust_socket->recv_buf_st.buf = NULL;
     new_cust_socket->recv_buf_st.no_cust = false;
     new_cust_socket->recv_buf_st.set_cust_to_skip = false;
+    new_cust_socket->recv_buf_st.try_next = false;
 
     // set default time values to indicate no packets seen yet
     new_cust_socket->last_cust_send_time_struct.tv_sec = 0;
@@ -83,8 +103,8 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
     set_four_tuple(sk, new_cust_socket, msg);
 
     // all necessary values set to match a customization
-    cust_node = get_customization(new_cust_socket);
-    if (cust_node == NULL)
+    node_counter = get_customizations(new_cust_socket, cust_nodes);
+    if (node_counter == 0)
     {
 #ifdef DEBUG3
         trace_printk("L4.5: cust request lookup NULL, proto=%u, pid task=%s, tgid task=%s, uid = %d\n", sk->sk_protocol,
@@ -97,12 +117,12 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 #ifdef DEBUG
         trace_printk("L4.5: Assigning cust to socket, pid %d\n", task->pid);
 #endif
-        assign_customization(new_cust_socket, cust_node);
+        assign_customizations(new_cust_socket, cust_nodes, node_counter);
     }
 
 #ifdef DEBUG2
     trace_printk("L4.5: Adding pid %d to customization table, sk=%lu\n", task->pid, (unsigned long)new_cust_socket->sk);
-    if (new_cust_socket->customization == NULL)
+    if (new_cust_socket->customization[0] == NULL)
     {
         trace_printk("L4.5: pid %d not customized, sk = %lu\n", task->pid, (unsigned long)new_cust_socket->sk);
     }
@@ -118,10 +138,17 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 
 void update_cust_status(struct customization_socket *cust_socket, struct task_struct *task, struct sock *sk)
 {
-    struct customization_node *cust_node = NULL;
+    struct customization_node *cust_nodes[MAX_CUST_ATTACH] = {NULL};
+    size_t node_counter = 0;
+    size_t assign_counter = 0;
+    int i;
+    int j;
+    bool found = false;
 
-    cust_node = get_customization(cust_socket);
-    if (cust_node == NULL)
+    // 2 cases: add cust to non-cust socket, add cust to cust socket that has room for new cust
+
+    node_counter = get_customizations(cust_socket, cust_nodes);
+    if (node_counter == 0)
     {
 #ifdef DEBUG3
         trace_printk("L4.5: cust update lookup NULL, proto=%u, pid task=%s, tgid task=%s, uid = %d\n",
@@ -132,13 +159,46 @@ void update_cust_status(struct customization_socket *cust_socket, struct task_st
         return;
     }
 
-    // previously skipped socket is now customized
-    if (cust_socket->customization == NULL)
+    // case 1: previously skipped socket is now customized
+    if (cust_socket->customizations[0] == NULL)
     {
 #ifdef DEBUG
         trace_printk("L4.5: Assigning cust to socket, pid %d\n", task->pid);
 #endif
-        assign_customization(cust_socket, cust_node);
+        assign_customizations(cust_socket, cust_nodes, node_counter);
+    }
+    // case 2: we are adjusting modules attached to cust socket
+    // loop through the current list of modules and add new modules where NULL pointers are
+    else
+    {
+        for (i = 0; i < node_counter; i++)
+        {
+            found = false;
+            for (j = 0; j < MAX_CUST_ATTACH; j++)
+            {
+                if (cust_socket->customizations[j] == NULL)
+                {
+                    // if NULL pointer found, then don't check remaining NULL pointers
+                    break;
+                }
+
+                if (cust_nodes[i] == cust_socket->customizations[j])
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (found == false)
+            {
+                // found a new cust module to add to the socket
+                assign_counter = assign_customization_to_array(cust_socket, cust_nodes[i]);
+                if (assign_counter == 0 || assign_counter == MAX_CUST_ATTACH)
+                {
+                    // either assigning new customization failed or array is full, so stop trying
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -180,18 +240,24 @@ void set_update_cust_check(void)
     struct customization_socket *cust_socket;
     struct hlist_node tmp;
     struct hlist_node *tmpptr = &tmp;
+    int i;
 
-    // all sockets without cust attached are set
+    // only sockets with space in cust array are set
     spin_lock(&cust_socket_lock);
     hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket, socket_hash)
     {
-        if (cust_socket->customization == NULL)
-        {
 #ifdef DEBUG
-            trace_printk("L4.5 Socket: Resetting things with pid %d and socket %p\n", cust_socket->pid,
-                         cust_socket->sk);
+        trace_printk("L4.5 Cust Socket: Resetting things with pid %d and socket %p\n", cust_socket->pid,
+                     cust_socket->sk);
 #endif
-            cust_socket->update_cust_check = true;
+        for (i = 0; i < MAX_CUST_ATTACH; i++)
+        {
+            if (cust_socket->customizations[i] == NULL)
+            {
+                // there is room in the array for a new module to be added
+                cust_socket->update_cust_check = true;
+                break;
+            }
         }
     }
     spin_unlock(&cust_socket_lock);
@@ -209,22 +275,30 @@ void remove_customization_from_each_socket(struct customization_node *cust)
     int bucket;
     struct hlist_node tmp;
     struct hlist_node *tmpptr = &tmp;
+    size_t i;
 
     // Prevent customized socket access while potentially removing cust from it
     spin_lock(&cust_socket_lock);
     hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket_iterator, socket_hash)
     {
-        cust_node = cust_socket_iterator->customization;
-        if (cust_node != NULL)
+        for (i = 0; i < MAX_CUST_ATTACH; i++)
         {
+            cust_node = cust_socket_iterator->customizations[i];
+            if (cust_node == NULL)
+            {
+                // no need to keek checking
+                break;
+            }
+
             if (cust_node->cust_id == cust_id)
             {
 #ifdef DEBUG1
                 trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
 #endif
-                spin_lock(&cust_socket_iterator->active_customization_lock);
-                unassign_customization(cust_socket_iterator);
-                spin_unlock(&cust_socket_iterator->active_customization_lock);
+                // unassign_single_customization will get active lock and also set update_cust_check to force another
+                // cust lookup
+                unassign_single_customization(cust_socket_iterator, cust_node);
+                break;
             }
         }
     }
@@ -233,6 +307,125 @@ void remove_customization_from_each_socket(struct customization_node *cust)
 }
 
 
+
+// Hash for each b/c we need to find matching sockets, so don't know keys
+void sort_each_socket_with_matching_cust(struct customization_node *cust)
+{
+    u32 cust_id = cust->cust_id;
+    struct customization_socket *cust_socket_iterator;
+    struct customization_node *cust_node;
+    int bucket;
+    struct hlist_node tmp;
+    struct hlist_node *tmpptr = &tmp;
+    size_t i;
+    size_t j;
+
+    // Prevent customized socket access while potentially sorting it
+    spin_lock(&cust_socket_lock);
+    hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket_iterator, socket_hash)
+    {
+        for (i = 0; i < MAX_CUST_ATTACH; i++)
+        {
+            cust_node = cust_socket_iterator->customizations[i];
+            if (cust_node == NULL)
+            {
+                // no need to keep checking
+                break;
+            }
+
+            if (cust_node->cust_id == cust_id)
+            {
+#ifdef DEBUG1
+                trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
+#endif
+                // NOTE: for some reason this lock won't release and will freeze the machine
+                spin_lock(&cust_socket_iterator->active_customization_lock);
+
+                // there are at least i customizations attached, but need to know exact
+                // when finished, j is index of first NULL ptr and also number of cust attached
+                for (j = i; j < MAX_CUST_ATTACH; j++)
+                {
+                    if (cust_socket_iterator->customizations[j] == NULL)
+                    {
+                        break;
+                    }
+                }
+                // if j = 1, then only one cust attached and no need to sort
+                if (j > 1)
+                {
+                    // for loop index = number of elements of customization array
+                    sort(cust_socket_iterator->customizations, j, sizeof(void *), &priority_compare, NULL);
+                }
+
+                spin_unlock(&cust_socket_iterator->active_customization_lock);
+
+                break;
+            }
+        }
+    }
+    spin_unlock(&cust_socket_lock);
+    return;
+}
+
+
+
+// Hash for each b/c we need to find matching sockets, so don't know keys
+void sort_mark_each_socket_with_matching_cust(struct customization_node *cust)
+{
+    u32 cust_id = cust->cust_id;
+    struct customization_socket *cust_socket_iterator;
+    struct customization_node *cust_node;
+    int bucket;
+    struct hlist_node tmp;
+    struct hlist_node *tmpptr = &tmp;
+    size_t i;
+
+    // Prevent customized socket access while potentially sorting it
+    spin_lock(&cust_socket_lock);
+    hash_for_each_safe(cust_socket_table, bucket, tmpptr, cust_socket_iterator, socket_hash)
+    {
+        for (i = 0; i < MAX_CUST_ATTACH; i++)
+        {
+            cust_node = cust_socket_iterator->customizations[i];
+            if (cust_node == NULL)
+            {
+                // no need to keep checking
+                break;
+            }
+
+            if (cust_node->cust_id == cust_id)
+            {
+#ifdef DEBUG1
+                trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
+#endif
+                cust_socket_iterator->update_cust_sort = true;
+                break;
+            }
+        }
+    }
+    spin_unlock(&cust_socket_lock);
+    return;
+}
+
+
+void sort_attached_cust(struct customization_socket *cust_sock)
+{
+    size_t i;
+    // need to loop through cust nodes to find out how many there are
+    for (i = 0; i < MAX_CUST_ATTACH; i++)
+    {
+        if (cust_sock->customizations[i] == NULL)
+        {
+            break;
+        }
+    }
+#ifdef DEBUG1
+    trace_printk("L4.5: sorting %lu cust nodes\n", i);
+#endif
+
+    // for loop index = number of elements of customization array
+    sort(cust_sock->customizations, i, sizeof(void *), &priority_compare, NULL);
+}
 
 
 // Only called by Socket close function, but might not be called by same task that created it
@@ -250,9 +443,9 @@ int delete_cust_socket(struct task_struct *task, struct sock *sk)
         if (cust_socket->sk == sk)
         {
             hash_del(&cust_socket->socket_hash);
-            if (cust_socket->customization != NULL)
+            if (cust_socket->customizations[0] != NULL)
             {
-                unassign_customization(cust_socket);
+                unassign_all_customization(cust_socket);
             }
 
             kfree(cust_socket);
@@ -328,97 +521,198 @@ static void set_four_tuple(struct sock *sk, struct customization_socket *cust_so
 }
 
 
-// Assigns a customization to the socket; allocs buffers and sets params
+
+
+// Assigns array of customizations to the socket; allocs buffers and sets params
 // @param[X] cust_sock The customization socket to assign cust to
-// @param[I] cust_node The customization to apply to the socket
+// @param[I] cust_node[MAX_CUST_ATTACH] The customization array to apply to the socket
+// @param[I] node_counter The number of valid customiztion node pointers in the cust_node array
 // @post customization buffers are allocated and customization params set
-static void assign_customization(struct customization_socket *cust_sock, struct customization_node *cust_node)
+static void assign_customizations(struct customization_socket *cust_sock,
+                                  struct customization_node *cust_node[MAX_CUST_ATTACH], size_t node_counter)
 {
-    // condition ? value_if_true : value_if_false
-    u32 send_buffer_size = (cust_node->send_buffer_size != 0) ? cust_node->send_buffer_size : SEND_BUF_SIZE;
-    u32 recv_buffer_size = (cust_node->recv_buffer_size != 0) ? cust_node->recv_buffer_size : RECV_BUF_SIZE;
+    u32 send_buffer_size = SEND_BUF_SIZE;
+    u32 recv_buffer_size = RECV_BUF_SIZE;
+    size_t i;
+
+    // assume we will cust send/recv
+    cust_sock->customize_or_skip = CUSTOMIZE;
+
+    trace_printk("L4.5: assigning %lu nodes to socket\n", node_counter);
+
+
+    // determine which customization node requires the largest buffer, and assign
+    for (i = 0; i < node_counter; i++)
+    {
+        if (cust_node[i] == NULL)
+        {
+            break;
+        }
+        trace_printk("L4.5: socket %lu = %u\n", i, cust_node[i]->cust_id);
+        if (cust_node[i]->send_buffer_size > send_buffer_size)
+        {
+            send_buffer_size = cust_node[i]->send_buffer_size;
+        }
+
+        if (cust_node[i]->recv_buffer_size > recv_buffer_size)
+        {
+            recv_buffer_size = cust_node[i]->recv_buffer_size;
+        }
+
+        // all cust nodes must have valid function pointers, which are checked when module is registered
+        if (cust_node[i]->send_function == NULL || cust_node[i]->recv_function == NULL)
+        {
+#ifdef DEBUG
+            trace_printk("L4.5: Cust send or recv null, pid=%d, name=%s\n", cust_sock->pid,
+                         cust_sock->socket_flow.task_name_pid);
+#endif
+            cust_sock->customize_or_skip = SKIP;
+            break;
+        }
+    }
+
 
 #ifdef DEBUG
     trace_printk("L4.5: Send buffer size = %u\n", send_buffer_size);
     trace_printk("L4.5: Recv buffer size = %u\n", recv_buffer_size);
 #endif
 
-    // assume we will cust send/recv
-    cust_sock->customize_or_skip = CUSTOMIZE;
 
-    // all cust nodes must have valid function pointers, which are checked when module is registered
-    if (cust_node->send_function == NULL || cust_node->recv_function == NULL)
+    if (cust_sock->customize_or_skip == CUSTOMIZE)
     {
+        cust_sock->send_buf_st.buf = kmalloc(send_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
+        cust_sock->recv_buf_st.buf = kmalloc(recv_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
+        if (cust_sock->send_buf_st.buf == NULL || cust_sock->recv_buf_st.buf == NULL)
+        {
 #ifdef DEBUG
-        trace_printk("L4.5: Cust send or recv null, pid=%d, name=%s\n", cust_sock->pid,
-                     cust_sock->socket_flow.task_name_pid);
+            trace_printk("L4.5 ALERT cust buffer malloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol,
+                         cust_sock->socket_flow.task_name_pid);
 #endif
-        cust_sock->customize_or_skip = SKIP;
-        goto error_and_return;
+            cust_sock->customize_or_skip = SKIP;
+        }
+        else
+        {
+#ifdef DEBUG
+            trace_printk("L4.5 Assigned buffer, pid=%d, name=%s\n", cust_sock->pid,
+                         cust_sock->socket_flow.task_name_pid);
+#endif
+
+            socket_allocsminusfrees += 2;
+            cust_sock->send_buf_st.buf_size = send_buffer_size;
+            cust_sock->recv_buf_st.buf_size = recv_buffer_size;
+            cust_sock->customize_or_skip = CUSTOMIZE;
+
+            // only need to create the active spinlock if customizing socket
+            spin_lock_init(&cust_sock->active_customization_lock);
+
+            // need to loop through cust nodes and assign to socket
+            for (i = 0; i < node_counter; i++)
+            {
+                cust_sock->customizations[i] = cust_node[i];
+                cust_node[i]->sock_count += 1;
+#ifdef DEBUG
+                trace_printk("L4.5: Socket count = %u\n", cust_node[i]->sock_count);
+#endif
+            }
+        }
     }
 
-
-    cust_sock->send_buf_st.buf = kmalloc(send_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
-    if (cust_sock->send_buf_st.buf == NULL)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5 ALERT Send cust buffer malloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol,
-                     cust_sock->socket_flow.task_name_pid);
-#endif
-        cust_sock->customize_or_skip = SKIP;
-        goto error_and_return;
-    }
-
-    cust_sock->recv_buf_st.buf = kmalloc(recv_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
-    if (cust_sock->recv_buf_st.buf == NULL)
-    {
-#ifdef DEBUG
-        trace_printk("L4.5 ALERT Recv cust buffer malloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol,
-                     cust_sock->socket_flow.task_name_pid);
-#endif
-        cust_sock->customize_or_skip = SKIP;
-        // free send buffer since kmalloc must have passed for it
-        kfree(cust_sock->send_buf_st.buf);
-        goto error_and_return;
-    }
-
-#ifdef DEBUG
-    trace_printk("L4.5 Assigned buffers, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
-#endif
-    socket_allocsminusfrees += 2;
-    cust_sock->send_buf_st.buf_size = send_buffer_size;
-    cust_sock->recv_buf_st.buf_size = recv_buffer_size;
-    cust_sock->customize_or_skip = CUSTOMIZE;
-    cust_sock->customization = cust_node;
-
-    spin_lock_init(&cust_sock->active_customization_lock);
-    // increment count here to keep count accurate/easier to manage
-    cust_node->sock_count += 1;
-#ifdef DEBUG
-    trace_printk("L4.5: Socket count = %u\n", cust_node->sock_count);
-#endif
-
-    return;
-
-
-error_and_return:
-#ifdef DEBUG
-    trace_printk("L4.5 ALERT: Cust Assignment failed, pid=%d, name=%s\n", cust_sock->pid,
-                 cust_sock->socket_flow.task_name_pid);
-#endif
-    cust_sock->send_buf_st.buf_size = 0;
-    cust_sock->recv_buf_st.buf_size = 0;
-    cust_sock->customize_or_skip = SKIP;
-    cust_sock->customization = NULL;
     return;
 }
 
 
-// Removes a customization from the socket; resets values and frees buffers used
+
+
+// Assigns a single customization to the socket cust array; reallocs buffers if necessary and sets params
+// @param[X] cust_sock The customization socket to assign cust to
+// @param[I] cust_node The customization node to add to the socket array
+// @post customization buffers are allocated and customization params set
+static size_t assign_customization_to_array(struct customization_socket *cust_sock,
+                                            struct customization_node *cust_node)
+{
+    u32 send_buffer_size = cust_sock->send_buf_st.buf_size;
+    u32 recv_buffer_size = cust_sock->recv_buf_st.buf_size;
+    size_t i;
+    void *temp_buffer;
+
+    // need to get the lock because we are potentially adjusting buffers and order
+    spin_lock(&cust_sock->active_customization_lock);
+
+    // determine if we need a larger send buffer than previously allocated
+    if (cust_node->send_buffer_size > cust_sock->send_buf_st.buf_size)
+    {
+        temp_buffer = krealloc(cust_sock->send_buf_st.buf, cust_node->send_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
+
+        if (temp_buffer == NULL)
+        {
+#ifdef DEBUG
+            trace_printk("L4.5 ALERT cust buffer krealloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol,
+                         cust_sock->socket_flow.task_name_pid);
+#endif
+            spin_unlock(&cust_sock->active_customization_lock);
+            return 0;
+        }
+        cust_sock->send_buf_st.buf = temp_buffer;
+        cust_sock->send_buf_st.buf_size = cust_node->send_buffer_size;
+    }
+
+    // determine if we need a larger send buffer than previously allocated
+    if (cust_node->recv_buffer_size > cust_sock->recv_buf_st.buf_size)
+    {
+        temp_buffer = krealloc(cust_sock->recv_buf_st.buf, cust_node->recv_buffer_size, GFP_KERNEL | __GFP_NOFAIL);
+
+        if (temp_buffer == NULL)
+        {
+#ifdef DEBUG
+            trace_printk("L4.5 ALERT cust buffer krealloc fail; proto=%u, task=%s\n", cust_sock->socket_flow.protocol,
+                         cust_sock->socket_flow.task_name_pid);
+#endif
+            // send buffer may be larger than required, but that is ok
+            spin_unlock(&cust_sock->active_customization_lock);
+            return 0;
+        }
+        cust_sock->recv_buf_st.buf = temp_buffer;
+        cust_sock->recv_buf_st.buf_size = cust_node->recv_buffer_size;
+    }
+
+#ifdef DEBUG
+    trace_printk("L4.5: Send buffer size = %u\n", send_buffer_size);
+    trace_printk("L4.5: Recv buffer size = %u\n", recv_buffer_size);
+#endif
+
+    // now that buffer sizes are correct, add the cust node to socket and sort it
+    // need to loop through cust nodes and assign to socket at first NULL pointer
+    for (i = 0; i < MAX_CUST_ATTACH; i++)
+    {
+        if (cust_sock->customizations[i] == NULL)
+        {
+            cust_sock->customizations[i] = cust_node;
+            cust_node->sock_count += 1;
+#ifdef DEBUG
+            trace_printk("L4.5: Socket count = %u\n", cust_node->sock_count);
+#endif
+            break;
+        }
+    }
+
+    // now array may no longer be sorted, so sort again
+    // for loop index + 1 = number of elements of customization array
+    sort(cust_sock->customizations, i + 1, sizeof(void *), &priority_compare, NULL);
+
+    spin_unlock(&cust_sock->active_customization_lock);
+
+    return i + 1;
+}
+
+
+
+
+// Removes all customizations from the socket; resets values and frees buffers used
 // @param[I] cust_sock The customization socket to remove any cust from
-static void unassign_customization(struct customization_socket *cust_sock)
+static void unassign_all_customization(struct customization_socket *cust_sock)
 {
     struct customization_node *cust_node;
+    size_t i;
 
     if (cust_sock->send_buf_st.buf != NULL)
     {
@@ -439,21 +733,101 @@ static void unassign_customization(struct customization_socket *cust_sock)
 #endif
         socket_allocsminusfrees--;
     }
-    // adjust the cust node sock count if necessary
-    if (cust_sock->customization != NULL)
+
+    for (i = 0; i < MAX_CUST_ATTACH; i++)
     {
-        cust_node = cust_sock->customization;
-        cust_node->sock_count -= 1;
+        // adjust the cust node sock count if necessary
+        if (cust_sock->customizations[i] != NULL)
+        {
+            cust_node = cust_sock->customizations[i];
+            cust_node->sock_count -= 1;
+            cust_sock->customizations[i] = NULL;
+        }
+        else
+        {
+            break;
+        }
     }
+
 #ifdef DEBUG
     trace_printk("L4.5: Cust removed, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
 #endif
 
-    cust_sock->customize_or_skip = SKIP;
-    cust_sock->customization = NULL;
+    return;
+}
+
+
+
+
+// Removes a single customization from the socket; resets values and frees buffers used if necessary
+// @param[I] cust_sock The customization socket to remove the cust from
+// @return 1 if socket has no more modules attached, 0 othewise
+static int unassign_single_customization(struct customization_socket *cust_sock, struct customization_node *cust_node)
+{
+    struct customization_node *temp_node[MAX_CUST_ATTACH] = {NULL};
+    size_t i;
+    size_t j;
+    int no_more_cust = 0;
+
+    // if only one customization node attached, then call unassign all instead but with active_lock
+    for (i = 0; i < MAX_CUST_ATTACH; i++)
+    {
+        if (cust_sock->customizations[i] == NULL)
+        {
+            break;
+        }
+        temp_node[i] = cust_sock->customizations[i];
+    }
+
+    spin_lock(&cust_sock->active_customization_lock);
+    if (i == 1)
+    {
+        unassign_all_customization(cust_sock);
+        no_more_cust = 1;
+    }
+    else
+    {
+        // find and remove the cust from the array
+        for (i = 0; i < MAX_CUST_ATTACH; i++)
+        {
+            if (cust_sock->customizations[i] == NULL)
+            {
+                // found a NULL pointer, so no more cust to check
+                break;
+            }
+
+            // find the matching sock to remove
+            if (cust_sock->customizations[i] == cust_node)
+            {
+                cust_sock->customizations[i] = NULL;
+                cust_node->sock_count -= 1;
+                break;
+            }
+        }
+
+        // then adjust array to fill in spot
+        for (j = i; j + 1 < MAX_CUST_ATTACH; j++)
+        {
+            if (temp_node[j + 1] == NULL)
+            {
+                // no need to replace NULL with NULL
+                break;
+            }
+
+            cust_sock->customizations[j] = temp_node[j + 1];
+            cust_sock->customizations[j + 1] = NULL;
+        }
+    }
+    spin_unlock(&cust_sock->active_customization_lock);
+
+#ifdef DEBUG
+    trace_printk("L4.5: Cust removed, pid=%d, name=%s\n", cust_sock->pid, cust_sock->socket_flow.task_name_pid);
+#endif
+
     cust_sock->update_cust_check = true;
 
-    return;
+
+    return no_more_cust;
 }
 
 

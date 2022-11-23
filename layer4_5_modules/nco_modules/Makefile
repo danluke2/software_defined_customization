@@ -1,9 +1,9 @@
 
 KBUILD_EXTRA_SYMBOLS := builder_arg
 MODULE_DIR = builder_arg
-BUILD_MODULE = builder_arg
+module = builder_arg
 
-obj-m += $(BUILD_MODULE)
+obj-m += $(module)
 
 
 all:

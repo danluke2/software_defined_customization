@@ -71,16 +71,6 @@ Acronyms:
         * if both are NULL, then customization is rejected
 
 
-### Videos:
-
-  * NetVerify 21 presentation focused on Layer 4.5 and initial idea of network wide control (15 min): https://youtu.be/s9vwJLDMSlI?start=17737&end=18730
-  
-  * NetSoft 22 Demo: https://whova.com/portal/ieeen_202206/videos/3IjMyUTN4QTO/
-  
-  * NetSoft Presentation: https://whova.com/portal/ieeen_202206/videos/3IjM0ATOxIDN/
-
-
-
 
 ## Layer 4.5 using Vagrant and VirtualBox:
 

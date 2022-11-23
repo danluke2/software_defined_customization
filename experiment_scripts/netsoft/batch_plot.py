@@ -10,7 +10,7 @@ from matplotlib.lines import Line2D
 
 # open each file, compare md5sum and fill in list of times
 dns_data_base = []
-with open("../logs/keep/batch_base.txt") as fp:
+with open("../logs/batch_base.txt") as fp:
     while True:
         time = fp.readline()
         if not time:
@@ -23,7 +23,7 @@ print(dns_data_base)
 
 
 dns_data_tap = []
-with open("../logs/keep/batch_tap.txt") as fp:
+with open("../logs/batch_tap.txt") as fp:
     while True:
         time = fp.readline()
         if not time:
@@ -36,7 +36,7 @@ print(dns_data_tap)
 
 
 dns_data_cust = []
-with open("../logs/keep/batch_cust.txt") as fp:
+with open("../logs/batch_cust.txt") as fp:
     while True:
         time = fp.readline()
         if not time:

@@ -50,6 +50,25 @@ void set_update_cust_check(void);
 void remove_customization_from_each_socket(struct customization_node *cust);
 
 
+// Look at each socket and see if the stored customization matches cust_id
+// Called when a customization module gets a new priority level
+// @param[I] cust The registered customiztion to search for
+// @post The matching socket is sorted again
+// void sort_each_socket_with_matching_cust(struct customization_node *cust);
+
+// Look at each socket and see if the stored customization matches cust_id
+// Called when a customization module gets a new priority level
+// @param[I] cust The registered customiztion to search for
+// @post The matching socket is marked for sorting on next use
+void sort_mark_each_socket_with_matching_cust(struct customization_node *cust);
+
+
+// Sorts the customization modules attached to the cust socket
+// @param[I] cust The registered customiztion to search for
+// @post The matching socket is sorted
+void sort_attached_cust(struct customization_socket *cust_sock);
+
+
 // Deletes a single cust socket
 // @param[I] pid The desired Process ID.
 // @param[I] sk A pointer to sock struct for the connection.

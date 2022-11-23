@@ -16,7 +16,7 @@
 #include "customization_socket.h"
 #include "register_cust.h"
 #include "tap.h"
-#include "util/printing.h"
+#include "util/helpers.h"
 
 // Kernel module parameters
 static char *layer4_5_path = "/usr/lib/modules/$(uname-r)/layer4_5"; // init var for default value
@@ -75,6 +75,10 @@ static void nl_receive_request(struct sk_buff *skb)
     else if (strncmp(data, "TOGGLE", 6) == 0)
     {
         netlink_toggle_cust(message, &message_size, data);
+    }
+    else if (strncmp(data, "PRIORITY", 8) == 0)
+    {
+        netlink_set_cust_priority(message, &message_size, data);
     }
 
     skb_out = nlmsg_new(message_size, GFP_KERNEL);

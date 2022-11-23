@@ -22,7 +22,7 @@ from NCO_logging import logger_process
 from NCO_security import check_challenge, request_challenge_response
 from NCO_construct import request_symver_file, construction_process
 from NCO_monitor import handle_host_insert, process_report, request_report
-from NCO_deploy import send_install_modules, retrieve_install_list, check_install_requirement_or_max_time, retrieve_toggle_active_list, toggle_active
+from NCO_deploy import send_install_modules, retrieve_install_list, check_install_requirement_or_max_time, retrieve_toggle_active_list, toggle_active, retrieve_set_priority_list, set_priority
 from NCO_revoke import retrieve_revoke_list, revoke_module, retrieve_deprecated_list, deprecate_module
 from NCO_middlebox import update_inverse_module_requirements, middlebox_process
 
@@ -38,14 +38,14 @@ parser.add_argument('--query_interval', type=int,
                     required=False, help="DCA query interval")
 parser.add_argument('--buffer', type=int, required=False,
                     help="Max socket recv buffer")
-parser.add_argument('--line', type=int, required=False,
-                    help="Construction module insert line")
 parser.add_argument(
     '--challenge', help="Perform module challenge/response", action="store_true")
 parser.add_argument('--window', type=int, required=False,
                     help="Security check window")
 parser.add_argument(
     '--linear', help="Assign host names in predictable fashion", action="store_true")
+parser.add_argument(
+    '--host_name_ip', help="Assign host names based on IP address", action="store_true")
 parser.add_argument(
     '--print', help="Enables logging to console", action="store_true")
 parser.add_argument('--logfile', type=str, required=False,
@@ -72,9 +72,6 @@ if args.buffer:
 if args.query_interval:
     cfg.QUERY_INTERVAL = args.query_interval
 
-if args.line:
-    cfg.INSERT_LINE = args.line
-
 if args.challenge:
     cfg.SEC_WINDOW = 5  # default window
     if args.window:
@@ -82,6 +79,10 @@ if args.challenge:
 
 if args.linear:
     cfg.random_hosts = False
+
+if args.host_name_ip:
+    cfg.random_hosts = False
+    cfg.ip_hosts = True
 
 if args.print:
     cfg.log_console = True
@@ -182,6 +183,14 @@ def device_thread(conn, ip, port, buffer_size, interval):
                 for i in range(len(toggle_active_id_list)):
                     toggle_active(conn, db_connection,
                                   host_id, toggle_active_id_list[i], toggle_active_mode_list[i])
+
+            # Deploy requirement: set a new priority for a deployed cust module
+            set_priority_id_list, set_priority_list = retrieve_set_priority_list(
+                db_connection, host_id)
+            if len(set_priority_id_list) > 0:
+                for i in range(len(set_priority_id_list)):
+                    set_priority(conn, db_connection,
+                                 host_id, set_priority_id_list[i], set_priority_list[i])
 
             # Monitor requirement: get a full report from host and update CIB
             request_report(conn, host_id)

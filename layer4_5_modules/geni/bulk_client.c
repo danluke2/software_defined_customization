@@ -11,7 +11,7 @@
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <common_structs.h>
-#include <printing.h>
+#include <helpers.h>
 // ************** END STANDARD PARAMS ****************
 
 
@@ -25,6 +25,8 @@ extern int unregister_customization(struct customization_node *cust);
 
 extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf,
                                  size_t len, bool ascii);
+
+extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
 
 // Kernel module parameters with default values
 static char *destination_ip = "10.0.0.20";
@@ -51,13 +53,18 @@ static unsigned int BYTE_POSIT = 1000;
 module_param(BYTE_POSIT, uint, 0600);
 MODULE_PARM_DESC(BYTE_POSIT, "Byte offset to insert/remove tags");
 
-static bool applyNow = false;
-module_param(applyNow, bool, 0600);
+static unsigned short applyNow = 0;
+module_param(applyNow, ushort, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
 unsigned short activate = 1;
 module_param(activate, ushort, 0600);
 MODULE_PARM_DESC(activate, "Place customization in active mode, which enables customization");
+
+unsigned short priority = 65535;
+module_param(priority, ushort, 0600);
+MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
+
 
 size_t extra_bytes_copied_from_last_send = 0;
 size_t tag_bytes_removed_last_round = 0;
@@ -68,15 +75,22 @@ size_t total_tags = 0;
 
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
 
+// track when source port changes, to reset for new socket
+u16 prev_source_port = 0;
+
+
 struct customization_node *client_cust;
 
 
 // Helpers
-void trace_print_cust_iov_params(struct iov_iter *src_iter)
+
+void reset_globals_new_socket(void)
 {
-    trace_printk("msg iov len = %lu; offset = %lu\n", src_iter->iov->iov_len, src_iter->iov_offset);
-    trace_printk("Total amount of data pointed to by the iovec array (count) = %lu\n", src_iter->count);
-    trace_printk("Number of iovec structures (nr_segs) = %lu\n", src_iter->nr_segs);
+    extra_bytes_copied_from_last_send = 0;
+    tag_bytes_removed_last_round = 0;
+    total_bytes_from_server = 0;
+    app_bytes_from_server = 0;
+    total_tags = 0;
 }
 
 
@@ -84,13 +98,13 @@ void trace_print_cust_iov_params(struct iov_iter *src_iter)
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     send_buf_st->copy_length = 0;
-    send_buf_st->no_cust = false;
-    send_buf_st->set_cust_to_skip = false;
+
+    set_module_struct_flags(send_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
     if (*client_cust->active_mode == 0)
     {
-        send_buf_st->no_cust = true;
+        send_buf_st->try_next = true;
         return;
     }
 
@@ -114,14 +128,20 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     u32 number_of_tags_removed = 0;
     u32 number_of_partial_tags_removed = 0;
     size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
-    recv_buf_st->no_cust = false;
-    recv_buf_st->set_cust_to_skip = false;
+
+    set_module_struct_flags(recv_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
     if (*client_cust->active_mode == 0)
     {
-        recv_buf_st->no_cust = true;
+        recv_buf_st->try_next = true;
         return;
+    }
+
+    if (socket_flow->source_port != prev_source_port)
+    {
+        reset_globals_new_socket();
+        prev_source_port = socket_flow->source_port;
     }
 
     recv_buf_st->copy_length = 0;
@@ -153,7 +173,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         else
         {
             trace_printk("L4.5 ALERT: Hit edge case, just tag bytes left in packet\n");
-            // just drop packet = TODO handle edge case
+            tag_bytes_removed_last_round += remaining_length;
+            // just drop packet
             return;
         }
     }
@@ -172,7 +193,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
                 trace_printk("L4.5 ALERT: Length not big enough, Failed to copy all bytes to cust buffer\n");
                 // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base,
                 // 32, true);
-                trace_print_cust_iov_params(recv_buf_st->src_iter);
                 return;
             }
             // trace_printk("L4.5: Copied %lu bytes to cust buffer\n", recv_buf_st->recv_return);
@@ -192,7 +212,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
                 trace_printk("L4.5 ALERT: Length check good, Failed to copy bytes to cust buffer\n");
                 // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base,
                 // 32, true);
-                trace_print_cust_iov_params(recv_buf_st->src_iter);
                 // Scenario 1: keep cust loaded and allow normal msg to be sent
                 recv_buf_st->copy_length = 0;
                 return;
@@ -235,7 +254,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
             trace_printk("L4.5 ALERT: For loop, Failed to copy bytes to cust buffer\n");
             // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base, 32,
             // true);
-            trace_print_cust_iov_params(recv_buf_st->src_iter);
             // Scenario 1: keep cust loaded and allow normal msg to be sent
             recv_buf_st->copy_length = 0;
             return;
@@ -267,7 +285,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
                 trace_printk("L4.5 ALERT: Failed to copy remaining bytes to cust buffer\n");
                 // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base,
                 // 32, true);
-                trace_print_cust_iov_params(recv_buf_st->src_iter);
                 recv_buf_st->copy_length = 0;
                 return;
             }
@@ -290,12 +307,10 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
                 trace_printk("L4.5 ALERT: Failed to copy remaining bytes to cust buffer\n");
                 // trace_print_hex_dump("iter buf: ", DUMP_PREFIX_ADDRESS, 16, 1, recv_buf_st->src_iter->iov->iov_base,
                 // 32, true);
-                trace_print_cust_iov_params(recv_buf_st->src_iter);
                 recv_buf_st->copy_length = 0;
                 return;
             }
             // trace_printk("L4.5: Copied %lu bytes to cust buffer\n", remaining_length);
-            // trace_print_cust_iov_params(recv_buf_st->src_iter);
             extra_bytes_copied_from_last_send += remaining_length;
             recv_buf_st->copy_length += remaining_length;
             tag_bytes_removed_last_round = 0;
@@ -330,7 +345,11 @@ int __init sample_client_start(void)
         return -1;
     }
 
+    // provide pointer for DCA to toggle active mode instead of new function
     client_cust->active_mode = &activate;
+
+    // provide pointer for DCA to update priority instead of new function
+    client_cust->cust_priority = &priority;
 
     client_cust->target_flow.protocol = (u16)protocol; // TCP
     memcpy(client_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
@@ -345,14 +364,14 @@ int __init sample_client_start(void)
     client_cust->send_function = modify_buffer_send;
     client_cust->recv_function = modify_buffer_recv;
 
-    client_cust->send_buffer_size = 32;
-    client_cust->recv_buffer_size = 65536 * 2;
-
     client_cust->cust_id = 78;
     client_cust->registration_time_struct.tv_sec = 0;
     client_cust->registration_time_struct.tv_nsec = 0;
     client_cust->revoked_time_struct.tv_sec = 0;
     client_cust->revoked_time_struct.tv_nsec = 0;
+
+    client_cust->send_buffer_size = 0; //  normal buffer size
+    client_cust->recv_buffer_size = 65536 * 10;
 
     result = register_customization(client_cust, applyNow);
 

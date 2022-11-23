@@ -10,7 +10,7 @@ from matplotlib.lines import Line2D
 
 # open each file, compare md5sum and fill in list of times
 tcp_data_base = []
-with open("../logs/keep/bulk_base.txt") as fp:
+with open("../logs/bulk_base.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -30,7 +30,7 @@ print(tcp_data_base)
 
 
 tcp_data_tap = []
-with open("../logs/keep/bulk_tap.txt") as fp:
+with open("../logs/bulk_tap.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()
@@ -50,7 +50,7 @@ print(tcp_data_tap)
 
 
 tcp_data_cust = []
-with open("../logs/keep/bulk_cust.txt") as fp:
+with open("../logs/bulk_cust.txt") as fp:
     md5compare = fp.readline()
     while True:
         md5download = fp.readline()

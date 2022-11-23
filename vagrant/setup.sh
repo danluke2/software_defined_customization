@@ -59,13 +59,21 @@ EOT
 
 # fix network interface GW and DNS server
 cat <<EOT >>/etc/netplan/50-vagrant.yaml
-      routes:
-      - to: 10.0.0.0/24
-        via: 10.0.0.20
+      gateway4: 10.0.0.20
       nameservers:
           search: [mydomain, otherdomain]
           addresses: [10.0.0.20, 8.8.8.8]
 EOT
+
+# Ubuntu 22.04 version (future use)
+# cat <<EOT >>/etc/netplan/50-vagrant.yaml
+#       routes:
+#       - to: 10.0.0.0/24
+#         via: 10.0.0.20
+#       nameservers:
+#           search: [mydomain, otherdomain]
+#           addresses: [10.0.0.20, 8.8.8.8]
+# EOT
 
 netplan apply
 
@@ -75,17 +83,17 @@ swapon -a
 # finish with Layer 4.5 install script
 $DCA_KERNEL_DIR/bash/installer.sh
 
-# ********* BASE Ubuntu 22.04 VM Settings ***************
+# ********* BASE Ubuntu 20.04 VM Settings ***************
 
 #lock kernel version so we don't need to deal with updates for testing
-# sudo apt-mark hold linux-image-generic-hwe-22.04
-# sudo apt-mark hold linux-generic-hwe-22.04
-# sudo apt-mark hold linux-headers-generic-hwe-22.04
+# sudo apt-mark hold linux-image-generic-hwe-20.04
+# sudo apt-mark hold linux-generic-hwe-20.04
+# sudo apt-mark hold linux-headers-generic-hwe-20.04
 
 # this should stop excessive dns queries
 # dpkg --remove whoopsie
-# systemctl stop avahi-daemon
 # systemctl disable avahi-daemon
+# systemctl stop avahi-daemon
 
 # apt install trace-cmd
 # apt -y remove unattended-upgrades

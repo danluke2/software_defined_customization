@@ -66,7 +66,7 @@ the client.
 
     * BUILD\_MODULE is command line arg to direct building a specific module
 
-    * `make BUILD_MODULE=sample_python_client.o`
+    * `make module=sample_python_client.o`
 
         * verify no errors during module build
 
@@ -135,9 +135,9 @@ a modified message and replies with this modified message
 
     * BUILD\_MODULE is command line arg to direct building a specific module
 
-    * `make BUILD_MODULE=sample_python_client.o`
+    * `make module=sample_python_client.o`
 
-    *  `make BUILD_MODULE=sample_python_server.o`
+    *  `make module=sample_python_server.o`
 
         * verify no errors during module build
 

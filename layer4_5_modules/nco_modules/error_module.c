@@ -21,6 +21,8 @@ extern int unregister_customization(struct customization_node *cust);
 extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf,
                                  size_t len, bool ascii);
 
+extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
+
 // Kernel module parameters with default values
 static char *destination_ip = "10.0.0.20";
 module_param(destination_ip, charp, 0600); // root only access to change
@@ -66,8 +68,9 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     bool copy_success;
     size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 20 bytes
     send_buf_st->copy_length = 0;
-    send_buf_st->no_cust = false;
-    send_buf_st->set_cust_to_skip = false;
+
+
+    set_module_struct_flags(send_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
     if (*dns_cust->active_mode == 0)
@@ -96,8 +99,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-    recv_buf_st->no_cust = false;
-    recv_buf_st->set_cust_to_skip = false;
+    set_module_struct_flags(recv_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
     if (*dns_cust->active_mode == 0)

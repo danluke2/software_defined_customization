@@ -5,7 +5,8 @@
 #arg3 is the host id
 #arg4 is hex encoded key
 #arg5 is active_mode flag
-#arg6 is applyNow flag
+#arg6 is priority value
+#arg7 is applyNow flag
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 NCO_DIR=/home/vagrant/software_defined_customization/NCO
@@ -54,21 +55,23 @@ delete_lines $mod_dir/${1}.c
 line="$(grep -n "NCO VARIABLES GO HERE" $mod_dir/${1}.c | head -n 1 | cut -d: -f1)"
 ((line = line + 1))
 
-#open module and insert u16 module_id = XX; with NCO assigned value
+#open module and insert NCO assigned values
 sed -i "${line}i\u16 module_id=${2};" $mod_dir/${1}.c
 ((line = line + 1))
 sed -i "${line}i\char hex_key[HEX_KEY_LENGTH]=\"$4\";" $mod_dir/${1}.c
 ((line = line + 1))
 sed -i "${line}i\u16 activate=${5};" $mod_dir/${1}.c
 ((line = line + 1))
-sed -i "${line}i\u16 applyNow=${6};" $mod_dir/${1}.c
+sed -i "${line}i\u16 priority=${6};" $mod_dir/${1}.c
+((line = line + 1))
+sed -i "${line}i\u16 applyNow=${7};" $mod_dir/${1}.c
 
 #make the module based on host_id symver location
 cd $mod_dir
 
 symbols="KBUILD_EXTRA_SYMBOLS=$symvers_dir/Module.symvers"
 mod="MODULE_DIR=$mod_dir"
-build="BUILD_MODULE=$1.o"
+build="module=$1.o"
 
 make $symbols $mod $build || error_exit "Makefile error detected"
 

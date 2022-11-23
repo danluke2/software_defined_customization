@@ -269,7 +269,7 @@ done
 # *************** GENI Bash updates ***************
 
 # list of files to modify
-FILES="geni_batch_all_servers.sh geni_batch_single_experiment.sh geni_bulk_single_experiment.sh geni_public_dns_single_experiment.sh"
+FILES="middlebox_batch.sh middlebox_dns_single.sh middlebox_web_single.sh middlebox_dns_public.sh"
 
 for x in $FILES; do
   FILE=$GENI_SCRIPT_DIR/${x}
@@ -310,7 +310,7 @@ done
 # *************** Feature Test Bash updates ***************
 
 # list of files to modify
-FILES="activate_test.sh challenge_response_test.sh deprecate_test.sh cleanup.sh"
+FILES="activate_test.sh challenge_response_test.sh deprecate_test.sh priority_test.sh cleanup.sh"
 
 for x in $FILES; do
   FILE=$TEST_SCRIPT_DIR/${x}
@@ -417,7 +417,7 @@ for x in $SAMPLE_MODULE_FILES; do
   ((LINE = LINE + 1))
   sed -i "${LINE}i\#include <common_structs.h>" $FILE
   ((LINE = LINE + 1))
-  sed -i "${LINE}i\#include <printing.h>" $FILE
+  sed -i "${LINE}i\#include <helpers.h>" $FILE
 done
 
 # netsoft modules
@@ -431,7 +431,7 @@ for x in $NETSOFT_MODULE_FILES; do
   ((LINE = LINE + 1))
   sed -i "${LINE}i\#include <common_structs.h>" $FILE
   ((LINE = LINE + 1))
-  sed -i "${LINE}i\#include <printing.h>" $FILE
+  sed -i "${LINE}i\#include <helpers.h>" $FILE
 done
 
 # geni modules
@@ -445,7 +445,7 @@ for x in $GENI_MODULE_FILES; do
   ((LINE = LINE + 1))
   sed -i "${LINE}i\#include <common_structs.h>" $FILE
   ((LINE = LINE + 1))
-  sed -i "${LINE}i\#include <printing.h>" $FILE
+  sed -i "${LINE}i\#include <helpers.h>" $FILE
 done
 
 # extra modules
@@ -459,5 +459,5 @@ for x in $EXTRA_MODULE_FILES; do
   ((LINE = LINE + 1))
   sed -i "${LINE}i\#include <common_structs.h>" $FILE
   ((LINE = LINE + 1))
-  sed -i "${LINE}i\#include <printing.h>" $FILE
+  sed -i "${LINE}i\#include <helpers.h>" $FILE
 done

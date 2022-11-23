@@ -1,14 +1,29 @@
-// @file util/printing.c
-// @brief The functions to allow printing via trace for debugging only
+// @file util/helpers.c
+// @brief The helper functions available to modules
 
-#include "printing.h"
+#include "helpers.h"
 #include <linux/kernel.h>
 
+
+// export for cust module use
 void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf,
                           size_t len, bool ascii);
 EXPORT_SYMBOL_GPL(trace_print_hex_dump);
 
 
+void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
+EXPORT_SYMBOL_GPL(set_module_struct_flags);
+
+
+void set_module_struct_flags(struct customization_buffer *buf, bool flag_set)
+{
+    buf->try_next = flag_set;
+    buf->set_cust_to_skip = flag_set;
+    buf->try_next = flag_set;
+};
+
+
+// Printing helpers
 void log_dump_msg(void *message_buf, int len, u16 proto, pid_t pid)
 {
     char temp[MAX_BUFFER_SIZE];
@@ -95,6 +110,8 @@ void trace_print_module_params(struct customization_node *cust_node)
     trace_printk("Node pid task = %s\n", cust_node->target_flow.task_name_pid);
     trace_printk("Node tgid task = %s\n", cust_node->target_flow.task_name_tgid);
     trace_printk("Node id = %u\n", cust_node->cust_id);
+    trace_printk("Node Activated = %u\n", *cust_node->active_mode);
+    trace_printk("Node Priority = %u\n", *cust_node->cust_priority);
     trace_printk("Node dest port = %u\n", cust_node->target_flow.dest_port);
     trace_printk("Node source port = %u\n", cust_node->target_flow.source_port);
     trace_printk("Node dest_ip = %pI4\n", &cust_node->target_flow.dest_ip);

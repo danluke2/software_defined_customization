@@ -45,6 +45,8 @@ def init_db_tables(con):
 
     init_require_active_toggle_table(con)
 
+    init_require_set_priority_table(con)
+
     init_require_deprecate_table(con)
 
     init_require_revocation_table(con)
@@ -356,6 +358,59 @@ def select_all_req_active_toggle(con, host_id):
     return result
 
 
+# ***************** SET PRIORITY TABLE ***********************
+
+def init_require_set_priority_table(con):
+    # each id and module pair must be unique
+    con.execute('''CREATE TABLE req_set_priority
+                   (host_id integer NOT NULL, module_id integer NOT NULL,
+                    priority integer NOT NULL,
+                    PRIMARY KEY (host_id, module_id))''')
+
+
+def insert_req_set_priority(con, host_id, module_id, priority):
+    result = 0
+    try:
+        with con:
+            con.execute("INSERT INTO req_set_priority VALUES (?, ?, ?)",
+                        (host_id, module_id, priority))
+    except sl.Error as er:
+        logger.info(
+            f"Error inserting module into req_set_priority, module_id = {module_id}, host_id = {host_id}")
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def delete_req_set_priority_by_id(con, host_id, module_id):
+    result = 0
+    try:
+        with con:
+            con.execute("DELETE FROM req_set_priority WHERE host_id = :id AND module_id =:module;", {
+                        "id": host_id, "module": module_id})
+    except sl.Error as er:
+        logger.info(
+            f"Error deleting req_set_priority row, module={module_id}, host={host_id}")
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_all_req_set_priority(con, host_id):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute(
+                "SELECT * FROM req_set_priority WHERE host_id = :id;", {"id": host_id})
+            result = cur.fetchall()
+    except sl.Error as er:
+        logger.info(f"Error slecting all req_set_priority for host {host_id}")
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
 # ***************** DEPRECATE TABLE ***********************
 
 
@@ -520,16 +575,17 @@ def delete_revoked(con, host_id, module_id):
 def init_require_build_module_table(con):
     con.execute('''CREATE TABLE req_build_modules
                    (host_id integer NOT NULL, module text NOT NULL,
-                   active_mode integer NOT NULL, applyNow integer NOT NULL,
+                    active_mode integer NOT NULL, priority integer NOT NULL,
+                    applyNow integer NOT NULL,
                    PRIMARY KEY (host_id, module))''')
 
 
-def insert_req_build_module(con, host_id, module, active_mode, apply):
+def insert_req_build_module(con, host_id, module, active_mode, priority, apply):
     result = 0
     try:
         with con:
             con.execute(
-                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?)", (host_id, module, active_mode, apply))
+                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?, ?)", (host_id, module, active_mode, priority, apply))
     except sl.Error as er:
         logger.info(
             f"Error inserting req_build_modules module = {module}, host_id = {host_id}")
@@ -538,12 +594,12 @@ def insert_req_build_module(con, host_id, module, active_mode, apply):
     return result
 
 
-def delete_req_build_module(con, host_id, module):
+def delete_req_build_module(con, module, host_id):
     result = 0
     try:
         with con:
             con.execute("DELETE FROM req_build_modules WHERE host_id = :id AND module =:module;", {
-                        "id": host_id, "module": module})
+                        "module": module, "id": host_id})
     except sl.Error as er:
         logger.info(
             f"Error deleting required module, module = {module}, host_id = {host_id}")

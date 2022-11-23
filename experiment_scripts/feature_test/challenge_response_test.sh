@@ -25,7 +25,7 @@ GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
-CUST_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5/customizations
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
@@ -63,8 +63,7 @@ sleep $report_window
 
 # Insert challenge module in DB for deployment to host_id = 1
 echo "*************** Deploy Module  ***************"
-# python3 $NCO_DIR/deploy_module_helper.py --module "nco_challenge_response" --host 1
-python3 $NCO_DIR/deploy_module_helper.py --module "demo_dns_server_app_tag" --host 1
+python3 $NCO_DIR/deploy_module_helper.py --module "nco_challenge_response" --host 1 --priority 42
 
 sleep $first_wait
 
@@ -72,8 +71,7 @@ echo "*************** Finished Normal Part  ***************"
 
 # deprecate client module in DB host_id = 2
 echo "*************** Deprecate Challenge Module ***************"
-# python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1 --deprecate
-python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_server_app_tag" --host 1 --deprecate
+python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1 --deprecate
 
 # Note: challenge/response still happening for deprecated module since still active on the socket
 
@@ -81,8 +79,7 @@ sleep $finish_wait
 
 # Revoke client module in DB host_id = 2
 echo "*************** Revoke Challenge Module ***************"
-# python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1
-python3 $NCO_DIR/revoke_module_helper.py --module "demo_dns_server_app_tag" --host 1
+python3 $NCO_DIR/revoke_module_helper.py --module "nco_challenge_response" --host 1
 
 sleep $report_window
 sleep $report_window

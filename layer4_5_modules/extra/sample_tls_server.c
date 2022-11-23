@@ -10,7 +10,7 @@
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <common_structs.h>
-#include <printing.h>
+#include <helpers.h>
 // ************** END STANDARD PARAMS ****************
 
 
@@ -18,6 +18,10 @@ extern int register_customization(struct customization_node *cust, u16 applyNow)
 
 extern int unregister_customization(struct customization_node *cust);
 
+extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf,
+                                 size_t len, bool ascii);
+
+extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
 
 // Kernel module parameters with default values
 static char *destination_ip = "10.0.0.40";
@@ -40,16 +44,19 @@ static unsigned int protocol = 6; //  UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
-static bool applyNow = false;
-module_param(applyNow, bool, 0600);
+static unsigned short applyNow = 0;
+module_param(applyNow, ushort, 0600);
 MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
 
 unsigned short activate = 1;
 module_param(activate, ushort, 0600);
 MODULE_PARM_DESC(activate, "Place customization in active mode, which enables customization");
 
+unsigned short priority = 65535;
+module_param(priority, ushort, 0600);
+MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
-// test message for this plugin
+// test message for this module
 char cust_test[12] = "testCustMod";
 
 
@@ -60,14 +67,16 @@ struct customization_node *nginx_cust;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+    //-1 b/c don't want terminating part
     size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
-    send_buf_st->no_cust = false;
-    send_buf_st->set_cust_to_skip = false;
+
+
+    set_module_struct_flags(send_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
     if (*nginx_cust->active_mode == 0)
     {
-        send_buf_st->no_cust = true;
+        send_buf_st->try_next = true;
         return;
     }
 
@@ -95,14 +104,15 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+    //-1 b/c don't want terminating part
     size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
-    recv_buf_st->no_cust = false;
-    recv_buf_st->set_cust_to_skip = false;
+
+    set_module_struct_flags(recv_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
     if (*nginx_cust->active_mode == 0)
     {
-        recv_buf_st->no_cust = true;
+        recv_buf_st->try_next = true;
         return;
     }
 
@@ -149,6 +159,9 @@ int __init sample_server_start(void)
 
     // provide pointer for DCA to toggle active mode instead of new function
     nginx_cust->active_mode = &activate;
+
+    // provide pointer for DCA to update priority instead of new function
+    nginx_cust->cust_priority = &priority;
 
     nginx_cust->target_flow.protocol = (u16)protocol;
     memcpy(nginx_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);

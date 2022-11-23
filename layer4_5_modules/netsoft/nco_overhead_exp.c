@@ -44,9 +44,25 @@ static unsigned int protocol = 17; // UDP
 module_param(protocol, uint, 0600);
 MODULE_PARM_DESC(protocol, "L4 protocol to match");
 
+static unsigned short applyNow = 0;
+module_param(applyNow, ushort, 0600);
+MODULE_PARM_DESC(protocol, "Apply customization lookup to all sockets, not just new sockets");
+
+unsigned short activate = 0;
+module_param(activate, ushort, 0600);
+MODULE_PARM_DESC(activate, "Place customization in active mode, which enables customization");
+
+unsigned short priority = 65535;
+module_param(priority, ushort, 0600);
+MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
+
 
 // NCO VARIABLES GO HERE
-
+u16 module_id = 1;
+char hex_key[HEX_KEY_LENGTH] = "";
+u16 activate = 0;
+u16 priority = 0;
+u16 applyNow = 0;
 
 
 // END NCO VARIABLES
@@ -66,13 +82,13 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     bool copy_success;
     size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
     send_buf_st->copy_length = 0;
-    send_buf_st->no_cust = false;
-    send_buf_st->set_cust_to_skip = false;
+
+    set_module_struct_flags(send_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
     {
-        send_buf_st->no_cust = true;
+        send_buf_st->try_next = true;
         return;
     }
 
@@ -100,13 +116,13 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 {
     bool copy_success;
     size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
-    recv_buf_st->no_cust = false;
-    recv_buf_st->set_cust_to_skip = false;
+
+    set_module_struct_flags(recv_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
     {
-        recv_buf_st->no_cust = true;
+        recv_buf_st->try_next = true;
         return;
     }
 
@@ -148,7 +164,10 @@ int __init sample_client_start(void)
     }
 
     // provide pointer for DCA to toggle active mode instead of new function
-    python_cust->active_mode = 0;
+    python_cust->active_mode = &activate;
+
+    // provide pointer for DCA to update priority instead of new function
+    python_cust->cust_priority = &priority;
 
     python_cust->target_flow.protocol = 17; // UDP
                                             // python_cust->protocol = 6; // TCP
@@ -179,7 +198,7 @@ int __init sample_client_start(void)
     python_cust->revoked_time_struct.tv_sec = 0;
     python_cust->revoked_time_struct.tv_nsec = 0;
 
-    result = register_customization(python_cust, 0);
+    result = register_customization(python_cust, applyNow);
 
     if (result != 0)
     {

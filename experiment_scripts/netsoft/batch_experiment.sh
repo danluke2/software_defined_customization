@@ -17,7 +17,7 @@ GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
-CUST_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5/customizations
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
@@ -107,12 +107,12 @@ echo "*************** finished tap test ***************"
 OUTPUT=$EXP_SCRIPT_DIR/logs/batch_cust.txt
 touch $OUTPUT
 
-sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; cd $NETSOFT_MOD_DIR; make BUILD_MODULE=overhead_test_batch_dns_server.o; insmod overhead_test_batch_dns_server.ko; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
+sshpass -p "$SERVER_PASSWD" ssh -p 22 root@$SERVER_IP "pkill dnsmasq; cd $NETSOFT_MOD_DIR; make module=overhead_test_batch_dns_server.o; insmod overhead_test_batch_dns_server.ko; dnsmasq --no-daemon -c 0 >/dev/null 2>&1 &"
 
 sleep 2
 
 cd $NETSOFT_MOD_DIR
-make BUILD_MODULE=overhead_test_batch_dns_client.o
+make module=overhead_test_batch_dns_client.o
 insmod overhead_test_batch_dns_client.ko
 cd $NETSOFT_SCRIPT_DIR
 

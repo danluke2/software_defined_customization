@@ -127,6 +127,14 @@ def send_toggle_report(conn_socket, cust_id, mode):
     conn_socket.sendall(bytes(send_string, encoding="utf-8"))
 
 
+def send_priority_report(conn_socket, cust_id, priority):
+    logging.info(f"Set priority for cust id {cust_id} to {priority}")
+    priority = f'PRIORITY {cust_id} {priority} END'
+    send_dict = query_layer4_5(priority)
+    send_string = json.dumps(send_dict, indent=4)
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+
+
 def query_layer4_5(message):
     sock = Connection()
 
@@ -307,6 +315,11 @@ while True:
                     logging.info(f"toggle active request")
                     send_toggle_report(
                         s, recv_dict["id"], recv_dict["mode"])
+
+                elif recv_dict["cmd"] == "set_priority":
+                    logging.info(f"set priority request")
+                    send_priority_report(
+                        s, recv_dict["id"], recv_dict["priority"])
 
                 elif recv_dict["cmd"] == "run_report":
                     logging.info(f"report request received")

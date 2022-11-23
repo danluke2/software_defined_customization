@@ -145,3 +145,19 @@ Common items I refer to when trying to understand code and functions in the kern
     https://www.reddit.com/r/virtualbox/comments/houi9k/how_to_fix_virtualbox_61_running_slow_on_mac/
 
     
+1) Monitoring and tuning the network stack:
+
+    https://blog.packagecloud.io/monitoring-tuning-linux-networking-stack-receiving-data/#ip-protocol-layer
+
+
+1) Direct action mode for eBPF:
+
+    https://qmonnet.github.io/whirl-offload/2020/04/11/tc-bpf-direct-action/
+
+
+
+1) VSCODE Linux Headers:
+
+    https://stackoverflow.com/questions/47866088/include-linux-kernel-headers-for-intellisense-in-vs-code
+
+    

@@ -12,7 +12,7 @@
 #include "customization_socket.h"
 #include "send_recv_manager.h"
 #include "tap.h"
-#include "util/printing.h"
+#include "util/helpers.h"
 
 // Update the target application under investigation
 #ifdef APP
@@ -130,7 +130,7 @@ int new_tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 #ifdef DEBUG
     if (cust_socket != NULL)
     {
-        if (cust_socket->customization != NULL)
+        if (cust_socket->customizations[0] != NULL)
         {
             // Socket added to tracking table, dump socket info to log
             trace_print_cust_socket(cust_socket, "tcp_connect");
@@ -163,11 +163,10 @@ struct sock *new_inet_csk_accept(struct sock *sk, int flags, int *err, bool kern
 
     new_sock = ref_inet_csk_accept(sk, flags, err, kern);
     cust_socket = create_cust_socket(task, new_sock, NULL);
-    trace_print_cust_socket(cust_socket, "tcp_accept");
 #ifdef DEBUG
     if (cust_socket != NULL)
     {
-        if (cust_socket->customization != NULL)
+        if (cust_socket->customizations[0] != NULL)
         {
             // Socket added to tracking table, dump socket info to log
             trace_print_cust_socket(cust_socket, "tcp_accept");
@@ -263,16 +262,16 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size,
         cust_socket = create_cust_socket(task, sk, msg);
         if (cust_socket == NULL)
         {
-// Adopt default kernel behavior if cust socket failure
 #ifdef DEBUG1
             trace_printk("L4.5: cust_socket NULL not expected, pid %d\n", task->pid);
 #endif
+            // Adopt default kernel behavior if cust socket failure
             return sendmsg(sk, msg, size);
         }
 #ifdef DEBUG
         else
         {
-            if (cust_socket->customization != NULL)
+            if (cust_socket->customizations[0] != NULL)
             {
                 trace_printk("L4.5: Customization assigned to pid %d, sk %lu\n", task->pid, (unsigned long)sk);
                 // Socket added to tracking table, dump socket info to log
@@ -308,6 +307,7 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size,
 #endif
         return sendmsg(sk, msg, size);
     }
+
 
 
     return dca_sendmsg(cust_socket, sk, msg, size, sendmsg);
@@ -441,7 +441,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
 #endif
 
 #ifdef DEBUG
-        if (cust_socket->customization != NULL)
+        if (cust_socket->customizations[0] != NULL)
         {
             // Socket added to tracking table, dump socket info to log
             trace_print_cust_socket(cust_socket, "recvmsg");

@@ -16,9 +16,34 @@ GENI_SCRIPT_DIR=$EXP_SCRIPT_DIR/geni
 # ************** STANDARD PARAMS MUST GO HERE ****************
 
 ##### Check if file is there #####
-if [ ! -f "./dns_installed.txt" ]; then
+if [ ! -f "./kernel_update.txt" ]; then
     #### Create the file ####
-    sudo touch "./dns_installed.txt"
+    sudo touch "./kernel_update.txt"
+
+    #### Run  one-time commands ####
+    sudo apt-get update &
+    EPID=$!
+    wait $EPID
+
+    sudo apt install -y linux-image-5.4.0-122-generic &
+    EPID=$!
+    wait $EPID
+
+    sudo reboot &
+    EPID=$!
+    wait $EPID
+
+    #just trying to stop it from reaching next part of code
+    sudo apt-get update &
+    EPID=$!
+    wait $EPID
+    sudo apt install -y sshpass curl dnsmasq iperf3 net-tools trace-cmd &
+    EPID=$!
+    wait $EPID
+
+fi
+
+if [ ! -f "./dns_installed.txt" ]; then
 
     #### Run  one-time commands ####
 
@@ -31,7 +56,7 @@ if [ ! -f "./dns_installed.txt" ]; then
     sudo apt-get update &
     EPID=$!
     wait $EPID
-    sudo apt install -y sshpass curl dnsmasq iperf3 net-tools &
+    sudo apt install -y sshpass curl dnsmasq iperf3 net-tools trace-cmd &
     EPID=$!
     wait $EPID
 
@@ -49,7 +74,7 @@ if [ ! -f "./dns_installed.txt" ]; then
     sudo sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
 
     # Update NCO IP address
-    LINE="$(grep -n "SERVER_IP==" $FILE | head -n 1 | cut -d: -f1)"
+    LINE="$(grep -n "SERVER_IP=" $FILE | head -n 1 | cut -d: -f1)"
     sudo sed -i "${LINE}d" $FILE
     sudo sed -i "${LINE}i\SERVER_IP=10.10.0.5" $FILE
 
@@ -63,6 +88,9 @@ if [ ! -f "./dns_installed.txt" ]; then
     #replace dnsmasq config to match experiments
     sudo cp $GENI_SCRIPT_DIR/dnsmasq.conf /etc/dnsmasq.conf
 
+    #### Create the file ####
+    sudo touch "/local/dns_installed.txt"
+
 fi
 
 ##### Run Boot-time commands
@@ -73,7 +101,7 @@ sudo git pull
 sleep 10
 
 cd $DCA_USER_DIR
-sudo su $GENI_USERNAME -c 'sudo python3 DCA.py --iface eth1 --logging &'
+sudo su $GENI_USERNAME -c 'sudo python3 DCA.py --iface eth1 &'
 
 sudo systemctl stop systemd-resolved.service
 

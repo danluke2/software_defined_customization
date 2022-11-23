@@ -1,9 +1,16 @@
-#ifndef _PRINTING_UTILS_H
-#define _PRINTING_UTILS_H
+#ifndef _HELPER_UTILS_H
+#define _HELPER_UTILS_H
 
 #include <common_structs.h>
 
 #define MAX_BUFFER_SIZE 64
+
+
+// Sets customization buffer parameters to default value for cust module
+void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
+
+
+// PRINTING HELPER FUNCTIONS
 
 
 // Helper to dump message buffer into log to compare app msg buffer to the

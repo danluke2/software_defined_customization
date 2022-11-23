@@ -15,7 +15,7 @@ GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
-CUST_LOCATION=/usr/lib/modules/5.15.0-46-generic/layer4_5/customizations
+CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
 SERVER_IP=10.0.0.20
 SERVER_PASSWD=vagrant
 CLIENT_IP=10.0.0.40
@@ -88,7 +88,7 @@ sleep $SLEEP_INT
 
 # start middlebox collection process
 echo "*************** Starting Middlebox on Server  ***************"
-gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump udp port 53 -i any -w $GIT_DIR/middle_demo.pcap"
+gnome-terminal -- bash -c "echo '*************** Starting TCPDUMP  ***************'; tcpdump port 53 -i any -w $GIT_DIR/middle_demo.pcap"
 
 sleep $SLEEP_INT
 
@@ -101,7 +101,7 @@ sleep $SLEEP_INT
 # perform DNS requests from client
 # turn off interface to force using local DNS server
 echo "*************** Conducting DNS Queries from Client  ***************"
-sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "ifconfig enp0s3 down; sleep 3; dig @10.0.0.20 -p 53 www.dig_test.com; curl www.curl_test.com;"
+sshpass -p "$CLIENT_PASSWD" ssh -p 22 root@$CLIENT_IP "ifconfig enp0s3 down; sleep 3; dig @10.0.0.20 -p 53 www.dig_test.com; resolvectl flush-caches; curl www.curl_test.com;"
 
 sleep $SLEEP_INT
 

@@ -4,13 +4,14 @@
 
 #include <linux/list.h>
 #include <linux/slab.h> // For allocations
+#include <linux/sort.h>
 #include <linux/timekeeping.h>
 
 #include "customization_socket.h"
 #include "register_cust.h"
 #include "util/compare.h" //for comparison functions
+#include "util/helpers.h"
 #include "util/json-maker.h"
-#include "util/printing.h"
 
 
 // cust list should be short, so linked list should be fast (for now)
@@ -123,10 +124,14 @@ struct customization_node *get_cust_by_id(u16 cust_id)
 }
 
 
-struct customization_node *get_customization(struct customization_socket *cust_socket)
+
+
+size_t get_customizations(struct customization_socket *cust_socket, struct customization_node *nodes[MAX_CUST_ATTACH])
 {
     struct customization_node *cust_temp = NULL;
     struct customization_node *cust_next = NULL;
+    size_t counter = 0;
+    u16 priority_threshold = 65535; // max u16 value
 
     list_for_each_entry_safe(cust_temp, cust_next, &installed_customization_list, cust_list_member)
     {
@@ -135,10 +140,29 @@ struct customization_node *get_customization(struct customization_socket *cust_s
 #ifdef DEBUG1
             trace_printk("L4.5: cust socket match to registered module, pid = %d\n", cust_socket->pid);
 #endif
-            return cust_temp;
+            // if cust priority lower than current threshold, then add to the array
+            if (*cust_temp->cust_priority <= priority_threshold)
+            {
+                nodes[counter] = cust_temp;
+                counter += 1;
+                if (counter == MAX_CUST_ATTACH)
+                {
+                    break;
+                }
+            }
         }
     }
-    return NULL;
+#ifdef DEBUG1
+    trace_printk("L4.5: found %lu nodes for socket\n", counter);
+#endif
+    // now sort array by priority values before returning
+    // counter holds number of modules in nodes array, so we won't reach NULL pointer
+    if (counter > 1)
+    {
+        sort(nodes, counter, sizeof(void *), &priority_compare, NULL);
+    }
+
+    return counter;
 }
 
 
@@ -179,7 +203,7 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
     cust->cust_id = module_cust->cust_id;
     cust->active_mode = module_cust->active_mode;
     cust->sock_count = 0; // init value
-    // cust->cust_priority = module_cust->cust_priority;
+    cust->cust_priority = module_cust->cust_priority;
 
     cust->target_flow.protocol = module_cust->target_flow.protocol;
     memcpy(cust->target_flow.task_name_pid, module_cust->target_flow.task_name_pid, TASK_NAME_LEN);
@@ -388,6 +412,42 @@ int toggle_customization_active_mode(u16 cust_id, u16 mode)
     *module_cust->active_mode = mode;
     return found;
 }
+
+
+
+// set customization priority
+int set_customization_priority(u16 cust_id, u16 priority)
+{
+    int found = 0;
+    struct customization_node *module_cust = NULL;
+
+    // First: find cust node matching given cust_id
+    module_cust = get_cust_by_id(cust_id);
+
+    if (module_cust == NULL)
+    {
+#ifdef DEBUG
+        trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
+#endif
+        return found;
+    }
+
+    found = 1;
+    *module_cust->cust_priority = priority;
+
+    // now we need to sort sockets with module attached again since order may change
+    if (module_cust->sock_count > 0)
+    {
+        // mark socket for sorting when next used
+        sort_mark_each_socket_with_matching_cust(module_cust);
+    }
+
+    return found;
+}
+
+
+
+
 // Split request string into word array of char pointers
 // number_of_words >= 1
 int split_message(char *request, char *words[], u16 number_of_words)
@@ -671,6 +731,74 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
     message = json_uint(message, "ID", cust_id, &rem_length);
 
     result = toggle_customization_active_mode(cust_id, mode);
+
+    message = json_uint(message, "Result", result, &rem_length);
+
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+
+    *length = *length - rem_length;
+
+    return;
+
+error_msg:
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
+    message = json_objClose(message, &rem_length);
+    message = json_end_message(message, &rem_length);
+    *length = *length - rem_length;
+    return;
+}
+
+
+
+void netlink_set_cust_priority(char *message, size_t *length, char *request)
+{
+    u16 cust_id = 0;
+    int word_count = 0;
+    int expected_words = 4;
+    char *words[4]; // hold expected_words pointers to char pointers
+    u16 priority;
+    int result;
+    size_t rem_length = *length;
+
+    // request format: PRIORITY cust_id priority END
+    // strsep should turn this into:
+    // PRIORITY
+    // cust_id
+    // priority
+    // END
+
+    word_count = split_message(request, words, expected_words);
+
+    if (word_count != expected_words)
+    {
+        trace_printk("L4.5 ALERT: priority word count error = %d\n", word_count);
+        // we did not get a valid message, so return error message
+        goto error_msg;
+    }
+
+    result = kstrtou16((words[1]), 10, &cust_id);
+    if (result != 0)
+    {
+        trace_printk("L4.5 ALERT: priority cust_id %s, error = %d\n", words[1], result);
+        // cust id string to u16 failed, so return error message
+        goto error_msg;
+    }
+
+    result = kstrtou16((words[2]), 10, &priority);
+    if (result != 0)
+    {
+        trace_printk("L4.5 ALERT: priority %s, error = %d\n", words[2], result);
+        // cust id string to u16 failed, so return error message
+        goto error_msg;
+    }
+
+
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_uint(message, "ID", cust_id, &rem_length);
+
+    result = set_customization_priority(cust_id, priority);
 
     message = json_uint(message, "Result", result, &rem_length);
 

@@ -12,14 +12,14 @@ Vagrant.configure("2") do |config|
 
   
   # Single machine for running sample modules
-  # config.vm.box = "squanchy/layer4.5"
-  # config.vm.box_version = "2.0"
+  # config.vm.box =  "squanchy/layer4.5"
+  # config.vm.box_version = "1.2"
 
 
   # Multiple machines for running experiment modules
   config.vm.define "server" do |server|
     server.vm.box = "squanchy/layer4.5"
-    server.vm.box_version = "2.0"
+    server.vm.box_version = "1.2"
     server.vm.network "private_network", ip: "10.0.0.20", virtualbox__intnet: "layer", nic_type: "virtio"
     server.vm.provider "virtualbox" do |vb|
       # Display the VirtualBox GUI when booting the machine
@@ -34,7 +34,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "client" do |client|
     client.vm.box = "squanchy/layer4.5"
-    client.vm.box_version = "2.0"
+    client.vm.box_version = "1.2"
     client.vm.network "private_network", ip: "10.0.0.40", virtualbox__intnet: "layer", nic_type: "virtio"
     client.vm.provider "virtualbox" do |vb|
       # Display the VirtualBox GUI when booting the machine
