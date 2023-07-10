@@ -15,6 +15,8 @@
 
 
 // cust list should be short, so linked list should be fast (for now)
+//TODO: Is there a better data structure to use?
+
 // creates linked list head
 struct list_head installed_customization_list;
 static DEFINE_SPINLOCK(installed_customization_list_lock);
@@ -112,6 +114,7 @@ struct customization_node *get_cust_by_id(u16 cust_id)
             return cust_temp;
         }
     }
+    // if we reach this point, then we haven't found the cust module 
     // cust may be in the deprecated table, but still attached to a relevant socket
     list_for_each_entry_safe(cust_temp, cust_next, &deprecated_customization_list, deprecated_cust_list_member)
     {
@@ -131,7 +134,7 @@ size_t get_customizations(struct customization_socket *cust_socket, struct custo
     struct customization_node *cust_temp = NULL;
     struct customization_node *cust_next = NULL;
     size_t counter = 0;
-    u16 priority_threshold = 65535; // max u16 value
+    u16 priority_threshold = 65535; // max u16 value; TODO: This should be a variable instead of hardcoded
 
     list_for_each_entry_safe(cust_temp, cust_next, &installed_customization_list, cust_list_member)
     {
@@ -140,6 +143,7 @@ size_t get_customizations(struct customization_socket *cust_socket, struct custo
 #ifdef DEBUG1
             trace_printk("L4.5: cust socket match to registered module, pid = %d\n", cust_socket->pid);
 #endif
+            //TODO: It seems like priority_threshold is not used since it is set to max value
             // if cust priority lower than current threshold, then add to the array
             if (*cust_temp->cust_priority <= priority_threshold)
             {
@@ -181,7 +185,7 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
         return -1;
     }
 
-    // invalid customization recieved, both function must be valid
+    // invalid customization recieved, both function must be valid (design choice)
     if (module_cust->send_function == NULL || module_cust->recv_function == NULL)
     {
 #ifdef DEBUG
@@ -189,6 +193,9 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
 #endif
         return -1;
     }
+
+    // TODO: should DCA set the module ID instead of having module supply it?
+    // if supplied, can't rely on NCO to deconflict ID's so must check uniqueness
 
     // Verify the ID is unique before allowing registration
     test_cust = get_cust_by_id(module_cust->cust_id);
@@ -200,6 +207,9 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
         return -1;
     }
 
+    //TODO: Is there a better way to copy over values?
+    // Should this be a seperate function?
+    // Need to also check memcpy succeeded instead of trusting it did
     cust->cust_id = module_cust->cust_id;
     cust->active_mode = module_cust->active_mode;
     cust->sock_count = 0; // init value
@@ -217,6 +227,7 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
     cust->recv_function = module_cust->recv_function;
     cust->challenge_function = module_cust->challenge_function;
 
+    // TODO: do I need to store these times or just report back to NCO when they happen?
     ktime_get_real_ts64(&cust->registration_time_struct);
     cust->deprecated_time_struct.tv_sec = 0;
     cust->deprecated_time_struct.tv_nsec = 0;
@@ -309,6 +320,8 @@ int unregister_customization(struct customization_node *module_cust)
         return found;
     }
 
+    //TODO: Should I check found==1 since it can't be anything else and reach here
+
     // Second: remove customization from active sockets
     if (found == 1 && matching_cust->sock_count != 0)
     {
@@ -353,7 +366,7 @@ int deprecate_customization(u16 cust_id)
         return found;
     }
 
-    found = 1;
+    
 
 #ifdef DEBUG
     trace_printk("L4.5: Removing module from use by new sockets\n");
@@ -369,12 +382,15 @@ int deprecate_customization(u16 cust_id)
             trace_print_module_params(matching_cust);
 #endif
             list_del(&matching_cust->cust_list_member);
+            found = 1;
             break;
         }
     }
     spin_unlock(&installed_customization_list_lock);
 
-    // Last: store customization in deprecated list and set deprecated time
+    if (found == 1)
+    {
+// Last: store customization in deprecated list and set deprecated time
     ktime_get_real_ts64(&matching_cust->deprecated_time_struct);
 
 #ifdef DEBUG1
@@ -384,7 +400,16 @@ int deprecate_customization(u16 cust_id)
     spin_lock(&deprecated_customization_list_lock);
     list_add(&matching_cust->deprecated_cust_list_member, &deprecated_customization_list);
     spin_unlock(&deprecated_customization_list_lock);
+    }
 
+    else 
+    {
+#ifdef DEBUG
+    trace_printk("L4.5: Did not successfully deprecate module\n");
+#endif
+    }
+
+    
     return found;
 }
 
@@ -400,16 +425,19 @@ int toggle_customization_active_mode(u16 cust_id, u16 mode)
     // First: find cust node matching given cust_id
     module_cust = get_cust_by_id(cust_id);
 
-    if (module_cust == NULL)
+    if (module_cust != NULL)
+    {
+        found = 1;
+        *module_cust->active_mode = mode;
+    }
+
+    else 
     {
 #ifdef DEBUG
         trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
 #endif
-        return found;
     }
-
-    found = 1;
-    *module_cust->active_mode = mode;
+    
     return found;
 }
 
@@ -424,22 +452,24 @@ int set_customization_priority(u16 cust_id, u16 priority)
     // First: find cust node matching given cust_id
     module_cust = get_cust_by_id(cust_id);
 
-    if (module_cust == NULL)
+    if (module_cust != NULL)
+    {
+        found = 1;
+        *module_cust->cust_priority = priority;
+
+        // now we need to sort sockets with module attached again since order may change
+        if (module_cust->sock_count > 0)
+        {
+            // mark socket for sorting when next used
+            sort_mark_each_socket_with_matching_cust(module_cust);
+        }
+    }
+
+    else 
     {
 #ifdef DEBUG
         trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
 #endif
-        return found;
-    }
-
-    found = 1;
-    *module_cust->cust_priority = priority;
-
-    // now we need to sort sockets with module attached again since order may change
-    if (module_cust->sock_count > 0)
-    {
-        // mark socket for sorting when next used
-        sort_mark_each_socket_with_matching_cust(module_cust);
     }
 
     return found;
@@ -528,7 +558,7 @@ void netlink_cust_report(char *message, size_t *length)
     message = json_objClose(message, &rem_length);
     message = json_end_message(message, &rem_length);
 
-    // only report this once for now, but need to find better way to clear list after send
+    // TODO: only report this once for now, but need to find better way to clear list after send
     free_revoked_customization_list();
 
     *length = *length - rem_length;
@@ -538,13 +568,14 @@ void netlink_cust_report(char *message, size_t *length)
 
 
 
+// TODO: All these netlink messages follow similar processing.  Can they be better combined?
 
 void netlink_challenge_cust(char *message, size_t *length, char *request)
 {
     struct customization_node *cust_node = NULL;
     u16 cust_id = 0;
     int word_count = 0;
-    int expected_words = 5;
+    int expected_words = 5;  // TODO: this shouldn't be a magic number
     char *words[5]; // hold expected_words pointers to char pointers
     char *msg = NULL;
     char response[HEX_RESPONSE_LENGTH] = "";
@@ -553,7 +584,7 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
     size_t rem_length = *length;
 
     // request format: CHALLENGE cust_id iv encrypted_msg END
-    // strsep should turn this into:
+    // split_message should turn this into:
     // CHALLENGE
     // cust_id
     // iv (as hex)
@@ -578,6 +609,7 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
         goto parsing_error_msg;
     }
 
+    // TODO: these shouldn't be magic numbers
     iv = words[2];
     msg = words[3];
 
@@ -585,7 +617,7 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
     message = json_uint(message, "ID", cust_id, &rem_length);
 
     cust_node = get_cust_by_id(cust_id);
-    // modules don't require a challenge function at registration time
+    // modules don't require a challenge function at registration time (design choice)
     if (cust_node->challenge_function != NULL)
     {
         cust_node->challenge_function(response, iv, msg);
@@ -606,6 +638,7 @@ void netlink_challenge_cust(char *message, size_t *length, char *request)
 
     return;
 
+// TODO: Messages and lengths should be variables
 parsing_error_msg:
     message = json_objOpen(message, NULL, &rem_length);
     message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
@@ -616,7 +649,7 @@ parsing_error_msg:
 
 function_error_msg:
     message = json_objOpen(message, NULL, &rem_length);
-    message = json_nstr(message, "ERROR", "NULL function", 13, &rem_length);
+    message = json_nstr(message, "ERROR", "NULL challenge function", 23, &rem_length);
     message = json_objClose(message, &rem_length);
     message = json_end_message(message, &rem_length);
     *length = *length - rem_length;
@@ -636,7 +669,7 @@ void netlink_deprecate_cust(char *message, size_t *length, char *request)
     size_t rem_length = *length;
 
     // request format: DEPRECATE cust_id END
-    // strsep should turn this into:
+    // split_message should turn this into:
     // DEPRECATE
     // cust_id
     // END
@@ -672,6 +705,7 @@ void netlink_deprecate_cust(char *message, size_t *length, char *request)
 
     return;
 
+// TODO: Messages and lengths should be variables
 error_msg:
     message = json_objOpen(message, NULL, &rem_length);
     message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
@@ -695,7 +729,7 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
     size_t rem_length = *length;
 
     // request format: TOGGLE cust_id mode END
-    // strsep should turn this into:
+    // split_message should turn this into:
     // TOGGLE
     // cust_id
     // mode = 0 or 1
@@ -741,6 +775,7 @@ void netlink_toggle_cust(char *message, size_t *length, char *request)
 
     return;
 
+// TODO: Messages and lengths should be variables
 error_msg:
     message = json_objOpen(message, NULL, &rem_length);
     message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);
@@ -763,7 +798,7 @@ void netlink_set_cust_priority(char *message, size_t *length, char *request)
     size_t rem_length = *length;
 
     // request format: PRIORITY cust_id priority END
-    // strsep should turn this into:
+    // split_message should turn this into:
     // PRIORITY
     // cust_id
     // priority
@@ -809,6 +844,7 @@ void netlink_set_cust_priority(char *message, size_t *length, char *request)
 
     return;
 
+// TODO: Messages and lengths should be variables
 error_msg:
     message = json_objOpen(message, NULL, &rem_length);
     message = json_nstr(message, "ERROR", "parsing", 7, &rem_length);

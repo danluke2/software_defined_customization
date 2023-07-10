@@ -32,6 +32,9 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
     cust_sock->send_buf_st.copy_length = 0; // default value
     cust_sock->send_buf_st.length = size;
 
+    //TODO: should we sort modules here or prior to dca_sendmsg call?
+    // Probably here b/c we hold the active customization lock
+
     // check if modules should be sorted before using them
     if (cust_sock->update_cust_sort)
     {
@@ -161,7 +164,7 @@ int dca_sendmsg(struct customization_socket *cust_sock, struct sock *sk, struct 
         return size;
     }
 
-
+    // TODO: Is this the best way to handle this case?
     // make sure send can succeed
     if (cust_sock->send_buf_st.copy_length > cust_sock->send_buf_st.buf_size)
     {
@@ -224,9 +227,10 @@ skip_and_send:
     // trace_printk("released lock\n");
     return sendmsg(sk, msg, size);
 }
+ 
 
 
-
+//TODO: is there a way to better modularize these functions?
 
 int dca_recvmsg(struct customization_socket *cust_sock, struct sock *sk, struct msghdr *msg, size_t len,
                 size_t recvmsg_ret)

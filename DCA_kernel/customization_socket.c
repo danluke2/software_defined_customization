@@ -94,15 +94,17 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
     new_cust_socket->recv_buf_st.set_cust_to_skip = false;
     new_cust_socket->recv_buf_st.try_next = false;
 
+    //TODO: use these time values in reports to NCO
     // set default time values to indicate no packets seen yet
     new_cust_socket->last_cust_send_time_struct.tv_sec = 0;
     new_cust_socket->last_cust_send_time_struct.tv_nsec = 0;
     new_cust_socket->last_cust_recv_time_struct.tv_sec = 0;
     new_cust_socket->last_cust_recv_time_struct.tv_nsec = 0;
 
+    // set all necessary values set to match a customization
     set_four_tuple(sk, new_cust_socket, msg);
 
-    // all necessary values set to match a customization
+    // find all maching customizations
     node_counter = get_customizations(new_cust_socket, cust_nodes);
     if (node_counter == 0)
     {
@@ -135,7 +137,7 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 
 
 
-
+//TODO: could we add a posit tracker to point to first NULL posit in array, then we could skip process to find it
 void update_cust_status(struct customization_socket *cust_socket, struct task_struct *task, struct sock *sk)
 {
     struct customization_node *cust_nodes[MAX_CUST_ATTACH] = {NULL};
@@ -146,7 +148,7 @@ void update_cust_status(struct customization_socket *cust_socket, struct task_st
     bool found = false;
 
     // 2 cases: add cust to non-cust socket, add cust to cust socket that has room for new cust
-
+    // TODO: verify node_counter value can't be larger than remaining slots in array
     node_counter = get_customizations(cust_socket, cust_nodes);
     if (node_counter == 0)
     {
@@ -339,6 +341,7 @@ void sort_each_socket_with_matching_cust(struct customization_node *cust)
                 trace_printk("L4.5: Found socket mathching cust id=%d\n", cust_id);
 #endif
                 // NOTE: for some reason this lock won't release and will freeze the machine
+                // TODO: research what this note means and how to fix it
                 spin_lock(&cust_socket_iterator->active_customization_lock);
 
                 // there are at least i customizations attached, but need to know exact

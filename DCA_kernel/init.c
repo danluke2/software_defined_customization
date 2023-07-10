@@ -24,14 +24,16 @@ module_param(layer4_5_path, charp, 0000);                            // allow ov
 MODULE_PARM_DESC(layer4_5_path, "An absolute path to the Layer 4.5 install location");
 
 
-// netlink testing
+// netlink testing: used for relay commands
 #define NETLINK_TESTFAMILY 25
 struct sock *socket;
 #define NETLINK_REPORT_SIZE 1024
 
 
 
-
+// Layer 4.5 relay handler, passes command to the customization module
+// @param[I] skb The netlink message from NCO passed through DCA_user
+// @return netlink message with module response or error condition
 static void nl_receive_request(struct sk_buff *skb)
 {
     int result = 0;
@@ -41,13 +43,14 @@ static void nl_receive_request(struct sk_buff *skb)
     char *data = (char *)NLMSG_DATA(nlh);
     char *message = NULL;
     size_t message_size = NETLINK_REPORT_SIZE;
-    char failure[32] = "Failed to create cust report";
+    char failure[32] = "Failed to create cust report"; //default error message
+    //TODO: failure size should be global param instead of "magic number"
 
     message = kmalloc(NETLINK_REPORT_SIZE, GFP_KERNEL);
     if (message == NULL)
     {
 #ifdef DEBUG
-        trace_printk("L4.5 ALERT: kmalloc failed when creating netlink report\n");
+        trace_printk("L4.5 ALERT: kmalloc failed when allocating message for netlink report\n");
 #endif
         message = failure;
         message_size = 32;
@@ -58,6 +61,7 @@ static void nl_receive_request(struct sk_buff *skb)
     trace_printk("L4.5: NLMSG_DATA = %s\n", data);
 #endif
 
+    //TODO: compare values should be global with sizes to make this cleaner
     if (strncmp(data, "CUST_REPORT", 11) == 0)
     {
         // rewrite message size to number of bytes in message that have data
@@ -65,21 +69,26 @@ static void nl_receive_request(struct sk_buff *skb)
     }
     else if (strncmp(data, "CHALLENGE", 9) == 0)
     {
-        // Do challenge query
+        // Do security challenge query
         netlink_challenge_cust(message, &message_size, data);
     }
     else if (strncmp(data, "DEPRECATE", 9) == 0)
     {
+        // this prevents the module from matching future sockets
         netlink_deprecate_cust(message, &message_size, data);
     }
     else if (strncmp(data, "TOGGLE", 6) == 0)
     {
+        // this is used to activate/deactivate the module
         netlink_toggle_cust(message, &message_size, data);
     }
     else if (strncmp(data, "PRIORITY", 8) == 0)
     {
+        // this is used to update the modules priority level
         netlink_set_cust_priority(message, &message_size, data);
     }
+
+    //TODO: need an "else" block to catch anything else coming in that doesn't match
 
     skb_out = nlmsg_new(message_size, GFP_KERNEL);
     if (!skb_out)
@@ -96,7 +105,9 @@ static void nl_receive_request(struct sk_buff *skb)
 #ifdef DEBUG2
     trace_print_hex_dump("message b4 send: ", DUMP_PREFIX_ADDRESS, 16, 1, nlmsg_data(nlh), 32, true);
 #endif
+
     result = nlmsg_unicast(socket, skb_out, pid);
+
 #ifdef DEBUG2
     trace_printk("L4.5: NL result = %d\n", result);
 #endif
@@ -168,3 +179,4 @@ module_init(layer4_5_start);
 module_exit(layer4_5_end);
 MODULE_AUTHOR("Dan Lukaszewski");
 MODULE_LICENSE("GPL");
+//TODO: Is this the correct module license to use?

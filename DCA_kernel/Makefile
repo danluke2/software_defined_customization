@@ -18,6 +18,8 @@ obj-m += layer4_5.o
 
 KCFLAGS = -Wall -O3 -g
 
+#TODO: Need DEBUG documentation and a clear purpose throughout
+
 # define more  debug values to print more to trace file
 # NOTE: each DEBUG definition is independent of the others
 # DEBUG will provide most comments which I find useful for customized flows

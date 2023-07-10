@@ -23,6 +23,9 @@
 
 */
 
+// TODO: I made some changes to this function and pointed out some errors.   
+// Contribute changes back to source project
+
 #include <stddef.h> // For NULL
 #include <linux/kernel.h>
 #include "json-maker.h"

@@ -113,6 +113,8 @@ void unregister_udp_taps(void)
 
 
 
+//TODO: Consider adding data to the TCP connect to support things like secure vector routing (SVR)
+//NOTE: This may be better suited as a BPF function at tc or by using BPF paper to wrap in UDP
 
 // Performs a normal TCPv4 connection, but stores the connection for monitoring.
 // Customization socket created to allow TCP connections to do during handshake phase
@@ -126,10 +128,12 @@ int new_tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 
     connect_return = ref_tcp_v4_connect(sk, uaddr, addr_len);
 
+    //TODO: should check connect_return succeeded before building cust socket
     cust_socket = create_cust_socket(task, sk, NULL);
 #ifdef DEBUG
     if (cust_socket != NULL)
     {
+        //TODO: Why posit 0 instead of a global name?
         if (cust_socket->customizations[0] != NULL)
         {
             // Socket added to tracking table, dump socket info to log
@@ -149,8 +153,10 @@ int new_tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 }
 
 
+//TODO: if using mptcp, then this may not be best spot to get port info and sock info?
+//TODO: if adding syn data, would this be the place to add syn/ack data?
+
 // Taps into TCP socket accept and starts tracking socket customization
-// if using mptcp, then this may not be best spot to get port info and sock info?
 // @see tcp.h: standard parameters
 // @see customization_socket.c:create_cust_socket
 // @see util/utils.c:print_cust_socket
@@ -162,6 +168,8 @@ struct sock *new_inet_csk_accept(struct sock *sk, int flags, int *err, bool kern
     struct task_struct *task = current;
 
     new_sock = ref_inet_csk_accept(sk, flags, err, kern);
+
+    //TODO: should check new_sock succeeded before building cust socket
     cust_socket = create_cust_socket(task, new_sock, NULL);
 #ifdef DEBUG
     if (cust_socket != NULL)
@@ -217,6 +225,8 @@ void new_tcp_close(struct sock *sk, long timeout)
     return;
 }
 
+
+// TODO: Would it be useful to send a UDP message to indicate we are closing the socket?
 
 // Runs a UDP close and stops Layer 4.5 connection monitoring for the socket
 // @see udp.c for standard parameters
@@ -314,10 +324,16 @@ int common_sendmsg(struct sock *sk, struct msghdr *msg, size_t size,
 }
 
 
+//TODO: Is it better to call common_sendmsg without passing ref_xxx_sendmsg as a param?  
+// Would return to new_xxx_sendmsg instead, which could either send normal or call the dca
+// Also, should dca return here before sending?  This may be complicated though
+
 // Taps into tcp_sendmsg and passes to common_sendmsg for processing
 // @see tcp.h for standard parameters
 int new_tcp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 {
+    //TODO: This should be wrapped in an appropriate debug block
+
     // struct task_struct *task = current;
     // struct task_struct *task_rparent = task->real_parent;
     // struct task_struct *task_parent = task->parent;
@@ -358,6 +374,7 @@ int new_udp_sendmsg(struct sock *sk, struct msghdr *msg, size_t size)
 
 
 
+//TODO: I beleive this needs to be updated from the buffer branch still
 
 // Processes recvmsg request and passes to DCA for any changes
 // @param recvmsg Pointer to appropriate L4 recv function
@@ -378,7 +395,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
 #endif
 
 
-    // only tapping iovec at the moment, but not sure we should limit
+    // TODO: only tapping iovec at the moment, but not sure we should limit
     if (!iter_is_iovec(&msg->msg_iter))
     {
 #ifdef DEBUG1
@@ -387,6 +404,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
         return recvmsg(sk, msg, len, nonblock, flags, addr_len);
     }
 
+//NOTE: This is used for targeting a specific app during testing, so probably better as a new debug type
 #ifdef APP
     if (strncmp(test->comm, TARGET_APP, TASK_NAME_LEN) == 0)
     {
@@ -396,6 +414,7 @@ int common_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock
 #endif
 
     recvmsg_return = recvmsg(sk, msg, len, nonblock, flags, addr_len);
+    // TODO: Should we let these messages go through cust module in case it wants to add data?
     if (recvmsg_return <= 0)
     {
 // a 0 length or error message has no need for customization removal

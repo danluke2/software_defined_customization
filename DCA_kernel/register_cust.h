@@ -59,6 +59,9 @@ int register_customization(struct customization_node *module_cust, u16 applyNow)
 int unregister_customization(struct customization_node *module_cust);
 
 
+//TODO: This was a used function at some point, what happened to it?
+// Did I forget to merge it in when combining rotation logic?
+
 // Called by DCA to stop new sockets from using the registered module
 // but DCA only has the module ID, not the struct pointer
 // @param[I] cust_id Registered customization nodes NCO generated id

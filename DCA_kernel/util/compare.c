@@ -41,6 +41,7 @@ bool protocol_compare(struct customization_node *node, struct customization_sock
 {
     bool success = false;
     // if protocol wildcard number specified, then return true
+    // TODO: this should be defined variable
     if (node->target_flow.protocol == 256)
     {
         success = true;

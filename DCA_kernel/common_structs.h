@@ -9,6 +9,8 @@
 #include <net/sock.h>
 
 
+// TODO: Should we have a file with common defines since I expect this to grow?
+
 #define MAX_CUST_ATTACH 5
 #define TASK_NAME_LEN 16 // defined in sched.h as TASK_COMM_LEN 16
 #define SEND_BUF_SIZE 65536
