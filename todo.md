@@ -1,6 +1,11 @@
 # Layer 4.5 TODO's and Questions
 
 
+# ADMIN
+1) Migrate this file in its entirety to the Jira Kanban Board, on the TRMC where this repo is hosted. 
+
+1) Add a licence to this project (Discussed in plan for course)
+
 # TODO:
 
 
