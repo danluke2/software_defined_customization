@@ -41,10 +41,12 @@ echo "***************************"
 echo "Copying files for module includes"
 cd $INSTALLER_MAKEFILE_DIR
 cp common_structs.h $INCLUDE_DIR
+cp common_defines.h $INCLUDE_DIR
 cp util/helpers.h $INCLUDE_DIR
 
 # this just helps for vscode to find file on my mac
 cp common_structs.h $GIT_DIR/no_include
+cp common_defines.h $GIT_DIR/no_include
 cp util/helpers.h $GIT_DIR/no_include
 
 echo "***************************"

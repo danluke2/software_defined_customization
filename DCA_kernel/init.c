@@ -1,6 +1,7 @@
 #ifndef KBUILD_MODNAME
 #define KBUILD_MODNAME KBUILD_STR(layer4_5)
 #endif
+
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -13,6 +14,7 @@
 #include <net/netlink.h>
 
 // layer4.5 local includes
+#include "common_defines.h"
 #include "customization_socket.h"
 #include "register_cust.h"
 #include "tap.h"
