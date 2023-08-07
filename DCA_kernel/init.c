@@ -46,7 +46,6 @@ nl_receive_request(struct sk_buff* skb)
   size_t message_size = NETLINK_REPORT_SIZE;
   char failure[NETLINK_FAILURE_MSG_SIZE] =
     "Failed to create cust report"; // default error message
-  // TODO: failure size should be global param instead of "magic number"
 
   message = kmalloc(NETLINK_REPORT_SIZE, GFP_KERNEL);
   if (message == NULL) {

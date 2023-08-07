@@ -130,8 +130,6 @@ get_customizations(struct customization_socket* cust_socket,
   struct customization_node* cust_temp = NULL;
   struct customization_node* cust_next = NULL;
   size_t counter = 0;
-  u16 priority_threshold = 65535; // max u16 value; TODO: This should be a
-                                  // variable instead of hardcoded
 
   list_for_each_entry_safe(
     cust_temp, cust_next, &installed_customization_list, cust_list_member)
@@ -141,10 +139,8 @@ get_customizations(struct customization_socket* cust_socket,
       trace_printk("L4.5: cust socket match to registered module, pid = %d\n",
                    cust_socket->pid);
 #endif
-      // TODO: It seems like priority_threshold is not used since it is set to
-      // max value
       //  if cust priority lower than current threshold, then add to the array
-      if (*cust_temp->cust_priority <= priority_threshold) {
+      if (*cust_temp->cust_priority <= CUST_PRIORITY_THRESHOLD) {
         nodes[counter] = cust_temp;
         counter += 1;
         if (counter == MAX_CUST_ATTACH) {
@@ -177,7 +173,7 @@ register_customization(struct customization_node* module_cust, u16 applyNow)
 #ifdef DEBUG
     trace_printk("L4.5: kmalloc failed when registering customization node\n");
 #endif
-    return -1;
+    return ERROR;
   }
 
   // invalid customization recieved, both function must be valid (design choice)
@@ -186,7 +182,7 @@ register_customization(struct customization_node* module_cust, u16 applyNow)
 #ifdef DEBUG
     trace_printk("L4.5 ALERT: NULL registration function check failed\n");
 #endif
-    return -1;
+    return ERROR;
   }
 
   // TODO: should DCA set the module ID instead of having module supply it?
@@ -198,7 +194,7 @@ register_customization(struct customization_node* module_cust, u16 applyNow)
 #ifdef DEBUG
     trace_printk("L4.5 ALERT: Duplicate ID check failed\n");
 #endif
-    return -1;
+    return ERROR;
   }
 
   // TODO: Is there a better way to copy over values?
@@ -562,8 +558,7 @@ netlink_challenge_cust(char* message, size_t* length, char* request)
   struct customization_node* cust_node = NULL;
   u16 cust_id = 0;
   int word_count = 0;
-  int expected_words = 5; // TODO: this shouldn't be a magic number
-  char* words[5];         // hold expected_words pointers to char pointers
+  char* words[NETLINK_CHALLENGE_WORD_COUNT];
   char* msg = NULL;
   char response[HEX_RESPONSE_LENGTH] = "";
   char* iv = NULL;
@@ -578,9 +573,9 @@ netlink_challenge_cust(char* message, size_t* length, char* request)
   // encrypted_msg (as hex)
   // END
 
-  word_count = split_message(request, words, expected_words);
+  word_count = split_message(request, words, NETLINK_CHALLENGE_WORD_COUNT);
 
-  if (word_count != expected_words) {
+  if (word_count != NETLINK_CHALLENGE_WORD_COUNT) {
     trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
     // we did not get a valid message, so return error message
     goto parsing_error_msg;
@@ -594,7 +589,7 @@ netlink_challenge_cust(char* message, size_t* length, char* request)
     goto parsing_error_msg;
   }
 
-  // TODO: these shouldn't be magic numbers
+  // TODO: these shouldn't be magic numbers, but not sure proper place to define
   iv = words[2];
   msg = words[3];
 
@@ -648,8 +643,7 @@ netlink_deprecate_cust(char* message, size_t* length, char* request)
 {
   u16 cust_id = 0;
   int word_count = 0;
-  int expected_words = 3;
-  char* words[3]; // hold expected_words pointers to char pointers
+  char* words[NETLINK_DEPRECATE_WORD_COUNT];
   int result;
   size_t rem_length = *length;
 
@@ -659,9 +653,9 @@ netlink_deprecate_cust(char* message, size_t* length, char* request)
   // cust_id
   // END
 
-  word_count = split_message(request, words, expected_words);
+  word_count = split_message(request, words, NETLINK_DEPRECATE_WORD_COUNT);
 
-  if (word_count != expected_words) {
+  if (word_count != NETLINK_DEPRECATE_WORD_COUNT) {
     trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
     // we did not get a valid message, so return error message
     goto error_msg;
