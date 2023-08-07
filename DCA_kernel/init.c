@@ -28,9 +28,8 @@ MODULE_PARM_DESC(layer4_5_path,
                  "An absolute path to the Layer 4.5 install location");
 
 // netlink testing: used for relay commands
-#define NETLINK_TESTFAMILY 25
+
 struct sock* socket;
-#define NETLINK_REPORT_SIZE 1024
 
 // Layer 4.5 relay handler, passes command to the customization module
 // @param[I] skb The netlink message from NCO passed through DCA_user
@@ -45,7 +44,8 @@ nl_receive_request(struct sk_buff* skb)
   char* data = (char*)NLMSG_DATA(nlh);
   char* message = NULL;
   size_t message_size = NETLINK_REPORT_SIZE;
-  char failure[32] = "Failed to create cust report"; // default error message
+  char failure[NETLINK_FAILURE_MSG_SIZE] =
+    "Failed to create cust report"; // default error message
   // TODO: failure size should be global param instead of "magic number"
 
   message = kmalloc(NETLINK_REPORT_SIZE, GFP_KERNEL);
@@ -55,7 +55,7 @@ nl_receive_request(struct sk_buff* skb)
                  "netlink report\n");
 #endif
     message = failure;
-    message_size = 32;
+    message_size = NETLINK_FAILURE_MSG_SIZE;
     return;
   }
 
@@ -64,19 +64,19 @@ nl_receive_request(struct sk_buff* skb)
 #endif
 
   // TODO: compare values should be global with sizes to make this cleaner
-  if (strncmp(data, "CUST_REPORT", 11) == 0) {
+  if (strncmp(data, "CUST_REPORT", NETLINK_CUST_REPORT_MSG_SIZE) == 0) {
     // rewrite message size to number of bytes in message that have data
     netlink_cust_report(message, &message_size);
-  } else if (strncmp(data, "CHALLENGE", 9) == 0) {
+  } else if (strncmp(data, "CHALLENGE", NETLINK_CHALLENGE_MSG_SIZE) == 0) {
     // Do security challenge query
     netlink_challenge_cust(message, &message_size, data);
-  } else if (strncmp(data, "DEPRECATE", 9) == 0) {
+  } else if (strncmp(data, "DEPRECATE", NETLINK_DEPRECATE_MSG_SIZE) == 0) {
     // this prevents the module from matching future sockets
     netlink_deprecate_cust(message, &message_size, data);
-  } else if (strncmp(data, "TOGGLE", 6) == 0) {
+  } else if (strncmp(data, "TOGGLE", NETLINK_TOGGLE_MSG_SIZE) == 0) {
     // this is used to activate/deactivate the module
     netlink_toggle_cust(message, &message_size, data);
-  } else if (strncmp(data, "PRIORITY", 8) == 0) {
+  } else if (strncmp(data, "PRIORITY", NETLINK_PRIORITY_MSG_SIZE) == 0) {
     // this is used to update the modules priority level
     netlink_set_cust_priority(message, &message_size, data);
   }
@@ -123,7 +123,7 @@ layer4_5_start(void)
   // if netlink socket fails, then exit before inserting taps
   socket = netlink_kernel_create(&init_net, NETLINK_TESTFAMILY, &config);
   if (socket == NULL) {
-    return -1;
+    return ERROR;
   }
 
   register_tcp_taps();
@@ -136,7 +136,7 @@ layer4_5_start(void)
   init_socket_tables();
   init_customization_list();
 
-  return 0;
+  return SUCCESS;
 }
 
 // Unregister and stop Layer 4.5, cleans up structures and lists/tables
