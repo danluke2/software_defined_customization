@@ -72,25 +72,41 @@ delete_lines() {
   fi
 }
 
-# ----------------------------------------------------------------
-# Function that
-# ----------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Function that inserts select parameters into a given installation file
+insert_params() {
+    local file="$1"   # The file name passed in
+    local -n vars="$2"  # The array of lines to be added
+
+    # delete_lines $file
+    local line="$(grep -n "STANDARD PARAMS MUST GO HERE" $file | head -n 1 | cut -d: -f1)"
+    ((line = line + 1))   
+    for v in $vars; do
+        sed -i "${line}i\$v" $file
+        ((line = line + 1))   
+    done
+}
+# -----------------------------------------------------------------------------
 
 # *************** Installer Makefile update ***************
 
 FILE=$INSTALLER_MAKEFILE_DIR/Makefile
+LINES=("INSTALLER_MAKEFILE_DIR=\$INSTALLER_MAKEFILE_DIR"
+    "INSTALL_LOCATION=\$INSTALL_LOCATION"
+    "DISTRO_DIR=\$DISTRO_DIR")
 
 # delete all lines between start and end
 delete_lines $FILE
 
 # insert standard params
-LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-((LINE = LINE + 1))
-sed -i "${LINE}i\INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR" $FILE
-((LINE = LINE + 1))
-sed -i "${LINE}i\INSTALL_LOCATION=$INSTALL_LOCATION" $FILE
-((LINE = LINE + 1))
-sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
+insert_params $FILE $LINES
+#LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+#((LINE = LINE + 1))
+#sed -i "${LINE}i\INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR" $FILE
+#((LINE = LINE + 1))
+#sed -i "${LINE}i\INSTALL_LOCATION=$INSTALL_LOCATION" $FILE
+#((LINE = LINE + 1))
+#sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
 
 # *************** Installer Makefile update ***************
 
