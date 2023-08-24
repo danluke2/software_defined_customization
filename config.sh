@@ -67,13 +67,14 @@ delete_lines() {
   # delete all lines between start and end
   ((START = START + 1))
   ((END = END - 1))
-  if [ $START -lt $END ]; then
-    sed -i "${START},${END}d" $1
-
-  elif [ $START -eq $END ]; then
+  if [ $START -le $END ]; then
     sed -i "${START},${END}d" $1
   fi
 }
+
+# ----------------------------------------------------------------
+# Function that
+# ----------------------------------------------------------------
 
 # *************** Installer Makefile update ***************
 
