@@ -67,29 +67,44 @@ delete_lines() {
   # delete all lines between start and end
   ((START = START + 1))
   ((END = END - 1))
-  if [ $START -lt $END ]; then
-    sed -i "${START},${END}d" $1
-
-  elif [ $START -eq $END ]; then
+  if [ $START -le $END ]; then
     sed -i "${START},${END}d" $1
   fi
 }
 
+# -----------------------------------------------------------------------------
+# Function that inserts select parameters into a given installation file
+insert_params() {
+    local file="$1"   # The file name passed in
+    shift
+    local vars=("$@")  # The array of lines to be added
+
+    delete_lines $file
+    local line="$(grep -n "STANDARD PARAMS MUST GO HERE" $file | head -n 1 | cut -d: -f1)"
+    ((line = line + 1))   
+    for v in "${vars[@]}"; do
+        sed -i "${line}i$v" $file
+        ((line = line + 1))   
+    done
+}
+# -----------------------------------------------------------------------------
+
 # *************** Installer Makefile update ***************
 
 FILE=$INSTALLER_MAKEFILE_DIR/Makefile
-
-# delete all lines between start and end
-delete_lines $FILE
+PARAMS=("INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR"
+    "INSTALL_LOCATION=$INSTALL_LOCATION"
+    "DISTRO_DIR=$DISTRO_DIR")
 
 # insert standard params
-LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-((LINE = LINE + 1))
-sed -i "${LINE}i\INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR" $FILE
-((LINE = LINE + 1))
-sed -i "${LINE}i\INSTALL_LOCATION=$INSTALL_LOCATION" $FILE
-((LINE = LINE + 1))
-sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
+insert_params "$FILE" "${PARAMS[@]}"
+#LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+#((LINE = LINE + 1))
+#sed -i "${LINE}i\INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR" $FILE
+#((LINE = LINE + 1))
+#sed -i "${LINE}i\INSTALL_LOCATION=$INSTALL_LOCATION" $FILE
+#((LINE = LINE + 1))
+#sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
 
 # *************** Installer Makefile update ***************
 
@@ -99,16 +114,21 @@ MAKEFILE_PATHS="$LAYER_MOD_DIR/sample_modules  $GENI_MOD_DIR $NETSOFT_MOD_DIR"
 
 for x in $MAKEFILE_PATHS; do
   FILE=$x/Makefile
-  delete_lines $FILE
+  PARAMS=("KBUILD_EXTRA_SYMBOLS=$KBUILD_EXTRA_SYMBOLS"
+      "MODULE_DIR=$x"
+      "DISTRO_DIR=$DISTRO_DIR")
 
-  # insert standard params
-  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-  ((LINE = LINE + 1))
-  sed -i "${LINE}i\KBUILD_EXTRA_SYMBOLS=$KBUILD_EXTRA_SYMBOLS" $FILE
-  ((LINE = LINE + 1))
-  sed -i "${LINE}i\MODULE_DIR=$x" $FILE
-  ((LINE = LINE + 1))
-  sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
+  insert_params "$FILE" "${PARAMS[@]}"
+#  delete_lines $FILE
+#
+#  # insert standard params
+#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
+#  ((LINE = LINE + 1))
+#  sed -i "${LINE}i\KBUILD_EXTRA_SYMBOLS=$KBUILD_EXTRA_SYMBOLS" $FILE
+#  ((LINE = LINE + 1))
+#  sed -i "${LINE}i\MODULE_DIR=$x" $FILE
+#  ((LINE = LINE + 1))
+#  sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
 done
 
 # *************** Other Makefile updates ***************
