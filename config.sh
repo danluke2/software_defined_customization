@@ -103,17 +103,9 @@ PARAMS=("INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR"
 
 # insert standard params
 insert_params "$FILE" "${PARAMS[@]}"
-#LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\INSTALL_LOCATION=$INSTALL_LOCATION" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\DISTRO_DIR=$DISTRO_DIR" $FILE
 
 # *************** Installer Makefile update ***************
 
-echo "Check 1"
 # *************** Other Makefile updates ***************
 
 MAKEFILE_PATHS="$LAYER_MOD_DIR/sample_modules  $GENI_MOD_DIR $NETSOFT_MOD_DIR"
@@ -128,7 +120,7 @@ for x in $MAKEFILE_PATHS; do
 done
 
 # *************** Other Makefile updates ***************
-echo "Check 2"
+
 # *************** Installer Bash updates ***************
 
 INSTALLER_FILES="installer.sh loader.sh"
@@ -143,26 +135,10 @@ for x in $INSTALLER_FILES; do
         "DCA_USER_DIR=$DCA_USER_DIR")
 
   insert_params "$FILE" "${PARAMS[@]}"
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\INSTALL_LOCATION=$INSTALL_LOCATION" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\INCLUDE_DIR=$INCLUDE_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\CUST_LOCATION=$CUST_LOCATION" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\DCA_LOCATION=$DCA_LOCATION" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\DCA_USER_DIR=$DCA_USER_DIR" $FILE
 done
 
 # *************** Installer Bash updates ***************
-echo "Check 3"
+
 # *************** DCA_user Bash updates ***************
 
 INSTALLER_FILES="service.sh"
@@ -171,15 +147,10 @@ for x in $INSTALLER_FILES; do
   PARAMS=("DCA_LOCATION=$DCA_LOCATION")
 
   insert_params "$FILE" "${PARAMS[@]}"
-
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\DCA_LOCATION=$DCA_LOCATION" $FILE
 done
 
 # *************** DCA_user Bash updates ***************
-echo "Check 4"
+
 # *************** NCO Bash updates ***************
 
 INSTALLER_FILES="service.sh"
@@ -188,14 +159,10 @@ for x in $INSTALLER_FILES; do
   PARAMS=("NCO_DIR=$NCO_DIR")
 
   insert_params "$FILE" "${PARAMS[@]}"
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
 done
 
 # *************** NCO Bash Bash updates ***************
-echo "Check 5"
+
 # *************** Python simple server Bash update ***************
 
 INSTALLER_FILES="service.sh"
@@ -204,14 +171,10 @@ for x in $INSTALLER_FILES; do
   PARAMS=("SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR")
 
   insert_params "$FILE" "${PARAMS[@]}"
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR" $FILE
 done
 
 # *************** Python simple server Bash updates ***************
-echo "Check 6"
+
 # *************** Python https server update ***************
 
 INSTALLER_FILES="python_https_server.py"
@@ -221,16 +184,10 @@ for x in $INSTALLER_FILES; do
         "SIMPLE_SERVER_DIR='$SIMPLE_SERVER_DIR'")
 
   insert_params "$FILE" "${PARAMS[@]}"
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\SIMPLE_SERVER_DIR='$SIMPLE_SERVER_DIR'" $FILE
 done
 
 # *************** Python https server updates ***************
-echo "Check 7"
+
 # *************** Vagrant Bash updates ***************
 
 FILE=$GIT_DIR/vagrant/setup.sh
@@ -239,17 +196,9 @@ PARAMS=("GIT_DIR=$GIT_DIR"
         "SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR")
 
 insert_params "$FILE" "${PARAMS[@]}"
-## insert standard params
-#LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\DCA_KERNEL_DIR=$DCA_KERNEL_DIR" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR" $FILE
 
 # *************** Installer Bash updates ***************
-echo "Check 8"
+
 # *************** NetSoft Bash updates ***************
 
 # list of files to modify
@@ -275,46 +224,10 @@ for x in $FILES; do
         "CLIENT_PASSWD=$CLIENT_PASSWD")
 
   insert_params "$FILE" "${PARAMS[@]}"
-
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\EXP_SCRIPT_DIR=$EXP_SCRIPT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\NETSOFT_SCRIPT_DIR=$NETSOFT_SCRIPT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\GENI_SCRIPT_DIR=$GENI_SCRIPT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\LAYER_MOD_DIR=$LAYER_MOD_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\NETSOFT_MOD_DIR=$NETSOFT_MOD_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\GENI_MOD_DIR=$GENI_MOD_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\DCA_KERNEL_DIR=$DCA_KERNEL_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\DCA_USER_DIR=$DCA_USER_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\CUST_LOCATION=$CUST_LOCATION" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\SERVER_IP=$SERVER_IP" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\SERVER_PASSWD=$SERVER_PASSWD" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\CLIENT_IP=$CLIENT_IP" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\CLIENT_PASSWD=$CLIENT_PASSWD" $FILE
-
 done
 
 # *************** NetSoft Bash updates ***************
-echo "Check 9"
+
 # *************** Feature Test Bash updates ***************
 
 # list of files to modify
@@ -326,7 +239,7 @@ for x in $FILES; do
 
 done
 # *************** Feature Test Bash updates ***************
-echo "Check 10"
+
 # *************** GENI Bash updates ***************
 
 # list of files to modify
@@ -348,39 +261,10 @@ for x in $FILES; do
         "USERNAME=$GENI_USERNAME"
         "PASSWORD=$GENI_PASSWORD")
   insert_params "$FILE" "${PARAMS[@]}"
-
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\GIT_DIR=$GIT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\EXP_SCRIPT_DIR=$EXP_SCRIPT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\NETSOFT_SCRIPT_DIR=$NETSOFT_SCRIPT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\GENI_SCRIPT_DIR=$GENI_SCRIPT_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\LAYER_MOD_DIR=$LAYER_MOD_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\NETSOFT_MOD_DIR=$NETSOFT_MOD_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\GENI_MOD_DIR=$GENI_MOD_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\SIMPLE_SERVER_DIR=$SIMPLE_SERVER_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\DCA_KERNEL_DIR=$DCA_KERNEL_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\DCA_USER_DIR=$DCA_USER_DIR" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\USERNAME=$GENI_USERNAME" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\PASSWORD=$GENI_PASSWORD" $FILE
 done
 
 # *************** GENI Bash updates ***************
-echo "Check 11"
+
 # *************** NCO Builder update ***************
 
 FILE=$NCO_DIR/builder.sh
@@ -389,15 +273,8 @@ PARAMS=("NCO_DIR=$NCO_DIR"
 
 insert_params "$FILE" "${PARAMS[@]}"
 
-## insert standard params
-#LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\NCO_DIR=$NCO_DIR" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\NCO_MOD_DIR=$NCO_MOD_DIR" $FILE
-
 # *************** NCO Builder update ***************
-echo "Check 12"
+
 # *************** NCO cfg update ***************
 
 FILE=$NCO_DIR/cfg.py
@@ -406,20 +283,9 @@ PARAMS=("HOST='$SERVER_IP'"
         "nco_mod_dir='$NCO_MOD_DIR/'"
         "common_struct_dir='$DCA_KERNEL_DIR/'")
 insert_params "$FILE" "${PARAMS[@]}"
-
-## insert standard params
-#LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\nco_dir='$NCO_DIR/'" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\nco_mod_dir='$NCO_MOD_DIR/'" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\common_struct_dir='$DCA_KERNEL_DIR/'" $FILE
-
+#
 # *************** NCO cfg update ***************
-echo "Check 13"
+
 # *************** DCA cfg update ***************
 
 FILE=$DCA_USER_DIR/cfg.py
@@ -429,19 +295,8 @@ PARAMS=("HOST='$SERVER_IP'"
         "system_release='$distro'")
 insert_params "$FILE" "${PARAMS[@]}"
 
-## insert standard params
-#LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\HOST='$SERVER_IP'" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\dca_dir='$DCA_USER_DIR/'" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\symver_location='$INSTALL_LOCATION/'" $FILE
-#((LINE = LINE + 1))
-#sed -i "${LINE}i\system_release='$distro'" $FILE
-
 # *************** DCA cfg update ***************
-echo "Check 14"
+
 # *************** Module Include updates ***************
 PARAMS=("#include <common_structs.h>"
         "#include <helpers.h>")
@@ -451,13 +306,6 @@ SAMPLE_MODULE_FILES="sample_python_client.c sample_python_server.c"
 for x in $SAMPLE_MODULE_FILES; do
   FILE=$LAYER_MOD_DIR/sample_modules/${x}
   insert_params "$FILE" "${PARAMS[@]}"
-
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\#include <common_structs.h>" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\#include <helpers.h>" $FILE
 done
 
 # netsoft modules
@@ -465,13 +313,6 @@ NETSOFT_MODULE_FILES="overhead_test_batch_dns_client.c overhead_test_batch_dns_s
 for x in $NETSOFT_MODULE_FILES; do
   FILE=$NETSOFT_MOD_DIR/${x}
   insert_params "$FILE" "${PARAMS[@]}"
-
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\#include <common_structs.h>" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\#include <helpers.h>" $FILE
 done
 
 # geni modules
@@ -479,13 +320,6 @@ GENI_MODULE_FILES="bulk_client.c bulk_server.c compress_dns_client.c compress_dn
 for x in $GENI_MODULE_FILES; do
   FILE=$GENI_MOD_DIR/${x}
   insert_params "$FILE" "${PARAMS[@]}"
-
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\#include <common_structs.h>" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\#include <helpers.h>" $FILE
 done
 
 # extra modules
@@ -493,12 +327,4 @@ EXTRA_MODULE_FILES="sample_tls_client.c sample_tls_server.c"
 for x in $EXTRA_MODULE_FILES; do
   FILE=$LAYER_MOD_DIR/extra/${x}
   insert_params "$FILE" "${PARAMS[@]}"
-
-#  # insert standard params
-#  LINE="$(grep -n "STANDARD PARAMS MUST GO HERE" $FILE | head -n 1 | cut -d: -f1)"
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\#include <common_structs.h>" $FILE
-#  ((LINE = LINE + 1))
-#  sed -i "${LINE}i\#include <helpers.h>" $FILE
 done
-echo "Last line!"
