@@ -83,10 +83,11 @@ swapon -a
 # Added safety to ensure the Windows to Linux carriage return/line feed issue doesn't impact install
 # This solves an old situation and prevents future situations
 
-sudo apt -y dos2unix
+sudo apt install -y dos2unix
+
 
 # This solution is from https://stackoverflow.com/questions/9612090/how-to-loop-through-file-names-returned-by-find
-find . -name '*.sh" -exec dos2unix {} \;
+find . -name "*.sh" -exec dos2unix {} \;
 
 # finish with Layer 4.5 install script
 $DCA_KERNEL_DIR/bash/installer.sh
