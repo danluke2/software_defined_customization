@@ -4,10 +4,20 @@ title: Useful References
 nav_order: 5
 ---
 # Useful References
-
+{: .no_toc}
 > Common items I refer to when trying to understand code and functions in the kernel.
 
-## Papers :
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
+
+
+## Papers
 
  - [Software Defined Customization of Network Protocols with LAYER 4.5](https://calhoun.nps.edu/handle/10945/71078){:target="_blank"}
 
@@ -19,7 +29,7 @@ nav_order: 5
 
  - [Towards Agile Network Operation with Layer 4.5 Protocol Customization](https://github.com/danluke2/software_defined_customization/blob/main/Dissertation%20Papers%20and%20Videos/NetVerify_2021_Paper.pdf){:target="_blank"}
 
-## Videos :
+## Videos
 
  - [NetVerify 21 presentation focused on Layer 4.5 and initial idea of network wide control](https://youtu.be/s9vwJLDMSlI?start=17737&end=18730){:target="_blank"}
   
@@ -27,15 +37,15 @@ nav_order: 5
   
  - [NetSoft Presentation](https://whova.com/portal/ieeen_202206/videos/3IjM0ATOxIDN/){:target="_blank"}
 
-## External References :
+## External References
 
-### C/Kernel coding standards:
+### C/Kernel coding standards
 
  - [Linux Kernel style guide](https://www.kernel.org/doc/html/latest/process/coding-style.html#){:target="_blank"}
 
  - [~~coding art Naming guide~~](https://codingart.readthedocs.io/en/latest/c/Naming.html){:target="_blank"} (link broken)
 
-### Kernel Modules:
+### Kernel Modules
 
  - [The Linux Kernel Module Programming Guide](https://sysprog21.github.io/lkmpg/){:target="_blank"}
 
@@ -45,10 +55,9 @@ nav_order: 5
 
  - [Make File](https://tldp.org/LDP/lkmpg/2.4/html/x208.html){:target="_blank"}
 
-### How sockets work in C and other guides:
+### How sockets work in C and other guides
 
  - [Beej's Guides](https://beej.us/guide/){:target="_blank"}
-
 
 
 ### KBUILD_EXTRA_SYMBOLS
@@ -60,7 +69,7 @@ nav_order: 5
 
  - [Using Symbols Exported from External Modules](http://embeddedguruji.blogspot.com/2019/04/kbuildextrasymbols-using-symbols.html){:target="_blank"}
 
-### Kernel Hash Tables:
+### Kernel Hash Tables
 
  -  bitsize is a power-of-2 size -> number of buckets
 
@@ -73,11 +82,11 @@ nav_order: 5
  - [Hash Table Overview](https://lwn.net/Articles/510202/){:target="_blank"}
 
 
-### Finding a Kernel Function:
+### Finding a Kernel Function
 
  - [Linux hashtable.h](https://elixir.bootlin.com/linux/latest/source/include/linux/hashtable.h#L157){:target="_blank"}
 
-### iov or kvec:
+### iov or kvec
 
  - [The iov_iter Interface](https://lwn.net/Articles/625077/){:target="_blank"}
 
@@ -90,7 +99,7 @@ nav_order: 5
  - [How Linux Creates Sockets](https://ops.tips/blog/how-linux-creates-sockets/){:target="_blank"}
 
 
-### Functions in Linux and C:
+### Functions in Linux and C
 
  - [Static functions in Linux device drivers](https://stackoverflow.com/questions/14423333/static-functions-in-linux-device-driver){:target="_blank"}
 

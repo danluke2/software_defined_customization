@@ -1,9 +1,10 @@
 ---
 layout: post
 title: Customization Modules
-parent: Development
-permalink: development/sample_module
-nav_order: 3
+parent: Next Steps
+grand_parent: Development
+permalink: development/next_step/sample_module
+nav_order: 1
 ---
 # Layer 4.5 Customization Modules
 
