@@ -1,6 +1,6 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
 KBUILD_EXTRA_SYMBOLS=/lib/modules/5.13.0-35-generic/layer4_5/Module.symvers
-MODULE_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/sample_modules
+MODULE_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/pid_modules
 DISTRO_DIR=/lib/modules/5.13.0-35-generic
 # ************** END STANDARD PARAMS  ****************
 

@@ -6,7 +6,9 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/slab.h>
-#include <linux/uio.h> // For iter structures
+#include <linux/uio.h>    // For iter structures
+#include <linux/sched.h>  // For task_pid_nr
+#include <linux/fs.h>
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <common_structs.h>
@@ -57,9 +59,6 @@ unsigned short priority = 65535;
 module_param(priority, ushort, 0600);
 MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
-// test message for this module
-char cust_test[12] = "testCustMod";
-
 struct customization_node *python_cust;
 
 
@@ -72,11 +71,24 @@ struct customization_node *python_cust;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
+    pid_t pid;
+    char* pid_tag_str;
+    size_t pid_tag_len;
+
     send_buf_st->copy_length = 0;
 
     set_module_struct_flags(send_buf_st, false);
 
+    // Get the PID
+    pid = task_pid_nr(current);
+    pid_tag_len = 14;
+    pid_tag_str = kmalloc(pid_tag_len + 1, GFP_KERNEL);
+    if(!pid_tag_str){
+        trace_printk("L4.5 ERROR: Failed to allocate memory for PID Tag");
+        send_buf_st->try_next = true;
+        return;
+    }
+    snprintf(pid_tag_str, pid_tag_len + 1, "[PID: %07d]", pid);
 
     // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
@@ -85,7 +97,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    send_buf_st->copy_length = cust_test_size + send_buf_st->length;
+    send_buf_st->copy_length = pid_tag_len + send_buf_st->length;
 
     // send_buf could be realloc and change, thus update buf ptr and size if necessary
     // only necessary if you need to make the buffer larger than default size
@@ -95,11 +107,11 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     //   trace_printk("Realloc Failed\n");
     //   return;
     // }
-    // send_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
 
-    memcpy(send_buf_st->buf, cust_test, cust_test_size);
+    memcpy(send_buf_st->buf, pid_tag_str, pid_tag_len);
+    kfree(pid_tag_str);
     // copy from full will revert iter back to normal if failure occurs
-    copy_success = copy_from_iter_full(send_buf_st->buf + cust_test_size, send_buf_st->length, send_buf_st->src_iter);
+    copy_success = copy_from_iter_full(send_buf_st->buf + pid_tag_len, send_buf_st->length, send_buf_st->src_iter);
     if (copy_success == false)
     {
         // not all bytes were copied, so pick scenario 1 or 2 below
@@ -190,7 +202,7 @@ int __init sample_client_start(void)
     python_cust->recv_buffer_size = 32;   // we don't plan to use this buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = 42;
+    python_cust->cust_id = 57005;
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;
@@ -233,5 +245,5 @@ void __exit sample_client_end(void)
 
 module_init(sample_client_start);
 module_exit(sample_client_end);
-MODULE_AUTHOR("Alexander Beal");
+MODULE_AUTHOR("A.J. Beal");
 MODULE_LICENSE("GPL");

@@ -56,9 +56,6 @@ unsigned short priority = 65535;
 module_param(priority, ushort, 0600);
 MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
-// test message for this plugin
-char cust_test[12] = "testCustMod";
-
 struct customization_node *python_cust;
 
 
@@ -97,8 +94,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    //-1 b/c don't want terminating part
-    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
 
     set_module_struct_flags(recv_buf_st, false);
 
@@ -109,7 +104,12 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         return;
     }
 
-    recv_buf_st->copy_length = recv_buf_st->recv_return - cust_test_size;
+    // Known tag length (7 digit pid, + 7 characters to form tag)
+    size_t pid_tag_len = 14;
+
+    // Iterate over PID Tag
+    recv_buf_st->copy_length = recv_buf_st->recv_return - pid_tag_len;
+    iov_iter_advance(recv_buf_st->src_iter, pid_tag_len);
 
     // only necessary if you need to make the buffer larger than default size
     // recv_buf_st->buf = krealloc(recv_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);
@@ -119,9 +119,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     //   return;
     // }
     // recv_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
-
-    // adjust iter offset to start of actual message, then copy
-    iov_iter_advance(recv_buf_st->src_iter, cust_test_size);
 
     copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->copy_length, recv_buf_st->src_iter);
     if (copy_success == false)
@@ -191,7 +188,7 @@ int __init sample_server_start(void)
     python_cust->recv_buffer_size = 2048; // we don't need a full buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = 24;
+    python_cust->cust_id = 50075;
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;
@@ -230,5 +227,5 @@ void __exit sample_server_end(void)
 
 module_init(sample_server_start);
 module_exit(sample_server_end);
-MODULE_AUTHOR("Alexander Beal");
+MODULE_AUTHOR("A.J. Beal");
 MODULE_LICENSE("GPL");
