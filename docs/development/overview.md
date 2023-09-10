@@ -68,6 +68,6 @@ nav_order: 1
     -  if both are NULL, then customization is rejected
 
 ## Branches
-1) Buffering: introduces a different approach for receive side processing to allow the customization module to buffer L4 data for the application.  This basically allows processing for stricter applications, such as those that use TLS.
+1. Buffering: introduces a different approach for receive side processing to allow the customization module to buffer L4 data for the application.  This basically allows processing for stricter applications, such as those that use TLS.
 
-1) Rotating: introduces the capability to rotate customization modules on an active socket and maintain backward compatibility until both end points have same customization module active (i.e., due to transmission delays).
+1. Rotating: introduces the capability to rotate customization modules on an active socket and maintain backward compatibility until both end points have same customization module active (i.e., due to transmission delays).
