@@ -193,7 +193,7 @@ NOTE: The script assumes NCO and DCA are on same machine, but this is not a stri
 
 1) Verify DCA connected to NCO
 
-    ![](../../assets/connect.png)
+    ![](../../docs/assets/connect.png)
 
 
 1) Verify challenge module deployed to DCA and challenge/response window set to 5 seconds
@@ -203,24 +203,24 @@ NOTE: The script assumes NCO and DCA are on same machine, but this is not a stri
     * Open cib.db with DB Browser for SQLite (already installed): `sqlitebrowser ~/software_defined_customization/NCO/cib.db`
 
 
-   ![](../../assets/active_table.png)
+   ![](../../docs/assets/active_table.png)
 
 1) Allow script to run until completed
 
     * Verify each check passed via terminal output
 
-   ![](../../assets/challenge.png)
+   ![](../../docs/assets/challenge.png)
 
    * If challenge/response fails, a message will be printed at NCO and module will be revoked
 
-   ![](../../assets/challenge_error.png)
+   ![](../../docs/assets/challenge_error.png)
 
 1) Verify each challenge/response was conducted correctly by reviewing
 tracelog entries
 
     * `tracelog`
 
-   ![](../../assets/challenge_log.png)
+   ![](../../docs/assets/challenge_log.png)
 
 1) Terminate the DCA and NCO terminals when finished
 
@@ -262,7 +262,7 @@ NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
     * NOTE: server DCA id will always be 1; client DCA id is 2
 
-    ![](../../assets/terminals.png)
+    ![](../../docs/assets/terminals.png)
 
     * Top-left to Bottom-right:
 
@@ -295,7 +295,7 @@ NOTE: this demo will assume the middlebox is on same machine as the DNS server
 
     * right click on Application ID field and add column to see in main view
 
-        ![](../../assets/demo_column.png)
+        ![](../../docs/assets/demo_column.png)
 
 
 1) (SERVER) Cleanup steps:
