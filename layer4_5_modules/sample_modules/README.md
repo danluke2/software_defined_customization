@@ -81,7 +81,7 @@ the client.
 
         * `tracelog`
 
-       ![](../assets/client_load.png)
+       ![](../../assets/client_load.png)
 
 
 1) Launch the python echo client and server in two separate terminals and note the PID of each (printed in terminal):
@@ -111,7 +111,7 @@ a modified message and replies with this modified message
 
     * cust\_send=1 means send customization will be applied on the client
 
-    ![](../assets/client_assign.png)
+    ![](../../assets/client_assign.png)
 
 
 
@@ -154,7 +154,7 @@ a modified message and replies with this modified message
 
         * `tracelog`
 
-        ![](../assets/client_load.png)
+        ![](../../assets/client_load.png)
 
 
 1) insert server modules:
@@ -165,7 +165,7 @@ a modified message and replies with this modified message
 
         * `tracelog`
 
-        ![](../assets/server_load.png)
+        ![](../../assets/server_load.png)
 
 
 
@@ -202,7 +202,7 @@ a modified message and replies with this modified message
 
     * cust\_recv=1 means recv customization will be applied on the server
 
-    ![](../assets/both_assign.png)
+    ![](../../assets/both_assign.png)
 
 
 1) reset the trace file between runs if desired
