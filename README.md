@@ -124,7 +124,7 @@ Acronyms:
 
         * a different vagrant box can be used, but must be configured with dependencies manually
 
-        * If desired, turn off the virtualbox GUI by commenting out vg.gui = true
+        * If desired, turn off the virtualbox GUI by commenting out vb.gui = true
 
         * adjust the allotted memory if your machine does not have sufficient RAM to support 2 VM's with 8GB each
 
