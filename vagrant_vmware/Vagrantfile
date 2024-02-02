@@ -16,16 +16,20 @@ Vagrant.configure("2") do |config|
   config.vm.define "nps" do |nps|
     nps.vm.box = "squanchy/layer4.5"
     nps.vm.box_version = "1.3"
-    nps.vm.provider "vmware_desktop" do |vb|
+    nps.vm.provider "vmware_fusion" do |vb|
+      # this prevents a file open error when starting up likely caused by 
+      # the way I created the vagrant box
+      vb.linked_clone = false
       # Display the GUI when booting the machine
       vb.gui = true
-      vb.vmx["memsize"] = "8192"
-      vb.vmx["numvcpus"] = "2"
+      vb.memory = 8192
+      vb.cpus = 2
     end
   end
 
 
-
+  # TODO: Should we set the network up also?
+  # nps.vm.network "public_network", adapter: 0, auto_config: false
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -56,7 +60,7 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder "../../software_defined_customization", "/home/vagrant/software_defined_customization"
+  config.vm.synced_folder "../../software_defined_customization", "/home/vagrant/software_defined_customization", owner: "vagrant", group: "vagrant"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -81,5 +85,5 @@ Vagrant.configure("2") do |config|
   #   apt-get update
   #   apt-get install -y apache2
   # SHELL
-  config.vm.provision :shell, path: "setup.sh"
+  config.vm.provision :shell, path: "setup_vmware.sh"
 end
