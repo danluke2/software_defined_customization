@@ -28,7 +28,7 @@
 
 #include "json-maker.h"
 #include <linux/kernel.h>
-#include <stddef.h> // For NULL
+// #include <stddef.h> // For NULL
 
 /** Add a character at the end of a string.
  * @param dest Pointer to the null character of the string
