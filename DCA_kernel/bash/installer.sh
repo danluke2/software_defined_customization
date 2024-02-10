@@ -13,11 +13,11 @@ ARCH="$(arch)"
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
-INCLUDE_DIR=/usr/lib/modules/5.13.0-35-generic/build/include
-CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
+INSTALL_LOCATION=/usr/lib/modules/5.15.0-94-generic/layer4_5
+INCLUDE_DIR=/usr/lib/modules/5.15.0-94-generic/build/include
+CUST_LOCATION=/usr/lib/modules/5.15.0-94-generic/layer4_5/customizations
 GIT_DIR=/home/vagrant/software_defined_customization
-DCA_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/DCA
+DCA_LOCATION=/usr/lib/modules/5.15.0-94-generic/layer4_5/DCA
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 # ************** END STANDARD PARAMS ****************
 
@@ -66,9 +66,10 @@ if [[ $ARCH != "aarch64" ]]; then
   make && make install || error_exit "Makefile error detected"
   else
   echo $ARCH
-make CC=aarch64-linux-gnu-gcc-12 && make install || error_exit "Makefile error detected"
+make && make install || error_exit "Makefile error detected"
 fi
 
+# CC=aarch64-linux-gnu-gcc-12
 
 # Start layer 4.5 processing
 insmod $INSTALL_LOCATION/layer4_5.ko layer4_5_path="$INSTALL_LOCATION"

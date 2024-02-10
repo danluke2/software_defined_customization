@@ -14,9 +14,6 @@ sleep 20
 
 timedatectl
 
-
-sudo apt install -y gcc-12
-
 # VMWare box doesn't like to share folders, so here is my workaround
 # cat <<EOT >>/etc/fstab
 # .host:/ /home/vagrant fuse.vmhgfs-fuse allow_other 0 0
@@ -27,6 +24,9 @@ GIT_DIR=/home/vagrant/software_defined_customization
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
 # ************** END STANDARD PARAMS ****************
+
+#run config to match host machine
+$GIT_DIR/config.sh
 
 #replace dnsmasq config to match experiments
 # cp $GIT_DIR/vagrant/dnsmasq.conf /etc/dnsmasq.conf
@@ -102,8 +102,6 @@ EOT
 # find . -name "*.sh" -exec dos2unix {} \;
 
 # finish with Layer 4.5 install script
-# $DCA_KERNEL_DIR/bash/installer.sh
+$DCA_KERNEL_DIR/bash/installer.sh
 
 
-#run config to match host machine
-$GIT_DIR/config.sh
