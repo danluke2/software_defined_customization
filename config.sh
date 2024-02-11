@@ -7,7 +7,10 @@
 # $1 = geni username
 # $2 = geni password
 
-distro=$(uname -r)
+distro="distro=\"\$(uname -r)\""
+make_distro="distro=\$(shell uname -r)"
+python_distro="distro=subprocess.run(['uname', '-r'])"
+
 
 # ******************** UPDATE SECTION  ************************
 
@@ -33,16 +36,21 @@ DCA_USER_DIR=$GIT_DIR/DCA_user
 
 # Installer/loader specific variables
 INSTALLER_MAKEFILE_DIR=$DCA_KERNEL_DIR
-INSTALL_LOCATION=/usr/lib/modules/$distro/layer4_5
-INCLUDE_DIR=/usr/lib/modules/$distro/build/include
+
+INSTALL_LOCATION=/usr/lib/modules/\$distro/layer4_5
+INCLUDE_DIR=/usr/lib/modules/\$distro/build/include
 # location where customization modules must exist to be loaded at runtime
 CUST_LOCATION=$INSTALL_LOCATION/customizations
 DCA_LOCATION=$INSTALL_LOCATION/DCA
 
 # Makefile Parameters
-DISTRO_DIR=/lib/modules/$distro
+INSTALL_LOCATION_MAKE=/usr/lib/modules/\$\(distro\)/layer4_5
+DISTRO_DIR=/lib/modules/\$\(distro\)
 #only in module makefile
 KBUILD_EXTRA_SYMBOLS=$DISTRO_DIR/layer4_5/Module.symvers
+
+# Python Specific Parameter
+SYMVER_LOCATION="f'/usr/lib/modules/{distro}/layer4_5/'"
 
 # VAGRANT VM machine settings
 SERVER_IP=10.0.0.20
@@ -97,8 +105,9 @@ insert_params() {
 # *************** Installer Makefile update ***************
 
 FILE=$INSTALLER_MAKEFILE_DIR/Makefile
-PARAMS=("INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR"
-    "INSTALL_LOCATION=$INSTALL_LOCATION"
+PARAMS=("$make_distro"
+    "INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR"
+    "INSTALL_LOCATION=$INSTALL_LOCATION_MAKE"
     "DISTRO_DIR=$DISTRO_DIR")
 
 # insert standard params
@@ -112,7 +121,8 @@ MAKEFILE_PATHS="$LAYER_MOD_DIR/sample_modules  $GENI_MOD_DIR $NETSOFT_MOD_DIR"
 
 for x in $MAKEFILE_PATHS; do
   FILE=$x/Makefile
-  PARAMS=("KBUILD_EXTRA_SYMBOLS=$KBUILD_EXTRA_SYMBOLS"
+  PARAMS=("$make_distro"
+  "KBUILD_EXTRA_SYMBOLS=$KBUILD_EXTRA_SYMBOLS"
       "MODULE_DIR=$x"
       "DISTRO_DIR=$DISTRO_DIR")
 
@@ -126,13 +136,15 @@ done
 INSTALLER_FILES="installer.sh loader.sh"
 for x in $INSTALLER_FILES; do
   FILE=$INSTALLER_MAKEFILE_DIR/bash/${x}
-  PARAMS=("INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR"
+  PARAMS=("$distro"
+        "INSTALLER_MAKEFILE_DIR=$INSTALLER_MAKEFILE_DIR"
         "INSTALL_LOCATION=$INSTALL_LOCATION"
         "INCLUDE_DIR=$INCLUDE_DIR"
         "CUST_LOCATION=$CUST_LOCATION"
         "GIT_DIR=$GIT_DIR"
         "DCA_LOCATION=$DCA_LOCATION"
-        "DCA_USER_DIR=$DCA_USER_DIR")
+        "DCA_USER_DIR=$DCA_USER_DIR"
+        )
 
   insert_params "$FILE" "${PARAMS[@]}"
 done
@@ -289,10 +301,10 @@ insert_params "$FILE" "${PARAMS[@]}"
 # *************** DCA cfg update ***************
 
 FILE=$DCA_USER_DIR/cfg.py
-PARAMS=("HOST='$SERVER_IP'"
+PARAMS=("$python_distro"
+        "HOST='$SERVER_IP'"
         "dca_dir='$DCA_USER_DIR/'"
-        "symver_location='$INSTALL_LOCATION/'"
-        "system_release='$distro'")
+        "symver_location=$SYMVER_LOCATION")
 insert_params "$FILE" "${PARAMS[@]}"
 
 # *************** DCA cfg update ***************

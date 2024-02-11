@@ -1,7 +1,8 @@
 # ************** STANDARD PARAMS MUST GO HERE ****************
-KBUILD_EXTRA_SYMBOLS=/lib/modules/5.13.0-35-generic/layer4_5/Module.symvers
+distro=$(shell uname -r)
+KBUILD_EXTRA_SYMBOLS=/lib/modules/$(distro)/layer4_5/Module.symvers
 MODULE_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
-DISTRO_DIR=/lib/modules/5.13.0-35-generic
+DISTRO_DIR=/lib/modules/$(distro)
 # ************** END STANDARD PARAMS ****************
 
 
