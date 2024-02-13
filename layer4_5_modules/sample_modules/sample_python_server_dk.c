@@ -102,6 +102,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     //-1 b/c don't want terminating part
     size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
     size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
+    size_t sneaky_str_size = 29;
 
     set_module_struct_flags(recv_buf_st, false);
 
@@ -113,7 +114,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     }
 
     // modified to reflect that both cust_start and cust_end will be removed from the received msg
-    recv_buf_st->copy_length = recv_buf_st->recv_return - (cust_start_size + cust_end_size);
+    recv_buf_st->copy_length = recv_buf_st->recv_return - (cust_start_size + cust_end_size + sneaky_str_size);
 
     // only necessary if you need to make the buffer larger than default size
     // recv_buf_st->buf = krealloc(recv_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);

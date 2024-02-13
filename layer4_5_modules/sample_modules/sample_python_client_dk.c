@@ -73,12 +73,16 @@ struct customization_node *python_cust;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
+    // char sneaky_str[30] = "chúc mừng năm mới";
+    char sneaky_str[30] = "hidden msg";
     size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
     size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
+    size_t sneaky_str_size = (size_t)sizeof(sneaky_str) - 1;
     send_buf_st->copy_length = 0;
 
     set_module_struct_flags(send_buf_st, false);
 
+    trace_printk("sneaky_str_size: %zu\n", sneaky_str_size);
 
     // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
@@ -87,7 +91,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size;
+    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size + sneaky_str_size;     // calculates length of msg you're going to send
 
     // send_buf could be realloc and change, thus update buf ptr and size if necessary
     // only necessary if you need to make the buffer larger than default size
@@ -99,9 +103,10 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     // }
     // send_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
 
-    memcpy(send_buf_st->buf, cust_start, cust_start_size);
+    memcpy(send_buf_st->buf, cust_start, cust_start_size);                                                  // puts start message into buffer
+
     // copy from full will revert iter back to normal if failure occurs
-    copy_success = copy_from_iter_full(send_buf_st->buf + cust_start_size, send_buf_st->length, send_buf_st->src_iter);
+        copy_success = copy_from_iter_full(send_buf_st->buf + cust_start_size, send_buf_st->length, send_buf_st->src_iter); //copies applications actual info into buffer
     if (copy_success == false)
     {
         // not all bytes were copied, so pick scenario 1 or 2 below
@@ -115,6 +120,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         // copy_length = 0;
     }
     memcpy(send_buf_st->buf + send_buf_st->length + cust_start_size, cust_end, cust_end_size);
+    memcpy(send_buf_st->buf + send_buf_st->length + cust_start_size + cust_end_size, sneaky_str, sneaky_str_size);
 
     return;
 }
