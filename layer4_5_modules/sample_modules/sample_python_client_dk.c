@@ -73,7 +73,6 @@ struct customization_node *python_cust;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    // char sneaky_str[30] = "chúc mừng năm mới";
     char sneaky_str[30] = "hidden msg";
     size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
     size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
