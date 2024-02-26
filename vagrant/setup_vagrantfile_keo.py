@@ -45,7 +45,11 @@ def main():
         print("Memory and CPU count must be integers.")
         return
     
-    # update_vagrantfile(memory, cpus)
+    # Ask the user if they want to proceed with 'vagrant up'
+    proceed = input("Do you want to proceed with 'vagrant up'? (y/n): ").lower()
+    if proceed != 'y':
+        print("Aborting vagrant up.")
+        return
 
     if update_vagrantfile(memory, cpus):
         # Run 'vagrant up' command
