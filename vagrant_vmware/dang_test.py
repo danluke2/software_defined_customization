@@ -1,4 +1,13 @@
+import os
 
+# Take input variables
+
+print('*** Vagrantfile setup for VMware ***\n')
+# gui = input('Display the GUI when booting the machine (true/false): ')
+memory = input('Provide in integer the memory to allocate: ')
+cpu = input('Provide in integer the number of CPU to allocate: ')
+
+vagrantfile_content = f'''
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
@@ -23,8 +32,8 @@ Vagrant.configure("2") do |config|
       vb.linked_clone = false
       # Display the GUI when booting the machine
       vb.gui = true
-      vb.memory = 8192
-      vb.cpus = 2
+      vb.memory = {memory}
+      vb.cpus = {cpu}
     end
   end
 
@@ -89,3 +98,12 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, path: "setup_vmware.sh"
 end
 
+'''
+
+with open('Vagrantfile', 'w') as file:
+    file.write(vagrantfile_content)
+    
+
+# Run vagrant up
+
+os.system('vagrant up')

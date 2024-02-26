@@ -1,4 +1,3 @@
-
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
@@ -88,4 +87,3 @@ Vagrant.configure("2") do |config|
   # SHELL
   config.vm.provision :shell, path: "setup_vmware.sh"
 end
-
