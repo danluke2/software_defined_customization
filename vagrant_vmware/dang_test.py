@@ -1,7 +1,7 @@
 import os
 
 def valid_int(val):
-  if val.isint():
+  if val.isnumeric():
     return val
   else:
     val = input('Error: Please provide a valid integer: ')
