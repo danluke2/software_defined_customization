@@ -1,4 +1,4 @@
-import os 
+import subprocess
 
 def main():
     
@@ -11,17 +11,17 @@ def main():
         
     if os_type == 1 or os_type == 2:
         try:
-            os.system('python vagrant/setup_vagrantfile_keo.py')
+            subprocess.run(['python', 'vagrant/setup_vagrantfile_keo.py'], check = True)
         
-        except:
+        except subprocess.CalledProcessError:
             print('Enter command in terminal: python vagrant/setup_vagrantfile_keo.py')
             
             
     elif os_type == 3:
         try: 
-            os.system('python3 vagrant_vmware/dang_test.py')
-        
-        except:
+            subprocess.run(['python3',  'vagrant_vmware/dang_test.py'], check = True)
+
+        except subprocess.CalledProcessError:
             print('Enter command in terminal: python3 vagrant_vmware/dang_test.py')
             
     else:
