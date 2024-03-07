@@ -11,7 +11,7 @@ def main():
         
     if os_type == 1 or os_type == 2:
         try:
-            subprocess.run(['python', 'vagrant/install_guide_vbox.py'], check = True)
+            subprocess.run(['python', 'install_guide_vbox.py'], cwd="vagrant", check = True)
         
         except subprocess.CalledProcessError:
             print('Enter command in terminal: python vagrant/install_guide_vbox.py')
