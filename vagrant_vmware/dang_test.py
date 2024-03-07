@@ -1,8 +1,11 @@
 import subprocess
 
 def valid_int(val):
+  ''' Verify input is an integer type.'''
+  
   if val.isnumeric():
     return val
+  
   else:
     val = input('Error: Please provide a valid integer: ')
     valid_int(val)
@@ -10,10 +13,16 @@ def valid_int(val):
 
 # Take input variables
 def main():
+  '''Prompt users for required inputs to generate Vagrantfile.
+  Then run vagrant up.'''
+  
   print('*** Vagrantfile setup for VMware ***\n')
+  
+  # Prompt for inputs
   memory = valid_int(input('Provide in integer the memory to allocate: '))
   cpu = valid_int(input('Provide in integer the number of CPU to allocate: '))
 
+  # Vagrantfile details
   vagrantfile_content = f'''
   # -*- mode: ruby -*-
   # vi: set ft=ruby :
@@ -26,7 +35,6 @@ def main():
     # The most common configuration options are documented and commented below.
     # For a complete reference, please see the online documentation at
     # https://docs.vagrantup.com.
-
 
 
     # Single ARM Based VM for VMWare
@@ -49,18 +57,21 @@ def main():
 
   '''
 
+  # Generate Vagrantfile
   with open('Vagrantfile', 'w') as file:
       file.write(vagrantfile_content)
     
 
+  # Prompt for vagrant up
   proceed = input("Do you want to proceed with 'vagrant up'? (y/n): ").lower()
   if proceed != 'y':
     print("Aborting vagrant up.")
     exit
+    
+  else:  
+    # Run vagrant up
+    subprocess.run(['vagrant', 'up'], check = True)
 
-
-# Run vagrant up
-subprocess.run(['vagrant', 'up'], check = True)
 
 if __name__ == "__main__":
     main()
