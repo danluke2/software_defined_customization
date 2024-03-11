@@ -89,7 +89,7 @@ sudo apt install -y dos2unix
 # This solution is from https://stackoverflow.com/questions/9612090/how-to-loop-through-file-names-returned-by-find
 find . -name "*.sh" -exec dos2unix {} \;
 
-# Copy Linx Files
+# Copy Linux Files
 cp -rL /usr/lib/modules/$(uname -r)/build/. /home/vagrant/software_defined_customization/no_include/
 
 # finish with Layer 4.5 install script
