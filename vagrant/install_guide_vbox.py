@@ -34,8 +34,8 @@ def update_vagrantfile(memory, cpus):
 
 
 def main():
-    memory = input("Enter memory value (MB): ")
-    cpus = input("Enter CPU count: ")
+    memory = input("Enter memory value (MB) (Recommend 8192): ")
+    cpus = input("Enter CPU count (Recommend 2): ")
 
     # Validate memory and cpus inputs
     try:
@@ -48,7 +48,8 @@ def main():
     # Ask the user if they want to proceed with 'vagrant up'
     proceed = input("Do you want to proceed with 'vagrant up'? (y/n): ").lower()
     if proceed != 'y':
-        print("Aborting vagrant up.")
+        update_vagrantfile(memory, cpus)
+        print("Not running vagrant up.")
         return
 
     if update_vagrantfile(memory, cpus):

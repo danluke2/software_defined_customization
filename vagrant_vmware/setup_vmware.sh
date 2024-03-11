@@ -101,6 +101,9 @@ EOT
 
 # find . -name "*.sh" -exec dos2unix {} \;
 
+# Copy Linx Files
+cp -rL /usr/lib/modules/$(uname -r)/build/. /home/vagrant/software_defined_customization/no_include/
+
 # finish with Layer 4.5 install script
 $DCA_KERNEL_DIR/bash/installer.sh
 
