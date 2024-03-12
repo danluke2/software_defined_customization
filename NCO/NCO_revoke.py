@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-import socket
 import json
+import logging
+import socket
 import time
 
 import cfg
 from CIB_helper import *
-
-import logging
-
 
 logger = logging.getLogger(__name__)  # use module name
 
