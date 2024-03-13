@@ -148,7 +148,7 @@ Vagrant.configure("2") do |config|
         vmware_spec = ""      # Not required for vbox
         setup_path = "setup.sh"
         # file_path = os.path.join(os.getcwd(), "vagrant", "Vagrantfile")
-        vm_num += 1
+        # vm_num += 1
                 
     elif vm_type == 2:
         provider = "vmware_fusion"
