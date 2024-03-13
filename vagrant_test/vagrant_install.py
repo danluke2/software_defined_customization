@@ -16,10 +16,10 @@ def machine_input(name, box_version, ip_addr, vbox_spec, provider, vmware_spec, 
     
     machines = f'''
   # Multiple machines for running experiment modules
-  config.vm.define "{name}" do |server|
+  config.vm.define "{name}" do |{name}|
     {name}.vm.box = "squanchy/layer4.5"
     {name}.vm.box_version = "{box_version}"
-    {name}.vm.network "private_network", ip: "{ip_addr}", {vbox_spec}
+    {name}.vm.network "private_network", ip: "{ip_addr}" {vbox_spec}
     {name}.vm.provider "{provider}" do |vb|
       # Display the VirtualBox GUI when booting the machine
       {vmware_spec}
@@ -58,7 +58,9 @@ Vagrant.configure("2") do |config|
 
 
   # Single machine for running sample modules
-  # config.vm.box =  "squanchy/layer4.5"'''
+  # config.vm.box =  "squanchy/layer4.5"
+
+'''
 
     vbox_custom = '''
       vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
@@ -68,15 +70,9 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--vram", "128"]
       vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
     end
-  end'''
-
-    vmware_custom = '''
-    end
-    nps.vm.synced_folder "../../
-    software_defined_customization", "/home/vagrant/
-    software_defined_customization", owner: "vagrant",
-    group: "vagrant", automount: true
-  end'''
+  end
+  
+  '''
     
     comments = '''
   # Disable automatic box update checking. If you disable this, then
@@ -148,7 +144,7 @@ Vagrant.configure("2") do |config|
     if vm_type == 1:
         provider = "virtualbox"
         box_version = "1.2"
-        vbox_spec = '''virtualbox__intnet: "layer", nic_type: "virtio" '''
+        vbox_spec = ''', virtualbox__intnet: "layer", nic_type: "virtio" '''
         vmware_spec = ""      # Not required for vbox
         setup_path = "setup.sh"
         # file_path = os.path.join(os.getcwd(), "vagrant", "Vagrantfile")
@@ -173,13 +169,13 @@ Vagrant.configure("2") do |config|
     # Appending number of machines
     for i in range(vm_num):
         # Update IP Address
-        ip_addr = "10.0.0." + str(20 + i)
+        ip_addr = "10.0.0." + str(20 + (i * 10))
         
         # Update name for each machine
         if i == 0:
             name = "server"
         else: 
-            name = "client_" + str(i)
+            name = "client" + str(i)
         
         #Appending machine config
         with open(file_path, 'a') as file:
@@ -191,7 +187,10 @@ Vagrant.configure("2") do |config|
                 
         elif vm_type == 2:
             with open(file_path, 'a') as file:
-                file.write(vmware_custom)
+                file.write(f'''
+    end
+    {name}.vm.synced_folder "../../software_defined_customization", "/home/vagrant/software_defined_customization", owner: "vagrant", group: "vagrant", automount: true
+  end''')
                 
     # Appending the comments of Vagrantfile
     with open(file_path, 'a') as file:
@@ -199,7 +198,8 @@ Vagrant.configure("2") do |config|
     
     if vm_type == 1:
         with open(file_path, 'a') as file:
-            file.write('''  config.vm.synced_folder "../../software_defined_customization", "/home/vagrant/software_defined_customization"''')
+            file.write('''
+  config.vm.synced_folder "../../software_defined_customization", "/home/vagrant/software_defined_customization"''')
         # config.vm.synced_folder "../../software_defined_customization", "/home/vagrant/software_defined_customization"
         # config.vm.synced_folder "../../software_defined_customization", "/home/vagrant/software_defined_customization", owner: "vagrant", group: "vagrant"
 
