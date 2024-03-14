@@ -41,7 +41,3 @@ Scripts and Test Cases:
         - test_revoke_module: Checks the revocation command functionality and database updates.
         - test_retrieve_deprecated_list: Validates the retrieval of deprecation lists.
         - test_deprecate_module: Tests the deprecation command functionality.
-
-
-
-
