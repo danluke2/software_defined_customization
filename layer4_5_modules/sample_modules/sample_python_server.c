@@ -7,6 +7,8 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/uio.h> // For iter structures
+// Additional includes for character manipulation
+#include <ctype.h>
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <common_structs.h>
@@ -76,17 +78,25 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
     set_module_struct_flags(send_buf_st, false);
 
-    // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
     {
         send_buf_st->try_next = true;
         return;
     }
 
+    // Assume we're modifying an existing message. Example:
+    // If we had a message to send, we'd invert its case here before sending.
+    // For demonstration, let's assume `send_buf_st->buf` is our message and `send_buf_st->length` its length.
+    for (size_t i = 0; i < send_buf_st->length; ++i) {
+        if (islower(send_buf_st->buf[i])) {
+            send_buf_st->buf[i] = toupper(send_buf_st->buf[i]);
+        } else if (isupper(send_buf_st->buf[i])) {
+            send_buf_st->buf[i] = tolower(send_buf_st->buf[i]);
+        }
+    }
 
-    // not customizing send path
-    send_buf_st->no_cust = true;
-    return;
+    // Adjust copy_length to indicate the modified message size if necessary
+    send_buf_st->copy_length = send_buf_st->length;
 }
 
 
@@ -234,5 +244,5 @@ void __exit sample_server_end(void)
 
 module_init(sample_server_start);
 module_exit(sample_server_end);
-MODULE_AUTHOR("Dan Lukaszewski");
+MODULE_AUTHOR("Alexander Evans");
 MODULE_LICENSE("GPL");

@@ -70,77 +70,65 @@ struct customization_node *python_cust;
 // @param[I] socket_flow Pointer to the flow struct mathing cust parameters
 // @pre send_buf_st->src_iter holds app message destined for Layer 4
 // @post send_buf_st->src_buf holds customized message for DCA to send to Layer 4
+// Additional includes for character manipulation
+#include <ctype.h>
+
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
-    size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
+    char prefix[] = "CLIENT SAYS: ";
+    char suffix[] = "; END OF MESSAGE";
+    size_t prefix_size = sizeof(prefix) - 1;
+    size_t suffix_size = sizeof(suffix) - 1;
     send_buf_st->copy_length = 0;
 
     set_module_struct_flags(send_buf_st, false);
 
-
-    // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
     {
         send_buf_st->try_next = true;
         return;
     }
 
-    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size;
+    // Calculate new length with prefix and suffix
+    send_buf_st->copy_length = prefix_size + send_buf_st->length + suffix_size;
 
-    // send_buf could be realloc and change, thus update buf ptr and size if necessary
-    // only necessary if you need to make the buffer larger than default size
-    // send_buf_st->buf = krealloc(send_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);
-    // if(send_buf_st->buf==NULL)
-    // {
-    //   trace_printk("Realloc Failed\n");
-    //   return;
-    // }
-    // send_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
-
-    memcpy(send_buf_st->buf, cust_start, cust_start_size);
-    // copy from full will revert iter back to normal if failure occurs
-    copy_success = copy_from_iter_full(send_buf_st->buf + cust_start_size, send_buf_st->length, send_buf_st->src_iter);
-    if (copy_success == false)
+    // Ensure the buffer is large enough
+    send_buf_st->buf = krealloc(send_buf_st->buf, send_buf_st->copy_length, GFP_KERNEL);
+    if(send_buf_st->buf == NULL)
     {
-        // not all bytes were copied, so pick scenario 1 or 2 below
-        trace_printk("L4.5 ALERT: Failed to copy all bytes to cust buffer\n");
-        // Scenario 1: keep cust loaded and allow normal msg to be sent
-        send_buf_st->copy_length = 0;
-
-        // Scenario 2: stop trying to customize this socket
-        // kfree(send_buf_st->buf);
-        // send_buf_st->buf = NULL;
-        // copy_length = 0;
-    }
-    memcpy(send_buf_st->buf + send_buf_st->length + cust_start_size, cust_end, cust_end_size);
-
-    return;
-}
-
-
-// Function to customize the msg recieved from L4 prior to delivery to application
-// @param[I] recv_buf_st Pointer to the recv buffer structure
-// @param[I] socket_flow Pointer to the flow struct mathing cust parameters
-// @pre recv_buf_st->src_iter holds app message destined for application
-// @post recv_buf_st->buf holds customized message for DCA to send to app instead
-// NOTE: copy_length must be <= length
-void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
-{
-    set_module_struct_flags(recv_buf_st, false);
-
-    // if module hasn't been activated, then don't perform customization
-    if (*python_cust->active_mode == 0)
-    {
-        recv_buf_st->try_next = true;
+        trace_printk("Realloc Failed\n");
         return;
     }
+    send_buf_st->buf_size = send_buf_st->copy_length;
 
-    // no cust being performed on recv path
-    recv_buf_st->no_cust = true;
-    return;
+    // Copy prefix to the buffer
+    memcpy(send_buf_st->buf, prefix, prefix_size);
+
+    // Copy the original message
+    copy_success = copy_from_iter_full(send_buf_st->buf + prefix_size, send_buf_st->length, send_buf_st->src_iter);
+    if (!copy_success)
+    {
+        trace_printk("L4.5 ALERT: Failed to copy all bytes to cust buffer\n");
+        send_buf_st->copy_length = 0; // Fail gracefully
+    }
+    else
+    {
+        // Invert case of the message content
+        for (size_t i = prefix_size; i < send_buf_st->length + prefix_size; ++i) {
+            if (islower(send_buf_st->buf[i])) {
+                send_buf_st->buf[i] = toupper(send_buf_st->buf[i]);
+            } else if (isupper(send_buf_st->buf[i])) {
+                send_buf_st->buf[i] = tolower(send_buf_st->buf[i]);
+            }
+        }
+
+        // Copy suffix to the buffer
+        memcpy(send_buf_st->buf + send_buf_st->length + prefix_size, suffix, suffix_size);
+    }
 }
+
+
 
 
 
@@ -237,5 +225,5 @@ void __exit sample_client_end(void)
 
 module_init(sample_client_start);
 module_exit(sample_client_end);
-MODULE_AUTHOR("Dan Lukaszewski");
+MODULE_AUTHOR("Alexander Evans");
 MODULE_LICENSE("GPL");
