@@ -13,15 +13,10 @@
 #include <helpers.h>
 // ************** END STANDARD PARAMS ****************
 
-
-
 extern int register_customization(struct customization_node *cust, u16 applyNow);
-
 extern int unregister_customization(struct customization_node *cust);
-
 extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int rowsize, int groupsize, const void *buf,
                                  size_t len, bool ascii);
-
 extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
 
 // Kernel module parameters with default values
@@ -63,74 +58,106 @@ char cust_end[6] =   "<end>";
 
 struct customization_node *python_cust;
 
-
+// Function to encrypt/decrypt the message using Caesar cipher with key 3
+void caesar_cipher(char *message, int key) {
+    int i = 0;
+    char ch;
+    while (message[i] != '\0') {
+        ch = message[i];
+        if (ch >= 'a' && ch <= 'z') {
+            ch = ch + key;
+            if (ch > 'z') {
+                ch = ch - 'z' + 'a' - 1;
+            }
+            message[i] = ch;
+        } else if (ch >= 'A' && ch <= 'Z') {
+            ch = ch + key;
+            if (ch > 'Z') {
+                ch = ch - 'Z' + 'A' - 1;
+            }
+            message[i] = ch;
+        }
+        i++;
+    }
+}
 
 // Function to customize the msg sent from the application to layer 4
 // @param[I] send_buf_st Pointer to the send buffer structure
 // @param[I] socket_flow Pointer to the flow struct mathing cust parameters
 // @pre send_buf_st->src_iter holds app message destined for Layer 4
 // @post send_buf_st->src_buf holds customized message for DCA to send to Layer 4
-// Additional includes for character manipulation
-#include <ctype.h>
-
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    char prefix[] = "CLIENT SAYS: ";
-    char suffix[] = "; END OF MESSAGE";
-    size_t prefix_size = sizeof(prefix) - 1;
-    size_t suffix_size = sizeof(suffix) - 1;
+    size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
+    size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
     send_buf_st->copy_length = 0;
 
     set_module_struct_flags(send_buf_st, false);
 
+    // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
     {
         send_buf_st->try_next = true;
         return;
     }
 
-    // Calculate new length with prefix and suffix
-    send_buf_st->copy_length = prefix_size + send_buf_st->length + suffix_size;
+    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size;
 
-    // Ensure the buffer is large enough
-    send_buf_st->buf = krealloc(send_buf_st->buf, send_buf_st->copy_length, GFP_KERNEL);
-    if(send_buf_st->buf == NULL)
+    // send_buf could be realloc and change, thus update buf ptr and size if necessary
+    // only necessary if you need to make the buffer larger than default size
+    // send_buf_st->buf = krealloc(send_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);
+    // if(send_buf_st->buf==NULL)
+    // {
+    //   trace_printk("Realloc Failed\n");
+    //   return;
+    // }
+    // send_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
+
+    memcpy(send_buf_st->buf, cust_start, cust_start_size);
+    // copy from full will revert iter back to normal if failure occurs
+    copy_success = copy_from_iter_full(send_buf_st->buf + cust_start_size, send_buf_st->length, send_buf_st->src_iter);
+    if (copy_success == false)
     {
-        trace_printk("Realloc Failed\n");
-        return;
-    }
-    send_buf_st->buf_size = send_buf_st->copy_length;
-
-    // Copy prefix to the buffer
-    memcpy(send_buf_st->buf, prefix, prefix_size);
-
-    // Copy the original message
-    copy_success = copy_from_iter_full(send_buf_st->buf + prefix_size, send_buf_st->length, send_buf_st->src_iter);
-    if (!copy_success)
-    {
+        // not all bytes were copied, so pick scenario 1 or 2 below
         trace_printk("L4.5 ALERT: Failed to copy all bytes to cust buffer\n");
-        send_buf_st->copy_length = 0; // Fail gracefully
-    }
-    else
-    {
-        // Invert case of the message content
-        for (size_t i = prefix_size; i < send_buf_st->length + prefix_size; ++i) {
-            if (islower(send_buf_st->buf[i])) {
-                send_buf_st->buf[i] = toupper(send_buf_st->buf[i]);
-            } else if (isupper(send_buf_st->buf[i])) {
-                send_buf_st->buf[i] = tolower(send_buf_st->buf[i]);
-            }
-        }
+        // Scenario 1: keep cust loaded and allow normal msg to be sent
+        send_buf_st->copy_length = 0;
 
-        // Copy suffix to the buffer
-        memcpy(send_buf_st->buf + send_buf_st->length + prefix_size, suffix, suffix_size);
+        // Scenario 2: stop trying to customize this socket
+        // kfree(send_buf_st->buf);
+        // send_buf_st->buf = NULL;
+        // copy_length = 0;
     }
+    memcpy(send_buf_st->buf + send_buf_st->length + cust_start_size, cust_end, cust_end_size);
+
+    // Encrypt the message using Caesar cipher with key 3
+    caesar_cipher(send_buf_st->buf + cust_start_size, 3);
+
+    return;
 }
 
+// Function to customize the msg received from L4 prior to delivery to application
+// @param[I] recv_buf_st Pointer to the recv buffer structure
+// @param[I] socket_flow Pointer to the flow struct matching cust parameters
+// @pre recv_buf_st->src_iter holds app message destined for application
+// @post recv_buf_st->buf holds customized message for DCA to send to app instead
+// NOTE: copy_length must be <= length
+void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
+{
+    set_module_struct_flags(recv_buf_st, false);
 
+    // if module hasn't been activated, then don't perform customization
+    if (*python_cust->active_mode == 0)
+    {
+        recv_buf_st->try_next = true;
+        return;
+    }
 
-
+    // no cust being performed on recv path
+    recv_buf_st->no_cust = true;
+    return;
+}
 
 // The init function that calls the functions to register a Layer 4.5 customization
 // Client will check parameters on first sendmsg
@@ -144,7 +171,6 @@ int __init sample_client_start(void)
     char application_name[16] = "python3";
     int result;
 
-
     python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
     if (python_cust == NULL)
     {
@@ -157,7 +183,6 @@ int __init sample_client_start(void)
 
     // provide pointer for DCA to update priority instead of new function
     python_cust->cust_priority = &priority;
-
 
     // python_cust->target_flow.protocol = 17; // UDP
     // python_cust->protocol = 6; // TCP
@@ -188,7 +213,6 @@ int __init sample_client_start(void)
     python_cust->revoked_time_struct.tv_sec = 0;
     python_cust->revoked_time_struct.tv_nsec = 0;
 
-
     result = register_customization(python_cust, applyNow);
 
     if (result != 0)
@@ -201,7 +225,6 @@ int __init sample_client_start(void)
 
     return 0;
 }
-
 
 // Calls the functions to unregister customization node from use on sockets
 // @post Layer 4.5 customization node unregistered
@@ -221,7 +244,6 @@ void __exit sample_client_end(void)
     kfree(python_cust);
     return;
 }
-
 
 module_init(sample_client_start);
 module_exit(sample_client_end);

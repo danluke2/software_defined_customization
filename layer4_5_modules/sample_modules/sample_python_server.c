@@ -1,4 +1,4 @@
-// @file sample_python_server.c
+// @file sample_python_client.c
 // @brief A sample customization module to modify python3 send/recv calls
 
 #include <linux/inet.h>
@@ -7,8 +7,6 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/uio.h> // For iter structures
-// Additional includes for character manipulation
-#include <ctype.h>
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <common_structs.h>
@@ -65,38 +63,58 @@ char cust_end[6] =   "<end>";
 
 struct customization_node *python_cust;
 
+// Caesar cipher encryption function
+void caesar_encrypt(char *message, int key) {
+    int i = 0;
+    char ch;
+    while (message[i] != '\0') {
+        ch = message[i];
 
+        if (ch >= 'a' && ch <= 'z') {
+            ch = ch + key;
+
+            if (ch > 'z') {
+                ch = ch - 'z' + 'a' - 1;
+            }
+
+            message[i] = ch;
+        }
+        else if (ch >= 'A' && ch <= 'Z') {
+            ch = ch + key;
+
+            if (ch > 'Z') {
+                ch = ch - 'Z' + 'A' - 1;
+            }
+
+            message[i] = ch;
+        }
+
+        i++;
+    }
+}
 
 // Function to customize the msg sent from the application to layer 4
 // @param[I] send_buf_st Pointer to the send buffer structure
 // @param[I] socket_flow Pointer to the flow struct mathing cust parameters
 // @pre send_buf_st->src_iter holds app message destined for Layer 4
 // @post send_buf_st->src_buf holds customized message for DCA to send to Layer 4
-void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
-{
+// Function to customize the message sent from the application to Layer 4
+void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow) {
     send_buf_st->copy_length = 0;
 
     set_module_struct_flags(send_buf_st, false);
 
-    if (*python_cust->active_mode == 0)
-    {
+    // If the module hasn't been activated, then don't perform customization
+    if (*python_cust->active_mode == 0) {
         send_buf_st->try_next = true;
         return;
     }
 
-    // Assume we're modifying an existing message. Example:
-    // If we had a message to send, we'd invert its case here before sending.
-    // For demonstration, let's assume `send_buf_st->buf` is our message and `send_buf_st->length` its length.
-    for (size_t i = 0; i < send_buf_st->length; ++i) {
-        if (islower(send_buf_st->buf[i])) {
-            send_buf_st->buf[i] = toupper(send_buf_st->buf[i]);
-        } else if (isupper(send_buf_st->buf[i])) {
-            send_buf_st->buf[i] = tolower(send_buf_st->buf[i]);
-        }
-    }
+    // Encrypt the message using Caesar cipher with key 3
+    caesar_encrypt((char *)send_buf_st->buf, 3);
 
-    // Adjust copy_length to indicate the modified message size if necessary
-    send_buf_st->copy_length = send_buf_st->length;
+    // Not customizing the send path
+    send_buf_st->no_cust = true;
 }
 
 
@@ -155,14 +173,13 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     return;
 }
 
-
 // The init function that calls the functions to register a Layer 4.5 customization
 // Server will check parameters on first recvmsg
 // 0 used as default to skip port or IP checks
 // protocol = 256 -> match any layer 4 protocol
 // * used as a wildcard for application name to match all [TODO: test]
 // @post Layer 4.5 customization registered
-int __init sample_server_start(void)
+int __init sample_client_start(void)
 {
     // exact application name (i.e., will use strcmp function)
     char thread_name[16] = "python3";      // 16 b/c size of kernel char array
@@ -172,7 +189,7 @@ int __init sample_server_start(void)
     python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
     if (python_cust == NULL)
     {
-        trace_printk("L4.5 ALERT: server kmalloc failed\n");
+        trace_printk("L4.5 ALERT: client kmalloc failed\n");
         return -1;
     }
 
@@ -219,30 +236,30 @@ int __init sample_server_start(void)
         return -1;
     }
 
-    trace_printk("L4.5: server module loaded, id=%d\n", python_cust->cust_id);
+    trace_printk("L4.5: client module loaded, id=%d\n", python_cust->cust_id);
 
     return 0;
 }
 
 // Calls the functions to unregister customization node from use on sockets
 // @post Layer 4.5 customization node unregistered
-void __exit sample_server_end(void)
+void __exit sample_client_end(void)
 {
     int ret = unregister_customization(python_cust);
 
     if (ret == 0)
     {
-        trace_printk("L4.5 ALERT: server module unload error\n");
+        trace_printk("L4.5 ALERT: client module unload error\n");
     }
     else
     {
-        trace_printk("L4.5: server module unloaded\n");
+        trace_printk("L4.5: client module unloaded\n");
     }
     kfree(python_cust);
     return;
 }
 
-module_init(sample_server_start);
-module_exit(sample_server_end);
+module_init(sample_client_start);
+module_exit(sample_client_end);
 MODULE_AUTHOR("Alexander Evans");
 MODULE_LICENSE("GPL");
