@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
-import socket
 import json
-import time
+import logging
+import socket
+
+# import time
 
 import cfg
 from CIB_helper import *
-
-import logging
-
 
 logger = logging.getLogger(__name__)  # use module name
 
 
 ######################### REVOKE FUNCTIONS #############################
+
 
 def handle_revoke_update(db_connection, host_id, revoked_list):
     # update deployed table based on revoked list, if empty then for loop skips
@@ -21,13 +21,14 @@ def handle_revoke_update(db_connection, host_id, revoked_list):
         err = delete_deployed(db_connection, host_id, module["ID"])
         if err == cfg.DB_ERROR:
             logger.info(
-                f"deployed delete DB error occurred, host_id = {host_id}, module = {module}")
+                f"deployed delete DB error occurred, host_id = {host_id}, module = {module}"
+            )
         else:
-            err = insert_revoked(db_connection, host_id,
-                                 module["ID"], module["ts"])
+            err = insert_revoked(db_connection, host_id, module["ID"], module["ts"])
             if err == cfg.DB_ERROR:
                 logger.info(
-                    f"deployed delete DB error occurred, host_id = {host_id}, module = {module}")
+                    f"deployed delete DB error occurred, host_id = {host_id}, module = {module}"
+                )
 
 
 def retrieve_revoke_list(db_connection, host_id):
@@ -39,8 +40,8 @@ def retrieve_revoke_list(db_connection, host_id):
     return mod_id, mod_name
 
 
-def revoke_module(conn_socket, db_connection, host_id, mod_id, name=''):
-    if name == '':
+def revoke_module(conn_socket, db_connection, host_id, mod_id, name=""):
+    if name == "":
         name = select_built_module_by_id(db_connection, host_id, mod_id)
         if name == cfg.DB_ERROR:
             return cfg.DB_ERROR
@@ -54,7 +55,7 @@ def revoke_module(conn_socket, db_connection, host_id, mod_id, name=''):
     conn_socket.sendall(bytes(send_string, encoding="utf-8"))
     data = conn_socket.recv(cfg.MAX_BUFFER_SIZE)
     data = data.decode("utf-8")
-    if data != 'success':
+    if data != "success":
         logger.info(f"Device error: {data}")
         return cfg.REVOKE_ERROR
     else:
