@@ -165,7 +165,7 @@ Vagrant.configure("2") do |config|
         box_version = "1.3"
         vbox_spec = ""  # Not required for vmware
         vmware_spec = "vb.linked_clone = false"
-        setup_path = "setup_vmware.sh"
+        setup_path = "setup.sh"
 
     file_path = "Vagrantfile"
 
@@ -217,6 +217,127 @@ Vagrant.configure("2") do |config|
     with open(file_path, "a") as file:
         file.write(setup_file(setup_path))
 
+    return vm_type
+
+
+def generate_setup_sh(vm_type):
+
+    ntp_setup = """
+# make sure apt is up to date before installer runs
+apt update
+
+# give system a little time to sync with ntp
+# need to grep for inactive here to reset service if necessary
+if timedatectl | grep -q "inactive"; then
+    systemctl restart systemd-timesyncd.service
+fi
+
+echo "******** Sleeping 20 seconds to allow ntp sync **********"
+sleep 20
+
+timedatectl"""
+
+    standard_params = """
+# ************** STANDARD PARAMS MUST GO HERE ****************
+GIT_DIR=/home/vagrant/software_defined_customization
+DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
+# ************** END STANDARD PARAMS ****************
+"""
+
+    dns = """
+#replace dnsmasq config to match experiments
+cp $GIT_DIR/vagrant/dnsmasq.conf /etc/dnsmasq.conf
+"""
+
+    aliases = """
+# Update .bashrc to include some aliases
+cat <<EOT >>/home/vagrant/.bashrc
+alias edit='sudo gedit ~/.bashrc'
+alias src='source ~/.bashrc'
+alias desk='cd /home/vagrant/Desktop'
+alias modules='cd /usr/lib/modules/$(uname -r)/'
+
+alias tracelog='sudo gedit /sys/kernel/tracing/trace'
+alias cyclelog="sudo trace-cmd clear && sudo bash -c 'echo 1 > /sys/kernel/tracing/tracing_on'"
+
+alias installer="clear && sudo $DCA_KERNEL_DIR/bash/installer.sh && sudo bash -c 'echo 1 > /sys/kernel/tracing/tracing_on'"
+
+alias server_echo='python3 $SIMPLE_SERVER_DIR/echo_server.py'
+alias client_echo='python3 $SIMPLE_SERVER_DIR/echo_client.py'
+
+alias clean_layer='sudo rm -rf /usr/lib/modules/$(uname -r)/layer4_5'
+
+tracecopy () {
+    sudo cp /sys/kernel/tracing/trace $GIT_DIR/\$1
+    sudo trace-cmd clear
+    sudo bash -c 'echo 1 > /sys/kernel/tracing/tracing_on'
+}
+EOT
+"""
+
+    ssh = """# allow scripting ssh commands
+touch /home/vagrant/.ssh/config
+cat <<EOT >>/home/vagrant/.ssh/config
+Host 10.0.0.20
+    StrictHostKeyChecking no
+
+Host 10.0.0.40
+    StrictHostKeyChecking no
+EOT
+"""
+
+    netplan = """
+# fix network interface GW and DNS server
+cat <<EOT >>/etc/netplan/50-vagrant.yaml
+      gateway4: 10.0.0.20
+      nameservers:
+          search: [mydomain, otherdomain]
+          addresses: [10.0.0.20, 8.8.8.8]
+EOT
+
+netplan apply
+"""
+
+    dos_unix = """
+# Added safety to ensure the Windows to Linux carriage return/line feed issue doesn't impact install
+# This solves an old situation and prevents future situations
+
+sudo apt install -y dos2unix
+
+# This solution is from https://stackoverflow.com/questions/9612090/how-to-loop-through-file-names-returned-by-find
+find . -name "*.sh" -exec dos2unix {} \;
+"""
+
+    with open("setup.sh", "w") as file:
+        file.write(
+            f"""#!/bin/bash
+{ntp_setup}
+{standard_params}
+{aliases}
+"""
+        )
+
+    if vm_type == 1:
+        with open("setup.sh", "a") as file:
+            file.write(
+                f"""
+{dns}
+{ssh}
+{dos_unix}
+#turn swap memory back on
+swapon -a
+"""
+            )
+
+    with open("setup.sh", "a") as file:
+        file.write(
+            f"""
+# finish with Layer 4.5 install script
+$DCA_KERNEL_DIR/bash/installer.sh
+"""
+        )
+
 
 def vagrant_up():
     """Prompt user and execute vagrant up."""
@@ -238,6 +359,8 @@ def vagrant_up():
 
 
 if __name__ == "__main__":
-    generate_Vagrantfile()
+    vm_type = generate_Vagrantfile()
     print("Vagrantfile Generated")
+    generate_setup_sh(vm_type)
+    print("Setup.sh Generated")
     vagrant_up()
