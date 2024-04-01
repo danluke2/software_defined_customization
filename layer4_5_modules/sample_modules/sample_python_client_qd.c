@@ -75,10 +75,14 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     bool copy_success;
     size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
     size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
+
+    //Lab XOR encryption
+    size_t i;
+    char encryption_key = 16;
+
     send_buf_st->copy_length = 0;
 
     set_module_struct_flags(send_buf_st, false);
-
 
     // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
@@ -87,7 +91,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size;
+    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size;    
 
     // send_buf could be realloc and change, thus update buf ptr and size if necessary
     // only necessary if you need to make the buffer larger than default size
@@ -115,6 +119,12 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         // copy_length = 0;
     }
     memcpy(send_buf_st->buf + send_buf_st->length + cust_start_size, cust_end, cust_end_size);
+
+    //Encrypt the message using XOR encryption
+    for (i = 0; i < send_buf_st->length; ++i)
+    {
+        ((char *)send_buf_st->buf)[i + cust_start_size] ^= encryption_key;
+    }
 
     return;
 }
