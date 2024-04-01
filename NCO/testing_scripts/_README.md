@@ -1,11 +1,11 @@
-# Layer 4.5 Revoke Unit Tests
+# Layer 4.5 Unit Tests
 
 Acronyms:
 1) NCO: Network-wide Customization Orchestrator
 2) DCA: Device Customization Agent
 3) CIB: Customization Information Base
 
-## Overview:
+## Revoke Overview:
 The script `nco_revoke.py` plays a crucial role in the Layer 4.5 customization framework by providing
 the necessary functionalities to manage the lifecycle of customization modules deployed across the network.
 Its primary purpose is to enable the Network-wide Customization Orchestrator (NCO) to dynamically revoke
@@ -19,7 +19,7 @@ the reliability and stability of these critical processes within the Layer 4.5 f
 the accurate interaction with the database for state management, the correct execution of commands for module
 management on devices, and the overall integrity of the revocation and deprecation mechanisms.
 
-## Functional Components:
+### Functional Components:
 - Revoke: Supports the removal of outdated or misbehaving customization modules from devices.
 - Deprecate: Allows for the phased transition of customization modules, enabling a smooth update process to newer versions without disrupting network operations.
 - Construct: Prepares the environment for deploying customization modules, ensuring all prerequisites are met.
@@ -29,15 +29,16 @@ management on devices, and the overall integrity of the revocation and deprecati
 - Log: Provides comprehensive logging capabilities to monitor and debug the customization framework's operations.
 
 
-Scripts and Test Cases:
+### test_nco_revoke.py:
+<!-- start bullet list -->
+- Contains unit tests to verify the functionality of module revocation and deprecation.
 
-1. test_nco_revoke.py:
-    - Contains unit tests to verify the functionality of module revocation and deprecation.
-    - Tests ensure the integrity and correctness of the revocation/deprecation processes,
-      aligning with the framework's requirements for dynamic module management.
-    - Key Tests:
-        - test_handle_revoke_update: Validates database updates for revoked modules.
-        - test_retrieve_revoke_list_direct_return: Ensures accurate retrieval of revocation lists.
-        - test_revoke_module: Checks the revocation command functionality and database updates.
-        - test_retrieve_deprecated_list: Validates the retrieval of deprecation lists.
-        - test_deprecate_module: Tests the deprecation command functionality.
+- Tests ensure the integrity and correctness of the revocation/deprecation processes, aligning with the framework's requirements for dynamic module management.
+
+- Key Tests:
+
+    - test_handle_revoke_update: Validates database updates for revoked modules.
+    - test_retrieve_revoke_list_direct_return: Ensures accurate retrieval of revocation lists.
+    - test_revoke_module: Checks the revocation command functionality and database updates.
+    - test_retrieve_deprecated_list: Validates the retrieval of deprecation lists.
+    - test_deprecate_module: Tests the deprecation command functionality.

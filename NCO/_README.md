@@ -1,4 +1,4 @@
-# Layer 4.5 Revoke Customization Modules
+# Layer 4.5 NCO Components
 
 Acronyms:
 1) NCO: Network-wide Customization Orchestrator
@@ -7,8 +7,9 @@ Acronyms:
 
 
 ## Overview:
-The Layer 4.5 customization framework is aimed at enhancing network operations through dynamic customization modules. It includes a set of scripts such as `nco_revoke.py`, `NCO_construct.py`, `NCO_deploy.py`, `NCO_logging.py`, `NCO_middlebox.py`, `NCO_monitor.py`, `NCO_security.py`, and `NCO.py`, each serving specific functions within this framework.
-`nco_revoke.py` is essential for managing the lifecycle of customization modules across the network. It provides mechanisms for the Network-wide Customization Orchestrator (NCO) to revoke or deprecate modules on network devices, ensuring the network remains updated and secure.`NCO_construct.py` prepares the deployment environment for customization modules, handling prerequisites such as security configurations and module dependencies. This step is critical for the successful deployment and operation of modules. Following preparation, `NCO_deploy.py` oversees the module deployment process, ensuring the correct installation and activation of modules throughout the network. This script is key to implementing the network's customization strategy effectively.`NCO_logging.py` supports the customization process by offering logging capabilities for monitoring and debugging. It generates detailed logs of the framework's operations, which are vital for troubleshooting.`NCO_middlebox.py` manages the dependencies and interactions between customization modules, addressing module requirements and relationships to maintain the integrity of network customizations.`NCO_monitor.py` monitors the health and operation of deployed modules, tracking their performance and functionality to ensure network optimization and to quickly resolve any issues. Security is addressed by `NCO_security.py`, which protects the customization process and deployed modules from unauthorized access and threats. It implements encryption and key management among other security measures. Lastly, `NCO.py` acts as the orchestrator, combining the functionalities provided by the other scripts. It handles tasks such as device communication, command processing, and lifecycle management of customization modules, enabling the operation of the Network-wide Customization Orchestrator (NCO).
+The Layer 4.5 customization framework is aimed at enhancing network operations through dynamic customization modules. It includes a set of scripts (e.g., `nco_revoke.py`) each serving specific functions within this framework.
+
+
 
 
 ## Functional Components:
@@ -17,8 +18,8 @@ The Layer 4.5 customization framework is aimed at enhancing network operations t
 - Construct: Prepares the environment for deploying customization modules, ensuring all prerequisites are met.
 - Deploy: Manages the deployment of modules across the network, ensuring modules are correctly installed and activated.
 - Monitor: Oversees the operation of deployed modules, ensuring their performance and functionality meet network requirements.
-- Secure: Implements security measures to protect the customization process and deployed modules from unauthorized access and threats.
-- Log: Provides comprehensive logging capabilities to monitor and debug the customization framework's operations.
+- Security: Implements security measures to protect the customization process and deployed modules from unauthorized access and threats.
+- Logging: Provides comprehensive logging capabilities to monitor and debug the customization framework's operations.
 
 
 Scripts and Test Cases: 
