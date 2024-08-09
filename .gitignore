@@ -4,4 +4,6 @@
 notes*
 no_include*
 .vscode*
-vagrant/Vagrantfile
+bundler*
+machines*
+rgloader*
