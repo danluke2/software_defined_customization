@@ -111,14 +111,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     recv_buf_st->copy_length = recv_buf_st->recv_return - pid_tag_len;
     iov_iter_advance(recv_buf_st->src_iter, pid_tag_len);
 
-    // only necessary if you need to make the buffer larger than default size
-    // recv_buf_st->buf = krealloc(recv_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);
-    // if(recv_buf_st->buf == NULL)
-    // {
-    //   trace_printk("Realloc Failed\n");
-    //   return;
-    // }
-    // recv_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
 
     copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->copy_length, recv_buf_st->src_iter);
     if (copy_success == false)

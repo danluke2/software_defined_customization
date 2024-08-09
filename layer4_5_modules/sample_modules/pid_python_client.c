@@ -79,6 +79,13 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
     set_module_struct_flags(send_buf_st, false);
 
+    // if module hasn't been activated, then don't perform customization
+    if (*python_cust->active_mode == 0)
+    {
+        send_buf_st->try_next = true;
+        return;
+    }
+
     // Get the PID
     pid = task_pid_nr(current);
     pid_tag_len = 14;
@@ -90,23 +97,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     }
     snprintf(pid_tag_str, pid_tag_len + 1, "[PID: %07d]", pid);
 
-    // if module hasn't been activated, then don't perform customization
-    if (*python_cust->active_mode == 0)
-    {
-        send_buf_st->try_next = true;
-        return;
-    }
-
     send_buf_st->copy_length = pid_tag_len + send_buf_st->length;
-
-    // send_buf could be realloc and change, thus update buf ptr and size if necessary
-    // only necessary if you need to make the buffer larger than default size
-    // send_buf_st->buf = krealloc(send_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);
-    // if(send_buf_st->buf==NULL)
-    // {
-    //   trace_printk("Realloc Failed\n");
-    //   return;
-    // }
 
     memcpy(send_buf_st->buf, pid_tag_str, pid_tag_len);
     kfree(pid_tag_str);
