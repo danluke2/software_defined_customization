@@ -1,5 +1,6 @@
 // @file sample_python_server.c
 // @brief A sample customization module to modify python3 send/recv calls
+// expect: // <start>data<end>portXXXX
 
 #include <linux/inet.h>
 #include <linux/init.h>
@@ -98,22 +99,14 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // NOTE: copy_length must be <= length
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-        //lab variables
-    char cust_input[12] = "port: ";  //char array for "port: #####"
-    char port_info[6];               //char array for port number from socket_flow struct
-    int  port_num;
-    size_t cust_input_size;
+    //port variables
+    char cust_input[18] = "port: ";  //char array for "port: #####"
 
     bool copy_success;
     //-1 b/c don't want terminating part
     size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
     size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
-
-    //lab customization section
-    port_num = socket_flow->source_port;
-    sprintf(port_info, "%i", port_num);    //convert int port_num to string port_info
-    strcat(cust_input, port_info);         //cat strings together and send to cust_input
-    cust_input_size = (size_t)sizeof(cust_input) - 1;
+    size_t cust_input_size = (size_t)sizeof(cust_input) - 1;
 
     set_module_struct_flags(recv_buf_st, false);
 
@@ -126,15 +119,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 
     // modified to reflect that both cust_start and cust_end will be removed from the received msg
     recv_buf_st->copy_length = recv_buf_st->recv_return - (cust_start_size + cust_end_size + cust_input_size);
-
-    // only necessary if you need to make the buffer larger than default size
-    // recv_buf_st->buf = krealloc(recv_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);
-    // if(recv_buf_st->buf == NULL)
-    // {
-    //   trace_printk("Realloc Failed\n");
-    //   return;
-    // }
-    // recv_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
 
     // adjust iter offset to start of actual message, then copy
     iov_iter_advance(recv_buf_st->src_iter, cust_start_size);

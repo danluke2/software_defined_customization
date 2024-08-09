@@ -1,5 +1,6 @@
 // @file sample_python_client.c
 // @brief A sample customization module to modify python3 send/recv calls
+// <start>data<end>portXXXX
 
 #include <linux/inet.h>
 #include <linux/init.h>
@@ -81,14 +82,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
     send_buf_st->copy_length = 0;
 
-    //lab customization section
-    port_num = socket_flow->source_port;
-    sprintf(port_info, "%i", port_num);    //convert int port_num to string port_info
-    strcat(cust_input, port_info);         //cat strings together and send to cust_input
-    cust_input_size = (size_t)sizeof(cust_input) - 1;
-
-    set_module_struct_flags(send_buf_st, false);
-
     // if module hasn't been activated, then don't perform customization
     if (*python_cust->active_mode == 0)
     {
@@ -96,17 +89,17 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size + cust_input_size;
+    //port customization section
+    port_num = socket_flow->source_port;
+    sprintf(port_info, "%i", port_num);    //convert int port_num to string port_info
+    strcat(cust_input, port_info);         //cat strings together and send to cust_input
+    cust_input_size = (size_t)sizeof(cust_input) - 1;
 
-    // send_buf could be realloc and change, thus update buf ptr and size if necessary
-    // only necessary if you need to make the buffer larger than default size
-    // send_buf_st->buf = krealloc(send_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);
-    // if(send_buf_st->buf==NULL)
-    // {
-    //   trace_printk("Realloc Failed\n");
-    //   return;
-    // }
-    // send_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
+
+
+    set_module_struct_flags(send_buf_st, false);
+
+    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size + cust_input_size;
 
     memcpy(send_buf_st->buf, cust_start, cust_start_size);
 
@@ -124,10 +117,13 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         // send_buf_st->buf = NULL;
         // copy_length = 0;
     }
+    
+
     memcpy(send_buf_st->buf + send_buf_st->length + cust_start_size, cust_end, cust_end_size);
 
-    //insert lab customization data
+    //insert port customization data
     memcpy(send_buf_st->buf + send_buf_st->length + cust_start_size + cust_end_size, cust_input, cust_input_size);
+    
 
     return;
 }
