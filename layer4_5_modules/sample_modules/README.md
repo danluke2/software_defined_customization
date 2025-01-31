@@ -6,14 +6,14 @@ NOTE: This README only uses one of the Vagrant VM's created.  It does not matter
 Here we include sample modules to use with the Layer 4.5 installation.
 
 
-* sample\_python\_client: Inserts a tag to the front of the message sent to
+* sample\_python\_client: Inserts tags to the front and back of the message sent to
 the server.
 
     * Example:
 
         * (Client) Hello
 
-        * (Server) testCustModHello
+        * (Server) <start>Hello<end>
 
     * Matches the flows:
 
@@ -26,7 +26,7 @@ the server.
       * Application: python3
 
 
-* sample\_python\_server: Removes the tag at the front of the message sent from
+* sample\_python\_server: Removes the tags at the front and back of the message sent from
 the client.
 
     * NOTE: This module assumes the client module is loaded.  If loaded without
@@ -36,7 +36,7 @@ the client.
 
         * (Client) Hello
 
-        * (Network) testCustModHello
+        * (Network) <start>Hello<end>
 
         * (Server) Hello
 
@@ -54,6 +54,8 @@ the client.
 ## Video walkthrough
 
 * sample_walkthough.mp4
+
+* NOTE: This video used an older sample module that only had a tag at the front, but worked essentially the same as current sample module
 
 
 ## Steps to run a sample client only customization:
@@ -79,7 +81,7 @@ the client.
 
         * `tracelog`
 
-       ![](../docs/assets/client_load.png)
+       ![](../../assets/client_load.png)
 
 
 1) Launch the python echo client and server in two separate terminals and note the PID of each (printed in terminal):
@@ -95,7 +97,7 @@ the client.
 1) Type some messages into the echo client and verify the echo server receives
 a modified message and replies with this modified message
 
-    * Ex: Client - Hello; Server - testCustModHello
+    * Ex: Client - Hello; Server - <start>Hello<end>
 
 
 1) In the client terminal, type 'quit' to close the connection
@@ -109,7 +111,7 @@ a modified message and replies with this modified message
 
     * cust\_send=1 means send customization will be applied on the client
 
-    ![](../docs/assets/client_assign.png)
+    ![](../../assets/client_assign.png)
 
 
 
@@ -152,7 +154,7 @@ a modified message and replies with this modified message
 
         * `tracelog`
 
-        ![](../docs/assets/client_load.png)
+        ![](../../assets/client_load.png)
 
 
 1) insert server modules:
@@ -163,7 +165,7 @@ a modified message and replies with this modified message
 
         * `tracelog`
 
-        ![](../docs/assets/server_load.png)
+        ![](../../assets/server_load.png)
 
 
 
@@ -180,7 +182,7 @@ a modified message and replies with this modified message
 
     * `sudo tcpdump port 65432 -i lo -X`
 
-    * alternatively, launch Wireshark and choose loopback interface
+    * alternatively, launch Wireshark and choose the loopback interface
 
 
 
@@ -200,7 +202,7 @@ a modified message and replies with this modified message
 
     * cust\_recv=1 means recv customization will be applied on the server
 
-    ![](../docs/assets/both_assign.png)
+    ![](../../assets/both_assign.png)
 
 
 1) reset the trace file between runs if desired

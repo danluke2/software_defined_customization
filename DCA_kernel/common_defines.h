@@ -1,0 +1,41 @@
+#ifndef _CUSTOMIZATION_DEFINES_H
+#define _CUSTOMIZATION_DEFINES_H
+
+#define ERROR -1
+#define SUCCESS 0
+
+#define MAX_CUST_ATTACH 5
+#define TASK_NAME_LEN 16 // defined in sched.h as TASK_COMM_LEN 16
+#define SEND_BUF_SIZE 65536
+#define RECV_BUF_SIZE 65536
+
+// for functions that need to know direction of messages
+#define SEND 0
+#define RECV 1
+
+// for modules challenge_response support
+#define AES_BLOCK_SIZE 16
+#define SYMMETRIC_KEY_LENGTH 32
+#define HEX_KEY_LENGTH 64
+#define IV_LENGTH 16
+#define HEX_IV_LENGTH 32
+#define CHALLENGE_LENGTH 16
+#define HEX_CHALLENGE_LENGTH 32
+#define RESPONSE_LENGTH 32
+#define HEX_RESPONSE_LENGTH 64
+
+#define NETLINK_TESTFAMILY 25
+#define NETLINK_REPORT_SIZE 1024
+#define NETLINK_FAILURE_MSG_SIZE 32
+
+#define NETLINK_CUST_REPORT_MSG_SIZE 11
+#define NETLINK_CHALLENGE_MSG_SIZE 9
+#define NETLINK_CHALLENGE_WORD_COUNT 5
+#define NETLINK_DEPRECATE_MSG_SIZE 9
+#define NETLINK_DEPRECATE_WORD_COUNT 3
+#define NETLINK_TOGGLE_MSG_SIZE 6
+#define NETLINK_PRIORITY_MSG_SIZE 8
+
+#define CUST_PRIORITY_THRESHOLD U16_MAX
+
+#endif

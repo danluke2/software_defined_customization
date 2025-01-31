@@ -124,7 +124,7 @@ struct customization_socket *create_cust_socket(struct task_struct *task, struct
 
 #ifdef DEBUG2
     trace_printk("L4.5: Adding pid %d to customization table, sk=%lu\n", task->pid, (unsigned long)new_cust_socket->sk);
-    if (new_cust_socket->customization[0] == NULL)
+    if (new_cust_socket->customizations[0] == NULL)
     {
         trace_printk("L4.5: pid %d not customized, sk = %lu\n", task->pid, (unsigned long)new_cust_socket->sk);
     }

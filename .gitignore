@@ -4,4 +4,7 @@
 notes*
 no_include*
 .vscode*
-docs/_site*
+bundler*
+machines*
+rgloader*
+

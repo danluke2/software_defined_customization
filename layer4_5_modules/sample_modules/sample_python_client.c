@@ -58,7 +58,8 @@ module_param(priority, ushort, 0600);
 MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
 // test message for this module
-char cust_test[12] = "testCustMod";
+char cust_start[8] = "<start>";
+char cust_end[6] =   "<end>";
 
 struct customization_node *python_cust;
 
@@ -72,7 +73,8 @@ struct customization_node *python_cust;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     bool copy_success;
-    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
+    size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
+    size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
     send_buf_st->copy_length = 0;
 
     set_module_struct_flags(send_buf_st, false);
@@ -85,7 +87,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    send_buf_st->copy_length = cust_test_size + send_buf_st->length;
+    send_buf_st->copy_length = cust_start_size + send_buf_st->length + cust_end_size;
 
     // send_buf could be realloc and change, thus update buf ptr and size if necessary
     // only necessary if you need to make the buffer larger than default size
@@ -97,9 +99,9 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     // }
     // send_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
 
-    memcpy(send_buf_st->buf, cust_test, cust_test_size);
+    memcpy(send_buf_st->buf, cust_start, cust_start_size);
     // copy from full will revert iter back to normal if failure occurs
-    copy_success = copy_from_iter_full(send_buf_st->buf + cust_test_size, send_buf_st->length, send_buf_st->src_iter);
+    copy_success = copy_from_iter_full(send_buf_st->buf + cust_start_size, send_buf_st->length, send_buf_st->src_iter);
     if (copy_success == false)
     {
         // not all bytes were copied, so pick scenario 1 or 2 below
@@ -112,6 +114,8 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         // send_buf_st->buf = NULL;
         // copy_length = 0;
     }
+    memcpy(send_buf_st->buf + send_buf_st->length + cust_start_size, cust_end, cust_end_size);
+
     return;
 }
 
