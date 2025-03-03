@@ -11,7 +11,7 @@ import http.server
 import ssl
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
-HOST='10.0.0.20'
+HOST='192.168.0.18'
 SIMPLE_SERVER_DIR='/home/vagrant/software_defined_customization/experiment_scripts/client_server'
 # ************** END STANDARD PARAMS ****************
 

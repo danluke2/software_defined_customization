@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)  # use module name
 
 ######################### DEPLOY FUNCTIONS #############################
 
+
 # Host reported deployed_list, which we compare to the deployed rows in our DB
 # We also compare the deployed_list to the install rows and update both tables as necessary
 def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_list):
@@ -26,8 +27,14 @@ def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_lis
     # compare values to find host/db mismatches, while also updating table
     for module in deployed_list:
         if module["ID"] in deployed_db:
-            update_deployed(db_connection, host_id,
-                            module["ID"], module["Count"], module["Activated"], module["ts"])
+            update_deployed(
+                db_connection,
+                host_id,
+                module["ID"],
+                module["Count"],
+                module["Activated"],
+                module["ts"],
+            )
             # we remove here to make list smaller and determine mismatches
             deployed_db.remove(module["ID"])
         else:
@@ -35,30 +42,49 @@ def handle_deployed_update(db_connection, host_id, deployed_list, deprecated_lis
             if module["ID"] in install_id_list:
                 req_install = 0
                 update_built_module_install_requirement(
-                    db_connection, host_id, module["ID"], req_install, module["ts"])
+                    db_connection, host_id, module["ID"], req_install, module["ts"]
+                )
                 insert_deployed(
-                    db_connection, host_id, module["ID"], module["Count"], module["Activated"],
-                    cfg.SEC_WINDOW, 0, module["ts"], 0, 0)
+                    db_connection,
+                    host_id,
+                    module["ID"],
+                    module["Count"],
+                    module["Activated"],
+                    cfg.SEC_WINDOW,
+                    0,
+                    module["ts"],
+                    0,
+                    0,
+                )
 
                 result = cfg.REFRESH_INSTALL_LIST
             else:
                 # TODO: handle this case; maybe trigger revocation call
                 id = module["ID"]
+                # delete_built_module(db_connection, host_id, "IDS_server_MT")
                 logger.info(
-                    f"host has deployed module not in deployed or Install DB, module = {id}")
+                    f"host has deployed module not in deployed or Install DB, module = {id}"
+                )
 
     for module in deprecated_list:
         if module["ID"] in deployed_db:
-            update_deployed(db_connection, host_id,
-                            module["ID"], module["Count"], module["Activated"], module["ts"])
+            update_deployed(
+                db_connection,
+                host_id,
+                module["ID"],
+                module["Count"],
+                module["Activated"],
+                module["ts"],
+            )
             # we remove here to make list smaller and determine mismatches
             deployed_db.remove(module["ID"])
 
     # anything left in deployed_db doesn't match report from host
     for module_id in deployed_db:
         logger.info(f"Module_id {module_id} in DB, but not reported by host")
-        update_deployed_host_error(
-            db_connection, host_id, module_id, int(time.time()))
+        update_deployed_host_error(db_connection, host_id, module_id, int(time.time()))
+
+    ###THIS IS WHERE WE NEED TO ADD THE IDS INFORMATION
 
     return result
 
@@ -72,7 +98,7 @@ def send_install_modules(conn_socket, host_id, modules):
         conn_socket.sendall(bytes(send_string, encoding="utf-8"))
         data = conn_socket.recv(1024)
         data = data.decode("utf-8")
-        if data != 'Clear to send':
+        if data != "Clear to send":
             logger.info("client can't accept")
             break
         else:
@@ -91,11 +117,11 @@ def send_ko_module(conn_socket, host_id, module):
     # get ACK from host
     data = conn_socket.recv(1024)
     data = data.decode("utf-8")
-    if data != 'Clear to send':
+    if data != "Clear to send":
         logger.info("client can't accept")
         return
 
-    with open(mod_dir + module + ".ko", 'rb') as file_to_send:
+    with open(mod_dir + module + ".ko", "rb") as file_to_send:
         logger.info(f"{module} file open")
         for data in file_to_send:
             # logger.info("sending module")
@@ -174,8 +200,7 @@ def retrieve_set_priority_list(db_connection, host_id):
 
 
 def set_priority(conn_socket, db_connection, host_id, mod_id, priority):
-    logger.info(
-        f"Setting module {mod_id} priority to {priority} for host {host_id}")
+    logger.info(f"Setting module {mod_id} priority to {priority} for host {host_id}")
     # send active update command
     command = {"cmd": "set_priority", "id": mod_id, "priority": priority}
     send_string = json.dumps(command, indent=4)

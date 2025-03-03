@@ -16,11 +16,23 @@ SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_script
 DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 CUST_LOCATION=/usr/lib/modules/$distro/layer4_5/customizations
-SERVER_IP=10.0.0.20
+SERVER_IP=192.168.0.18
 SERVER_PASSWD=vagrant
-CLIENT_IP=10.0.0.40
+CLIENT_IP=192.168.0.12
 CLIENT_PASSWD=vagrant
 # ************** END STANDARD PARAMS  ****************
+GENI_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts/geni
+LAYER_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules
+NETSOFT_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/netsoft
+GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
+SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
+DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
+CUST_LOCATION=/usr/lib/modules/$distro/layer4_5/customizations
+SERVER_IP=10.0.0.20
+SERVER_PASSWD=vagrant
+CLIENT_IP=10.0.0.30
+CLIENT_PASSWD=vagrant
 
 WIRESHARK_DIR=/usr/lib/x86_64-linux-gnu/wireshark/plugins
 

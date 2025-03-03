@@ -66,8 +66,8 @@ Vagrant.configure("2") do |config|
 
     vbox_custom = """
       vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
-      vb.customize ["bandwidthctl", :id, "add", "VagrantLimit", "--type", "network", "--limit", "1000m"]
-      vb.customize ["modifyvm", :id, "--nicbandwidthgroup2", "VagrantLimit"]
+      # vb.customize ["bandwidthctl", :id, "add", "VagrantLimit", "--type", "network", "--limit", "1000m"]
+      # vb.customize ["modifyvm", :id, "--nicbandwidthgroup2", "VagrantLimit"]
       #vram setting helps windows 11 machines without necessary processing power
       vb.customize ["modifyvm", :id, "--vram", "128"]
       vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
@@ -210,7 +210,7 @@ Vagrant.configure("2") do |config|
 
     with open(file_path, "a") as file:
         file.write(
-            """\n\tconfig.vm.synced_folder "../../software_defined_customization", "/home/vagrant/software_defined_customization", owner: "vagrant", group: "vagrant", automount: true\n"""
+            """\n\tconfig.vm.synced_folder "C:/Users/Brava/OneDrive - Naval Postgraduate School/NPS/Thesis/TRMC/software_defined_customization", "/home/vagrant/software_defined_customization", owner: "vagrant", group: "vagrant", automount: true\n"""
         )
 
     # Appending setup.sh path
@@ -282,7 +282,7 @@ cat <<EOT >>/home/vagrant/.ssh/config
 Host 10.0.0.20
     StrictHostKeyChecking no
 
-Host 10.0.0.40
+Host 10.0.0.30
     StrictHostKeyChecking no
 EOT
 """

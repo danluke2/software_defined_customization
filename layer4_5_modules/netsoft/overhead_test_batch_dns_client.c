@@ -13,7 +13,6 @@
 #include <helpers.h>
 // ************** END STANDARD PARAMS ****************
 
-
 extern int register_customization(struct customization_node *cust, u16 applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
@@ -23,12 +22,11 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
 
 extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
 
-
 // Kernel module parameters with default values
 
 // NOTE: In Ubuntu 22.04 the default is the dest=0.0.0.0:0 and src is set
 // I don't know why this changed yet
-static char *destination_ip = "10.0.0.20";
+static char *destination_ip = "8.8.8.8";
 module_param(destination_ip, charp, 0600); // root only access to change
 MODULE_PARM_DESC(destination_ip, "Dest IP to match");
 
@@ -60,13 +58,9 @@ unsigned short priority = 65535;
 module_param(priority, ushort, 0600);
 MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
-
 char cust_tag_test[33] = "XTAGTAGTAGTAGTAGTAGTAGTAGTAGTAGX";
 
-
 struct customization_node *dns_cust;
-
-
 
 // The following functions perform the buffer modifications requested by handler
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
@@ -74,7 +68,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     bool copy_success;
     size_t cust_tag_test_size = (size_t)sizeof(cust_tag_test) - 1; // i.e., 32 bytes
     send_buf_st->copy_length = 0;
-
 
     set_module_struct_flags(send_buf_st, false);
 
@@ -109,7 +102,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     return;
 }
 
-
 // Function to customize the msg recieved from L4 prior to delivery to application
 // @param[I] recv_buf_st Pointer to the recv buffer structure
 // @param[I] socket_flow Pointer to the socket flow parameters
@@ -129,7 +121,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     recv_buf_st->no_cust = true;
     return;
 }
-
 
 // The init function that calls the functions to register a Layer 4.5 customization
 // @post Layer 4.5 customization registered
@@ -153,7 +144,6 @@ int __init sample_client_start(void)
 
     // provide pointer for DCA to update priority instead of new function
     dns_cust->cust_priority = &priority;
-
 
     dns_cust->target_flow.protocol = (u16)protocol; // UDP
     memcpy(dns_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
@@ -193,7 +183,6 @@ int __init sample_client_start(void)
     return 0;
 }
 
-
 // The end function that calls the functions to unregister and stop Layer 4.5
 // @post Layer 4.5 customization unregistered
 void __exit sample_client_end(void)
@@ -211,7 +200,6 @@ void __exit sample_client_end(void)
     kfree(dns_cust);
     return;
 }
-
 
 module_init(sample_client_start);
 module_exit(sample_client_end);

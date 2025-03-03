@@ -18,7 +18,6 @@
 // NCO copies common_structs to each host directory (one level above modules dir)
 #include "../common_structs.h"
 
-
 extern int register_customization(struct customization_node *cust, u16 applyNow);
 
 extern int unregister_customization(struct customization_node *cust);
@@ -27,7 +26,6 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
                                  size_t len, bool ascii);
 
 extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
-
 
 // test message for this plugin
 char cust_test[12] = "testCustMod";
@@ -43,7 +41,6 @@ struct skcipher_def
     struct crypto_wait wait;
 };
 
-
 // NCO VARIABLES GO HERE
 u16 module_id = 1;
 char hex_key[HEX_KEY_LENGTH] = "";
@@ -51,13 +48,10 @@ u16 activate = 0;
 u16 priority = 0;
 u16 applyNow = 0;
 
-
 // END NCO VARIABLES
-
 
 // established during init function from hex key added during make process
 u8 byte_key[SYMMETRIC_KEY_LENGTH] = "";
-
 
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
@@ -86,8 +80,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
     }
     return;
 }
-
-
 
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
@@ -118,8 +110,6 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     return;
 }
 
-
-
 /* Perform desired cipher operation */
 static unsigned int test_skcipher_encdec(struct skcipher_def *sk, int enc)
 {
@@ -136,7 +126,6 @@ static unsigned int test_skcipher_encdec(struct skcipher_def *sk, int enc)
     return rc;
 }
 
-
 // hex is char array holding hex string to convert to bytes (2x larger than bytes)
 // bytes is char array to hold hex string as bytes
 // length is the size of the bytes array
@@ -150,7 +139,6 @@ void hex_to_bytes(char *hex, u8 *bytes, size_t length)
         bytes[j] = (hex[i] % 32 + 9) % 25 * 16 + (hex[i + 1] % 32 + 9) % 25;
     }
 }
-
 
 // bytes is char array to be converted to hex string
 // hex is char array twice as large as bytes to hold hex string of bytes
@@ -170,7 +158,6 @@ void bytes_to_hex(u8 *bytes, char *hex, size_t length)
     }
 }
 
-
 // Builder will write in the key that is used for the crypto, and module_ID
 // thus module has no knowledge of it before build, and NCO has it stored for reference
 // takes in a challenge string, decodes it with module key, adds to it, encodes and returns
@@ -183,7 +170,6 @@ void challenge_response(char *message, char *iv, char *challenge)
     u8 ivdata[IV_LENGTH] = "";
     int ret = -EFAULT;
     char response_id[16] = "";
-
 
     // response will just be module_id as a 6 char hex string added to end of challenge
     sprintf(response_id, "%06x", module_id);
@@ -213,7 +199,6 @@ void challenge_response(char *message, char *iv, char *challenge)
 
     skcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG, crypto_req_done, &sk.wait);
 
-
     // uses global key inserted when module is built
     if (crypto_skcipher_setkey(skcipher, byte_key, SYMMETRIC_KEY_LENGTH))
     {
@@ -232,7 +217,6 @@ void challenge_response(char *message, char *iv, char *challenge)
     hex_to_bytes(challenge, scratchpad, CHALLENGE_LENGTH);
 
     // print_hex_dump(KERN_DEBUG, "L4.5 challenge: ", DUMP_PREFIX_ADDRESS, 16, 1, scratchpad, 16, true);
-
 
     sk.tfm = skcipher;
     sk.req = req;
@@ -273,7 +257,6 @@ void challenge_response(char *message, char *iv, char *challenge)
         goto out;
     }
 
-
     trace_printk("L4.5: Decryption triggered successfully\n");
     print_hex_dump(KERN_DEBUG, "L4.5 decrypted data: ", DUMP_PREFIX_ADDRESS, 16, 1, scratchpad, 16, true);
 
@@ -305,13 +288,11 @@ void challenge_response(char *message, char *iv, char *challenge)
         goto out;
     }
 
-
     trace_printk("L4.5: Encryption triggered successfully\n");
     // print_hex_dump(KERN_DEBUG, "L4.5 encrypted data: ", DUMP_PREFIX_ADDRESS, 16, 1, scratchpad, 16, true);
 
     // start at message offset since we already put iv hex string in it
     bytes_to_hex(scratchpad, message + HEX_IV_LENGTH, CHALLENGE_LENGTH);
-
 
 out:
     if (skcipher)
@@ -320,9 +301,6 @@ out:
         skcipher_request_free(req);
     return;
 }
-
-
-
 
 // The init function that calls the functions to register a Layer 4.5 customization
 // Client will check parameters on first sendmsg
@@ -335,7 +313,7 @@ int __init sample_client_start(void)
     char thread_name[16] = "python3";
     char application_name[16] = "python3";
     int result;
-
+    char IDS_data[5] = "";
 
     python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
     if (python_cust == NULL)
@@ -350,7 +328,6 @@ int __init sample_client_start(void)
     // provide pointer for DCA to update priority instead of new function
     python_cust->cust_priority = &priority;
 
-
     python_cust->target_flow.protocol = 17; // UDP
                                             // python_cust->protocol = 6; // TCP
                                             // python_cust->protocol = 256; // Any since not valid IP field value
@@ -364,6 +341,10 @@ int __init sample_client_start(void)
     // IP is a __be32 value
     python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
     python_cust->target_flow.source_ip = 0;
+
+    // Char array for IDS data
+    // python_cust->IDS = &IDS_data;
+    // trace_printk("Passed memory location for IDS data\n");
 
     // These functions must be defined and will be used to modify the
     // buffer on a send/receive call
@@ -397,7 +378,6 @@ int __init sample_client_start(void)
     return 0;
 }
 
-
 // Calls the functions to unregister customization node from use on sockets
 // @post Layer 4.5 customization node unregistered
 void __exit sample_client_end(void)
@@ -416,8 +396,6 @@ void __exit sample_client_end(void)
     kfree(python_cust);
     return;
 }
-
-
 
 module_init(sample_client_start);
 module_exit(sample_client_end);

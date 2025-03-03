@@ -1,0 +1,35 @@
+# tracer: nop
+#
+# entries-in-buffer/entries-written: 24/24   #P:4
+#
+#                                _-----=> irqs-off
+#                               / _----=> need-resched
+#                              | / _---=> hardirq/softirq
+#                              || / _--=> preempt-depth
+#                              ||| /     delay
+#           TASK-PID     CPU#  ||||   TIMESTAMP  FUNCTION
+#              | |         |   ||||      |         |
+ systemd-modules-265     [000] ....     5.897192: 0xffffffffc02f305b: L4.5: TCP/UDP taps registered
+          insmod-2504    [002] ....   736.273781: register_customization: L4.5: Registering module
+          insmod-2504    [002] ....   736.273785: trace_print_module_params: Node protocol = 256
+          insmod-2504    [002] ....   736.273787: trace_print_module_params: Node pid task = python3
+          insmod-2504    [002] ....   736.273787: trace_print_module_params: Node tgid task = python3
+          insmod-2504    [002] ....   736.273787: trace_print_module_params: Node id = 42
+          insmod-2504    [002] ....   736.273788: trace_print_module_params: Node Activated = 1
+          insmod-2504    [002] ....   736.273788: trace_print_module_params: Node Priority = 65535
+          insmod-2504    [002] ....   736.273788: trace_print_module_params: Node dest port = 65432
+          insmod-2504    [002] ....   736.273789: trace_print_module_params: Node source port = 0
+          insmod-2504    [002] ....   736.273791: trace_print_module_params: Node dest_ip = 127.0.0.1
+          insmod-2504    [002] ....   736.273791: trace_print_module_params: Node src_ip = 0.0.0.0
+          insmod-2504    [002] ....   736.273792: 0xffffffffc06e713a: L4.5: client module loaded, id=42
+         python3-2507    [002] ....   751.307520: create_cust_socket: L4.5: Assigning cust to socket, pid 2507
+         python3-2507    [002] ....   751.307522: assign_customizations: L4.5: assigning 1 nodes to socket
+         python3-2507    [002] ....   751.307523: assign_customizations: L4.5: socket 0 = 42
+         python3-2507    [002] ....   751.307524: assign_customizations: L4.5: Send buffer size = 65536
+         python3-2507    [002] ....   751.307525: assign_customizations: L4.5: Recv buffer size = 65536
+         python3-2507    [002] .N..   751.314791: assign_customizations: L4.5 Assigned buffer, pid=2507, name=python3
+         python3-2507    [002] .N..   751.314793: assign_customizations: L4.5: Socket count = 1
+         python3-2507    [002] .N..   751.314797: trace_print_cust_socket: L4.5 tcp_connect: dest_ip:port=127.0.0.1:65432, source_ip:port=127.0.0.1:41832, cust=1
+         python3-2507    [003] ....  1410.367441: unassign_all_customization: L4.5: Freed send buff, pid=2507, name=python3
+         python3-2507    [003] ....  1410.367458: unassign_all_customization: L4.5: Freed recv buff, pid=2507, name=python3
+         python3-2507    [003] ....  1410.367458: unassign_all_customization: L4.5: Cust removed, pid=2507, name=python3

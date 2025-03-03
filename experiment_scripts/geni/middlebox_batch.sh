@@ -20,6 +20,15 @@ USERNAME=
 PASSWORD=
 # ************** END STANDARD PARAMS  ****************
 
+GENI_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts/geni
+LAYER_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules
+NETSOFT_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/netsoft
+GENI_MOD_DIR=/home/vagrant/software_defined_customization/layer4_5_modules/geni
+SIMPLE_SERVER_DIR=/home/vagrant/software_defined_customization/experiment_scripts/client_server
+DCA_KERNEL_DIR=/home/vagrant/software_defined_customization/DCA_kernel
+DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
+USERNAME=
+PASSWORD=
 # Force root
 if [[ "$(id -u)" != "0" ]]; then
     echo "This script must be run as root" 1>&2

@@ -1,0 +1,17 @@
+# tracer: nop
+#
+# entries-in-buffer/entries-written: 6/6   #P:4
+#
+#                                _-----=> irqs-off
+#                               / _----=> need-resched
+#                              | / _---=> hardirq/softirq
+#                              || / _--=> preempt-depth
+#                              ||| /     delay
+#           TASK-PID     CPU#  ||||   TIMESTAMP  FUNCTION
+#              | |         |   ||||      |         |
+ systemd-modules-273     [002] ....     4.182837: sys_imageblit: L4.5: TCP/UDP taps registered
+           rmmod-7934    [003] .... 12567.880653: 0xffffffffc03d14ba: L4.5: TCP/UDP taps unregistered
+           rmmod-7934    [003] .... 12567.881222: 0xffffffffc03cdf8d: L4.5 ALERT Cust Socket: Deleting things in bucket [322] with pid value 574 and socket value 18446613839726936064
+           rmmod-7934    [003] .... 12567.881316: 0xffffffffc03cdf8d: L4.5 ALERT Cust Socket: Deleting things in bucket [426] with pid value 612 and socket value 18446613839639659392
+           rmmod-7934    [003] .... 12567.881321: 0xffffffffc03ce012: Socket kallocs minus kfrees: 0
+          insmod-8892    [002] .... 12585.516694: 0xffffffffc03cc05b: L4.5: TCP/UDP taps registered

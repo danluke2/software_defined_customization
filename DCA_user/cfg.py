@@ -1,7 +1,8 @@
 import subprocess
+
 # ************** STANDARD PARAMS MUST GO HERE ****************
 distro=subprocess.run(['uname', '-r'])
-HOST='10.0.0.20'
+HOST='192.168.0.18'
 dca_dir='/home/vagrant/software_defined_customization/DCA_user/'
 symver_location=f'/usr/lib/modules/{distro}/layer4_5/'
 # ************** END STANDARD PARAMS ****************
@@ -9,8 +10,8 @@ symver_location=f'/usr/lib/modules/{distro}/layer4_5/'
 
 # HOST = '10.10.0.5' GENI
 
-PORT = 65432        # The port used by the NCO
-MIDDLE_PORT = 65433        # The middlebox port used by the NCO
+PORT = 65432  # The port used by the NCO
+MIDDLE_PORT = 65433  # The middlebox port used by the NCO
 INTERFACE = "enp0s8"
 # system_name = platform.system()
 

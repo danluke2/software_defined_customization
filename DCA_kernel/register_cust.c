@@ -28,32 +28,33 @@ static DEFINE_SPINLOCK(deprecated_customization_list_lock);
 struct list_head revoked_customization_list;
 static DEFINE_SPINLOCK(revoked_customization_list_lock);
 
-int
-register_customization(struct customization_node* module_cust, u16 applyNow);
+// list of alerting modules
+struct list_head alerted_customization_list;
+static DEFINE_SPINLOCK(alerted_customization_list_lock);
+
+int register_customization(struct customization_node *module_cust, u16 applyNow);
 EXPORT_SYMBOL_GPL(register_customization);
 
-int
-unregister_customization(struct customization_node* module_cust);
+int unregister_customization(struct customization_node *module_cust);
 EXPORT_SYMBOL_GPL(unregister_customization);
 
-void
-init_customization_list(void)
+void init_customization_list(void)
 {
   INIT_LIST_HEAD(&installed_customization_list);
   INIT_LIST_HEAD(&deprecated_customization_list);
   INIT_LIST_HEAD(&revoked_customization_list);
+  INIT_LIST_HEAD(&alerted_customization_list);
   return;
 }
 
-void
-free_customization_list(void)
+void free_customization_list(void)
 {
-  struct customization_node* cust;
-  struct customization_node* cust_next;
+  struct customization_node *cust;
+  struct customization_node *cust_next;
 
   spin_lock(&installed_customization_list_lock);
   list_for_each_entry_safe(
-    cust, cust_next, &installed_customization_list, cust_list_member)
+      cust, cust_next, &installed_customization_list, cust_list_member)
   {
     list_del(&cust->cust_list_member);
   }
@@ -61,11 +62,10 @@ free_customization_list(void)
   return;
 }
 
-void
-free_deprecated_customization_list(void)
+void free_deprecated_customization_list(void)
 {
-  struct customization_node* cust;
-  struct customization_node* cust_next;
+  struct customization_node *cust;
+  struct customization_node *cust_next;
 
   spin_lock(&deprecated_customization_list_lock);
   list_for_each_entry_safe(cust,
@@ -79,15 +79,14 @@ free_deprecated_customization_list(void)
   return;
 }
 
-void
-free_revoked_customization_list(void)
+void free_revoked_customization_list(void)
 {
-  struct customization_node* cust;
-  struct customization_node* cust_next;
+  struct customization_node *cust;
+  struct customization_node *cust_next;
 
   spin_lock(&revoked_customization_list_lock);
   list_for_each_entry_safe(
-    cust, cust_next, &revoked_customization_list, revoked_cust_list_member)
+      cust, cust_next, &revoked_customization_list, revoked_cust_list_member)
   {
     list_del(&cust->revoked_cust_list_member);
   }
@@ -95,16 +94,34 @@ free_revoked_customization_list(void)
   return;
 }
 
-struct customization_node*
+void free_alerted_customization_list(void)
+{
+  struct customization_node *cust;
+  struct customization_node *cust_next;
+
+  spin_lock(&alerted_customization_list_lock);
+  list_for_each_entry_safe(cust,
+                           cust_next,
+                           &alerted_customization_list,
+                           alerted_cust_list_member)
+  {
+    list_del(&cust->alerted_cust_list_member);
+  }
+  spin_unlock(&alerted_customization_list_lock);
+  return;
+}
+
+struct customization_node *
 get_cust_by_id(u16 cust_id)
 {
-  struct customization_node* cust_temp = NULL;
-  struct customization_node* cust_next = NULL;
+  struct customization_node *cust_temp = NULL;
+  struct customization_node *cust_next = NULL;
 
   list_for_each_entry_safe(
-    cust_temp, cust_next, &installed_customization_list, cust_list_member)
+      cust_temp, cust_next, &installed_customization_list, cust_list_member)
   {
-    if (cust_temp->cust_id == cust_id) {
+    if (cust_temp->cust_id == cust_id)
+    {
       return cust_temp;
     }
   }
@@ -116,7 +133,8 @@ get_cust_by_id(u16 cust_id)
                            &deprecated_customization_list,
                            deprecated_cust_list_member)
   {
-    if (cust_temp->cust_id == cust_id) {
+    if (cust_temp->cust_id == cust_id)
+    {
       return cust_temp;
     }
   }
@@ -124,26 +142,29 @@ get_cust_by_id(u16 cust_id)
 }
 
 size_t
-get_customizations(struct customization_socket* cust_socket,
-                   struct customization_node* nodes[MAX_CUST_ATTACH])
+get_customizations(struct customization_socket *cust_socket,
+                   struct customization_node *nodes[MAX_CUST_ATTACH])
 {
-  struct customization_node* cust_temp = NULL;
-  struct customization_node* cust_next = NULL;
+  struct customization_node *cust_temp = NULL;
+  struct customization_node *cust_next = NULL;
   size_t counter = 0;
 
   list_for_each_entry_safe(
-    cust_temp, cust_next, &installed_customization_list, cust_list_member)
+      cust_temp, cust_next, &installed_customization_list, cust_list_member)
   {
-    if (customization_compare(cust_temp, cust_socket)) {
+    if (customization_compare(cust_temp, cust_socket))
+    {
 #ifdef DEBUG1
       trace_printk("L4.5: cust socket match to registered module, pid = %d\n",
                    cust_socket->pid);
 #endif
       //  if cust priority lower than current threshold, then add to the array
-      if (*cust_temp->cust_priority <= CUST_PRIORITY_THRESHOLD) {
+      if (*cust_temp->cust_priority <= CUST_PRIORITY_THRESHOLD)
+      {
         nodes[counter] = cust_temp;
         counter += 1;
-        if (counter == MAX_CUST_ATTACH) {
+        if (counter == MAX_CUST_ATTACH)
+        {
           break;
         }
       }
@@ -155,21 +176,22 @@ get_customizations(struct customization_socket* cust_socket,
   // now sort array by priority values before returning
   // counter holds number of modules in nodes array, so we won't reach NULL
   // pointer
-  if (counter > 1) {
-    sort(nodes, counter, sizeof(void*), &priority_compare, NULL);
+  if (counter > 1)
+  {
+    sort(nodes, counter, sizeof(void *), &priority_compare, NULL);
   }
 
   return counter;
 }
 
-int
-register_customization(struct customization_node* module_cust, u16 applyNow)
+int register_customization(struct customization_node *module_cust, u16 applyNow)
 {
-  struct customization_node* cust =
-    kmalloc(sizeof(struct customization_node), GFP_KERNEL);
-  struct customization_node* test_cust = NULL;
+  struct customization_node *cust =
+      kmalloc(sizeof(struct customization_node), GFP_KERNEL);
+  struct customization_node *test_cust = NULL;
 
-  if (cust == NULL) {
+  if (cust == NULL)
+  {
 #ifdef DEBUG
     trace_printk("L4.5: kmalloc failed when registering customization node\n");
 #endif
@@ -178,7 +200,8 @@ register_customization(struct customization_node* module_cust, u16 applyNow)
 
   // invalid customization recieved, both function must be valid (design choice)
   if (module_cust->send_function == NULL ||
-      module_cust->recv_function == NULL) {
+      module_cust->recv_function == NULL)
+  {
 #ifdef DEBUG
     trace_printk("L4.5 ALERT: NULL registration function check failed\n");
 #endif
@@ -190,7 +213,8 @@ register_customization(struct customization_node* module_cust, u16 applyNow)
 
   // Verify the ID is unique before allowing registration
   test_cust = get_cust_by_id(module_cust->cust_id);
-  if (test_cust != NULL) {
+  if (test_cust != NULL)
+  {
 #ifdef DEBUG
     trace_printk("L4.5 ALERT: Duplicate ID check failed\n");
 #endif
@@ -204,6 +228,10 @@ register_customization(struct customization_node* module_cust, u16 applyNow)
   cust->active_mode = module_cust->active_mode;
   cust->sock_count = 0; // init value
   cust->cust_priority = module_cust->cust_priority;
+
+  // Updated fields for IDS and security_mod
+  cust->security_mod = module_cust->security_mod;
+  cust->IDS_ptr = module_cust->IDS_ptr;
 
   cust->target_flow.protocol = module_cust->target_flow.protocol;
   memcpy(cust->target_flow.task_name_pid,
@@ -246,7 +274,8 @@ register_customization(struct customization_node* module_cust, u16 applyNow)
   list_add(&cust->cust_list_member, &installed_customization_list);
   spin_unlock(&installed_customization_list_lock);
 
-  if (applyNow) {
+  if (applyNow)
+  {
     // now set update check on sockets so they check again
     set_update_cust_check();
   }
@@ -255,12 +284,11 @@ register_customization(struct customization_node* module_cust, u16 applyNow)
 }
 
 // called by the module to completely remove it from use
-int
-unregister_customization(struct customization_node* module_cust)
+int unregister_customization(struct customization_node *module_cust)
 {
   int found = 0;
-  struct customization_node* matching_cust;
-  struct customization_node* cust_next;
+  struct customization_node *matching_cust;
+  struct customization_node *cust_next;
 
 #ifdef DEBUG
   trace_printk("L4.5: Unregistering module\n");
@@ -269,9 +297,10 @@ unregister_customization(struct customization_node* module_cust)
   // First: delete from list so no new sockets can claim it
   spin_lock(&installed_customization_list_lock);
   list_for_each_entry_safe(
-    matching_cust, cust_next, &installed_customization_list, cust_list_member)
+      matching_cust, cust_next, &installed_customization_list, cust_list_member)
   {
-    if (matching_cust->cust_id == module_cust->cust_id) {
+    if (matching_cust->cust_id == module_cust->cust_id)
+    {
 #ifdef DEBUG1
       trace_print_module_params(matching_cust);
 #endif
@@ -282,7 +311,8 @@ unregister_customization(struct customization_node* module_cust)
   }
   spin_unlock(&installed_customization_list_lock);
 
-  if (found == 0) {
+  if (found == 0)
+  {
     // cust may have been moved to the deprecated list
     spin_lock(&deprecated_customization_list_lock);
     list_for_each_entry_safe(matching_cust,
@@ -290,7 +320,8 @@ unregister_customization(struct customization_node* module_cust)
                              &deprecated_customization_list,
                              deprecated_cust_list_member)
     {
-      if (matching_cust->cust_id == module_cust->cust_id) {
+      if (matching_cust->cust_id == module_cust->cust_id)
+      {
 #ifdef DEBUG1
         trace_print_module_params(matching_cust);
 #endif
@@ -302,7 +333,30 @@ unregister_customization(struct customization_node* module_cust)
     spin_unlock(&deprecated_customization_list_lock);
   }
 
-  if (found == 0) {
+  if (found == 0)
+  {
+    // remove customization from alerted_list
+    spin_lock(&alerted_customization_list_lock);
+    list_for_each_entry_safe(matching_cust,
+                             cust_next,
+                             &alerted_customization_list,
+                             alerted_cust_list_member)
+    {
+      if (matching_cust->cust_id == module_cust->cust_id)
+      {
+#ifdef DEBUG1
+        trace_print_module_params(matching_cust);
+#endif
+        list_del(&matching_cust->alerted_cust_list_member);
+        found = 1;
+        break;
+      }
+    }
+    spin_unlock(&alerted_customization_list_lock);
+  }
+
+  if (found == 0)
+  {
     // if still 0, then we have a problem
 #ifdef DEBUG
     trace_printk("L4.5 ALERT: No customization found with id = %u",
@@ -315,7 +369,8 @@ unregister_customization(struct customization_node* module_cust)
   // here
 
   // Second: remove customization from active sockets
-  if (found == 1 && matching_cust->sock_count != 0) {
+  if (found == 1 && matching_cust->sock_count != 0)
+  {
     remove_customization_from_each_socket(matching_cust);
   }
 
@@ -338,18 +393,18 @@ unregister_customization(struct customization_node* module_cust)
 // Deprecate will remove cust from active list
 // called by DCA to stop new sockets from using the registered module
 // but DCA only has the module ID, not the struct pointer
-int
-deprecate_customization(u16 cust_id)
+int deprecate_customization(u16 cust_id)
 {
   int found = 0;
-  struct customization_node* module_cust = NULL;
-  struct customization_node* matching_cust;
-  struct customization_node* cust_next;
+  struct customization_node *module_cust = NULL;
+  struct customization_node *matching_cust;
+  struct customization_node *cust_next;
 
   // First: find cust node matching given cust_id
   module_cust = get_cust_by_id(cust_id);
 
-  if (module_cust == NULL) {
+  if (module_cust == NULL)
+  {
 #ifdef DEBUG
     trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
 #endif
@@ -363,9 +418,10 @@ deprecate_customization(u16 cust_id)
   // Second: delete from list so no new sockets can claim it
   spin_lock(&installed_customization_list_lock);
   list_for_each_entry_safe(
-    matching_cust, cust_next, &installed_customization_list, cust_list_member)
+      matching_cust, cust_next, &installed_customization_list, cust_list_member)
   {
-    if (matching_cust->cust_id == module_cust->cust_id) {
+    if (matching_cust->cust_id == module_cust->cust_id)
+    {
 #ifdef DEBUG1
       trace_print_module_params(matching_cust);
 #endif
@@ -376,7 +432,8 @@ deprecate_customization(u16 cust_id)
   }
   spin_unlock(&installed_customization_list_lock);
 
-  if (found == 1) {
+  if (found == 1)
+  {
     // Last: store customization in deprecated list and set deprecated time
     ktime_get_real_ts64(&matching_cust->deprecated_time_struct);
 
@@ -391,7 +448,8 @@ deprecate_customization(u16 cust_id)
     spin_unlock(&deprecated_customization_list_lock);
   }
 
-  else {
+  else
+  {
 #ifdef DEBUG
     trace_printk("L4.5: Did not successfully deprecate module\n");
 #endif
@@ -401,21 +459,22 @@ deprecate_customization(u16 cust_id)
 }
 
 // set customization active mode
-int
-toggle_customization_active_mode(u16 cust_id, u16 mode)
+int toggle_customization_active_mode(u16 cust_id, u16 mode)
 {
   int found = 0;
-  struct customization_node* module_cust = NULL;
+  struct customization_node *module_cust = NULL;
 
   // First: find cust node matching given cust_id
   module_cust = get_cust_by_id(cust_id);
 
-  if (module_cust != NULL) {
+  if (module_cust != NULL)
+  {
     found = 1;
     *module_cust->active_mode = mode;
   }
 
-  else {
+  else
+  {
 #ifdef DEBUG
     trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
 #endif
@@ -425,28 +484,30 @@ toggle_customization_active_mode(u16 cust_id, u16 mode)
 }
 
 // set customization priority
-int
-set_customization_priority(u16 cust_id, u16 priority)
+int set_customization_priority(u16 cust_id, u16 priority)
 {
   int found = 0;
-  struct customization_node* module_cust = NULL;
+  struct customization_node *module_cust = NULL;
 
   // First: find cust node matching given cust_id
   module_cust = get_cust_by_id(cust_id);
 
-  if (module_cust != NULL) {
+  if (module_cust != NULL)
+  {
     found = 1;
     *module_cust->cust_priority = priority;
 
     // now we need to sort sockets with module attached again since order may
     // change
-    if (module_cust->sock_count > 0) {
+    if (module_cust->sock_count > 0)
+    {
       // mark socket for sorting when next used
       sort_mark_each_socket_with_matching_cust(module_cust);
     }
   }
 
-  else {
+  else
+  {
 #ifdef DEBUG
     trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
 #endif
@@ -457,15 +518,16 @@ set_customization_priority(u16 cust_id, u16 priority)
 
 // Split request string into word array of char pointers
 // number_of_words >= 1
-int
-split_message(char* request, char* words[], u16 number_of_words)
+int split_message(char *request, char *words[], u16 number_of_words)
 {
   int word_index = 0;
-  char* aPtr;
+  char *aPtr;
 
-  do {
+  do
+  {
     aPtr = strsep(&request, " ");
-    if (aPtr != NULL) {
+    if (aPtr != NULL)
+    {
 #ifdef DEBUG2
       trace_printk("Found = %s\n", aPtr);
 #endif
@@ -477,11 +539,66 @@ split_message(char* request, char* words[], u16 number_of_words)
   return word_index;
 }
 
-void
-netlink_cust_report(char* message, size_t* length)
+// Function to move alerting module to alert_list from installed_list
+void ack_alert(char *message, size_t *message_size, char *data)
 {
-  struct customization_node* cust_temp = NULL;
-  struct customization_node* cust_next = NULL;
+  struct customization_node *module_cust = NULL;
+  struct customization_node *cust_temp = NULL;
+  struct customization_node *cust_next = NULL;
+  int found = 0;
+  u16 cust_id = 0;
+  // int result;
+  size_t rem_length = *message_size;
+
+  // request format: "ACK <cust_id> END"
+  // Skip "ACK " and parse the cust_id from the string
+  if (sscanf(data + 4, "%hu", &cust_id) != 1) // Parse the number after "ACK "
+  {
+    trace_printk("L4.5 ALERT: ack failed to parse cust_id from data: %s\n", data);
+    snprintf(message, rem_length, "ERROR: parsing");
+    *message_size = strlen(message);
+    return;
+  }
+
+  // Find the cust_id in the installed list
+  spin_lock(&installed_customization_list_lock);
+  list_for_each_entry_safe(cust_temp, cust_next, &installed_customization_list, cust_list_member)
+  {
+    if (cust_temp->cust_id == cust_id)
+    {
+      module_cust = cust_temp;
+      list_del(&cust_temp->cust_list_member);
+      found = 1;
+      break;
+    }
+  }
+  spin_unlock(&installed_customization_list_lock);
+
+  if (found)
+  {
+    // Add to the alerted list
+    spin_lock(&alerted_customization_list_lock);
+    list_add(&module_cust->alerted_cust_list_member, &alerted_customization_list);
+    spin_unlock(&alerted_customization_list_lock);
+  }
+  else
+  {
+    trace_printk("L4.5 ALERT: No module matching id = %u\n", cust_id);
+    snprintf(message, rem_length, "ERROR: No module matching id = %u", cust_id);
+    *message_size = strlen(message);
+    return;
+  }
+
+  // Update the message and message size
+  snprintf(message, rem_length, "ACK Alert, cust ID: %u", cust_id);
+  *message_size = strlen(message);
+  return;
+}
+
+void netlink_cust_report(char *message, size_t *length)
+{
+  struct customization_node *cust_temp = NULL;
+  struct customization_node *cust_next = NULL;
   size_t rem_length = *length;
 
   message = json_objOpen(message, NULL, &rem_length);
@@ -489,15 +606,20 @@ netlink_cust_report(char* message, size_t* length)
 
   // trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
   list_for_each_entry_safe(
-    cust_temp, cust_next, &installed_customization_list, cust_list_member)
+      cust_temp, cust_next, &installed_customization_list, cust_list_member)
   {
     message = json_objOpen(message, NULL, &rem_length);
     message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
     message =
-      json_uint(message, "Activated", *cust_temp->active_mode, &rem_length);
+        json_uint(message, "Activated", *cust_temp->active_mode, &rem_length);
     message = json_uint(message, "Count", cust_temp->sock_count, &rem_length);
     message = json_ulong(
-      message, "ts", cust_temp->registration_time_struct.tv_sec, &rem_length);
+        message, "ts", cust_temp->registration_time_struct.tv_sec, &rem_length);
+
+    if (cust_temp->security_mod == true)
+    {
+      message = json_str(message, "IDS", cust_temp->IDS_ptr, &rem_length);
+    }
     message = json_objClose(message, &rem_length);
   }
   // close Active array
@@ -514,10 +636,10 @@ netlink_cust_report(char* message, size_t* length)
     message = json_objOpen(message, NULL, &rem_length);
     message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
     message =
-      json_uint(message, "Activated", *cust_temp->active_mode, &rem_length);
+        json_uint(message, "Activated", *cust_temp->active_mode, &rem_length);
     message = json_uint(message, "Count", cust_temp->sock_count, &rem_length);
     message = json_ulong(
-      message, "ts", cust_temp->deprecated_time_struct.tv_sec, &rem_length);
+        message, "ts", cust_temp->deprecated_time_struct.tv_sec, &rem_length);
     message = json_objClose(message, &rem_length);
   }
   // close Active array
@@ -525,17 +647,31 @@ netlink_cust_report(char* message, size_t* length)
 
   message = json_arrOpen(message, "Revoked", &rem_length);
   list_for_each_entry_safe(
-    cust_temp, cust_next, &revoked_customization_list, revoked_cust_list_member)
+      cust_temp, cust_next, &revoked_customization_list, revoked_cust_list_member)
   {
     message = json_objOpen(message, NULL, &rem_length);
     message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
-    // trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
+    trace_printk("length = %lu, rem_length = %lu\n", *length, rem_length);
     message = json_ulong(
-      message, "ts", cust_temp->revoked_time_struct.tv_sec, &rem_length);
+        message, "ts", cust_temp->revoked_time_struct.tv_sec, &rem_length);
     message = json_objClose(message, &rem_length);
   }
   // close revoked array
   message = json_arrClose(message, &rem_length);
+  // Open Alerted array
+  message = json_arrOpen(message, "Alerted", &rem_length);
+
+  // Iterate through alerted customizations
+  list_for_each_entry_safe(cust_temp, cust_next, &alerted_customization_list, alerted_cust_list_member)
+  {
+    message = json_objOpen(message, NULL, &rem_length);
+    message = json_uint(message, "ID", cust_temp->cust_id, &rem_length);
+    message = json_str(message, "IDS", cust_temp->IDS_ptr, &rem_length);
+    message = json_objClose(message, &rem_length);
+  }
+  // Close Alerted array
+  message = json_arrClose(message, &rem_length);
+
   // close all
   message = json_objClose(message, &rem_length);
   message = json_end_message(message, &rem_length);
@@ -552,16 +688,15 @@ netlink_cust_report(char* message, size_t* length)
 // TODO: All these netlink messages follow similar processing.  Can they be
 // better combined?
 
-void
-netlink_challenge_cust(char* message, size_t* length, char* request)
+void netlink_challenge_cust(char *message, size_t *length, char *request)
 {
-  struct customization_node* cust_node = NULL;
+  struct customization_node *cust_node = NULL;
   u16 cust_id = 0;
   int word_count = 0;
-  char* words[NETLINK_CHALLENGE_WORD_COUNT];
-  char* msg = NULL;
+  char *words[NETLINK_CHALLENGE_WORD_COUNT];
+  char *msg = NULL;
   char response[HEX_RESPONSE_LENGTH] = "";
-  char* iv = NULL;
+  char *iv = NULL;
   int result;
   size_t rem_length = *length;
 
@@ -575,16 +710,18 @@ netlink_challenge_cust(char* message, size_t* length, char* request)
 
   word_count = split_message(request, words, NETLINK_CHALLENGE_WORD_COUNT);
 
-  if (word_count != NETLINK_CHALLENGE_WORD_COUNT) {
+  if (word_count != NETLINK_CHALLENGE_WORD_COUNT)
+  {
     trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
     // we did not get a valid message, so return error message
     goto parsing_error_msg;
   }
 
   result = kstrtou16((words[1]), 10, &cust_id);
-  if (result != 0) {
+  if (result != 0)
+  {
     trace_printk(
-      "L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
+        "L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
     // cust id string to u16 failed, so return error message
     goto parsing_error_msg;
   }
@@ -599,7 +736,8 @@ netlink_challenge_cust(char* message, size_t* length, char* request)
   cust_node = get_cust_by_id(cust_id);
   // modules don't require a challenge function at registration time (design
   // choice)
-  if (cust_node->challenge_function != NULL) {
+  if (cust_node->challenge_function != NULL)
+  {
     cust_node->challenge_function(response, iv, msg);
 
     message = json_nstr(message, "IV", response, HEX_IV_LENGTH, &rem_length);
@@ -613,7 +751,9 @@ netlink_challenge_cust(char* message, size_t* length, char* request)
     message = json_end_message(message, &rem_length);
 
     *length = *length - rem_length;
-  } else {
+  }
+  else
+  {
     goto function_error_msg;
   }
 
@@ -631,19 +771,18 @@ parsing_error_msg:
 function_error_msg:
   message = json_objOpen(message, NULL, &rem_length);
   message =
-    json_nstr(message, "ERROR", "NULL challenge function", 23, &rem_length);
+      json_nstr(message, "ERROR", "NULL challenge function", 23, &rem_length);
   message = json_objClose(message, &rem_length);
   message = json_end_message(message, &rem_length);
   *length = *length - rem_length;
   return;
 }
 
-void
-netlink_deprecate_cust(char* message, size_t* length, char* request)
+void netlink_deprecate_cust(char *message, size_t *length, char *request)
 {
   u16 cust_id = 0;
   int word_count = 0;
-  char* words[NETLINK_DEPRECATE_WORD_COUNT];
+  char *words[NETLINK_DEPRECATE_WORD_COUNT];
   int result;
   size_t rem_length = *length;
 
@@ -655,16 +794,18 @@ netlink_deprecate_cust(char* message, size_t* length, char* request)
 
   word_count = split_message(request, words, NETLINK_DEPRECATE_WORD_COUNT);
 
-  if (word_count != NETLINK_DEPRECATE_WORD_COUNT) {
+  if (word_count != NETLINK_DEPRECATE_WORD_COUNT)
+  {
     trace_printk("L4.5 ALERT: challenge word count error = %d\n", word_count);
     // we did not get a valid message, so return error message
     goto error_msg;
   }
 
   result = kstrtou16((words[1]), 10, &cust_id);
-  if (result != 0) {
+  if (result != 0)
+  {
     trace_printk(
-      "L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
+        "L4.5 ALERT: challenge cust_id %s, error = %d\n", words[1], result);
     // cust id string to u16 failed, so return error message
     goto error_msg;
   }
@@ -693,13 +834,12 @@ error_msg:
   return;
 }
 
-void
-netlink_toggle_cust(char* message, size_t* length, char* request)
+void netlink_toggle_cust(char *message, size_t *length, char *request)
 {
   u16 cust_id = 0;
   int word_count = 0;
   int expected_words = 4;
-  char* words[4]; // hold expected_words pointers to char pointers
+  char *words[4]; // hold expected_words pointers to char pointers
   u16 mode;
   int result;
   size_t rem_length = *length;
@@ -713,22 +853,25 @@ netlink_toggle_cust(char* message, size_t* length, char* request)
 
   word_count = split_message(request, words, expected_words);
 
-  if (word_count != expected_words) {
+  if (word_count != expected_words)
+  {
     trace_printk("L4.5 ALERT: toggle word count error = %d\n", word_count);
     // we did not get a valid message, so return error message
     goto error_msg;
   }
 
   result = kstrtou16((words[1]), 10, &cust_id);
-  if (result != 0) {
+  if (result != 0)
+  {
     trace_printk(
-      "L4.5 ALERT: toggle cust_id %s, error = %d\n", words[1], result);
+        "L4.5 ALERT: toggle cust_id %s, error = %d\n", words[1], result);
     // cust id string to u16 failed, so return error message
     goto error_msg;
   }
 
   result = kstrtou16((words[2]), 10, &mode);
-  if (result != 0) {
+  if (result != 0)
+  {
     trace_printk("L4.5 ALERT: toggle mode %s, error = %d\n", words[2], result);
     // cust id string to u16 failed, so return error message
     goto error_msg;
@@ -758,13 +901,12 @@ error_msg:
   return;
 }
 
-void
-netlink_set_cust_priority(char* message, size_t* length, char* request)
+void netlink_set_cust_priority(char *message, size_t *length, char *request)
 {
   u16 cust_id = 0;
   int word_count = 0;
   int expected_words = 4;
-  char* words[4]; // hold expected_words pointers to char pointers
+  char *words[4]; // hold expected_words pointers to char pointers
   u16 priority;
   int result;
   size_t rem_length = *length;
@@ -778,22 +920,25 @@ netlink_set_cust_priority(char* message, size_t* length, char* request)
 
   word_count = split_message(request, words, expected_words);
 
-  if (word_count != expected_words) {
+  if (word_count != expected_words)
+  {
     trace_printk("L4.5 ALERT: priority word count error = %d\n", word_count);
     // we did not get a valid message, so return error message
     goto error_msg;
   }
 
   result = kstrtou16((words[1]), 10, &cust_id);
-  if (result != 0) {
+  if (result != 0)
+  {
     trace_printk(
-      "L4.5 ALERT: priority cust_id %s, error = %d\n", words[1], result);
+        "L4.5 ALERT: priority cust_id %s, error = %d\n", words[1], result);
     // cust id string to u16 failed, so return error message
     goto error_msg;
   }
 
   result = kstrtou16((words[2]), 10, &priority);
-  if (result != 0) {
+  if (result != 0)
+  {
     trace_printk("L4.5 ALERT: priority %s, error = %d\n", words[2], result);
     // cust id string to u16 failed, so return error message
     goto error_msg;

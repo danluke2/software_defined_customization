@@ -10,9 +10,9 @@
 #include <linux/version.h>
 
 // ************** STANDARD PARAMS MUST GO HERE ****************
-#include <common_structs.h>
-#include <helpers.h>
 // ************** END STANDARD PARAMS ****************
+#include <helpers.h>
+#include <helpers.h>
 
 
 static int __init sample_client_start(void);

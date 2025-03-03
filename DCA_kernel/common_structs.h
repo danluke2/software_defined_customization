@@ -29,6 +29,9 @@ struct customization_flow
   // tgid is the thread group ID and will match apps like dig, firefox, etc.
   char task_name_tgid[TASK_NAME_LEN];
 
+  // could add uid in this struct
+  uid_t uid;
+
   // these may be used to match subnets at some point
   // u8 dest_mask;
   // u8 src_mask;
@@ -37,16 +40,16 @@ struct customization_flow
 // buffers for customization module use; send and recv have own buffers
 struct customization_buffer
 {
-  void* buf; // malloc only when assigned a customization
+  void *buf; // malloc only when assigned a customization
   u32 buf_size;
   size_t copy_length;        // how much of buffer to copy
-  struct iov_iter* src_iter; // source buffer to work from
-  size_t length; // send=amount of data in src_iter, recv=max amount to return
-  size_t recv_return;    // amount of data L4 returned from recvmsg call
-  bool set_cust_to_skip; // no more cust performed on socket
-  bool no_cust;          // module didn't alter message (save a copy operation)
+  struct iov_iter *src_iter; // source buffer to work from
+  size_t length;             // send=amount of data in src_iter, recv=max amount to return
+  size_t recv_return;        // amount of data L4 returned from recvmsg call
+  bool set_cust_to_skip;     // no more cust performed on socket
+  bool no_cust;              // module didn't alter message (save a copy operation)
   bool
-    try_next; // module didn't match and next module in array should be checked
+      try_next; // module didn't match and next module in array should be checked
 };
 
 // primary structure for application sockets to hold customization information
@@ -54,7 +57,7 @@ struct customization_socket
 {
   pid_t pid;
   pid_t tgid;
-  struct sock* sk;
+  struct sock *sk;
   uid_t uid; // up to modules to map ID to username if desired
 
   // flag used to signal a new module registered and we should check cust
@@ -73,7 +76,7 @@ struct customization_socket
 
   // custimation pointer will be cast to customization node
   // we now keep an array of pointers to customization nodes, sorted by priority
-  void* customizations[MAX_CUST_ATTACH];
+  void *customizations[MAX_CUST_ATTACH];
   // all customization modules will use the same customization buffers
   struct customization_buffer send_buf_st;
   struct customization_buffer recv_buf_st;
@@ -94,11 +97,15 @@ struct customization_node
 
   // mod_id
   u16 cust_id;
-  u16* active_mode;
+  u16 *active_mode;
   // counter to track number of sockets cust is applied to
   u16 sock_count;
   // used to sort customizations in cust array
-  u16* cust_priority;
+  u16 *cust_priority;
+
+  // flag for intrusion information and array for IDS info
+  bool security_mod;
+  char *IDS_ptr;
 
   // cust can set these to override the defualt SEND_BUF_SIZE, RECV_BUF_SIZE
   u32 send_buffer_size;
@@ -108,21 +115,22 @@ struct customization_node
   struct timespec64 deprecated_time_struct;
   struct timespec64 revoked_time_struct;
 
-  void (*send_function)(struct customization_buffer* send_buf_st,
-                        struct customization_flow* socket_flow);
+  void (*send_function)(struct customization_buffer *send_buf_st,
+                        struct customization_flow *socket_flow);
 
-  void (*recv_function)(struct customization_buffer* recv_buf_st,
-                        struct customization_flow* socket_flow);
+  void (*recv_function)(struct customization_buffer *recv_buf_st,
+                        struct customization_flow *socket_flow);
 
   // challenge function called when DCA issues a module challenge-response
   // request
-  void (*challenge_function)(char* response_buffer,
-                             char* iv,
-                             char* challenge_message);
+  void (*challenge_function)(char *response_buffer,
+                             char *iv,
+                             char *challenge_message);
 
   struct list_head cust_list_member;
   struct list_head deprecated_cust_list_member;
   struct list_head revoked_cust_list_member;
+  struct list_head alerted_cust_list_member;
 };
 
 #endif

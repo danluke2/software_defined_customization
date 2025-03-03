@@ -100,7 +100,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
     //port variables
-    char cust_input[18] = "port: ";  //char array for "port: #####"
+    char cust_input[18] = "port1: ";  //char array for "port: #####"
 
     bool copy_success;
     //-1 b/c don't want terminating part
