@@ -46,7 +46,8 @@ def plot_dns_queries():
 
     # Set y-axis to logarithmic scale
     ax.set_yscale("log")
-    ax.tick_params(axis="y", which="major", labelsize=16)
+    ax.tick_params(axis="y", which="major", labelsize=16, length=10, width=2)
+    ax.tick_params(axis="y", which="minor", length=6, width=1.5)
 
     # Limit x-axis to 75 seconds
     ax.set_xlim(0, 75)
