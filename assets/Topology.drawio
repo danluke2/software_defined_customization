@@ -1,0 +1,52 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" version="26.1.3">
+  <diagram name="Page-1" id="9gQT0NrtqIVZ3J9xcg6P">
+    <mxGraphModel dx="1167" dy="758" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="WSP56BooICZvqYGaLdM5-12" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="620" y="300" width="280" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-1" value="" style="endArrow=none;html=1;rounded=0;exitX=0.98;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;targetPerimeterSpacing=0;strokeWidth=5;exitPerimeter=0;" edge="1" parent="1" source="WSP56BooICZvqYGaLdM5-2" target="WSP56BooICZvqYGaLdM5-12">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="450" as="sourcePoint" />
+            <mxPoint x="623" y="379" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-2" value="&lt;font style=&quot;font-size: 19px;&quot;&gt;SWITCH&lt;/font&gt;" style="shape=mxgraph.cisco.switches.workgroup_switch;sketch=0;html=1;pointerEvents=1;dashed=0;fillColor=#036897;strokeColor=#ffffff;strokeWidth=2;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="425" y="375" width="101" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-4" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;ORCHESTRATOR&lt;/font&gt;" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.azure.virtual_machine_feature;container=0;" vertex="1" parent="1">
+          <mxGeometry x="716.67" y="410" width="66.67" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-5" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;VM1&lt;/font&gt;" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.azure.virtual_machine_feature;container=0;" vertex="1" parent="1">
+          <mxGeometry x="650" y="315" width="66.67" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-6" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;targetPerimeterSpacing=0;strokeWidth=5;" edge="1" parent="1" target="WSP56BooICZvqYGaLdM5-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="399.76" as="sourcePoint" />
+            <mxPoint x="414.5" y="399.76" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-8" value="&amp;nbsp;&lt;font style=&quot;font-size: 18px;&quot;&gt;VM2&lt;/font&gt;" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.azure.virtual_machine_feature" vertex="1" parent="1">
+          <mxGeometry x="110" y="370" width="66.67" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-9" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;VM3&lt;/font&gt;" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.azure.virtual_machine_feature" vertex="1" parent="1">
+          <mxGeometry x="229.99999999999997" y="370" width="66.67" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-10" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;WEB/DNS&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;SERVER&lt;/font&gt;&lt;/div&gt;" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.azure.virtual_machine_feature;container=0;" vertex="1" parent="1">
+          <mxGeometry x="800" y="315" width="66.67" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-11" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="100" y="340" width="210" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-13" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;WINDOWS HOST&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="130" y="470" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WSP56BooICZvqYGaLdM5-14" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;WINDOWS HOST&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="685" y="510" width="150" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
