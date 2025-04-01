@@ -7,12 +7,11 @@ from collections import defaultdict
 # DNS Server Settings
 DNS_PORT = 53
 DNS_IP = "0.0.0.0"
-LOG_INTERVAL = 1  # Log query counts every 1 second
+LOG_INTERVAL = 1  # Log query counts every 2 seconds
 CSV_FILENAME = "dns_query_log.csv"
 
 # Dictionary to store DNS query counts per IP per interval
 dns_query_counts = defaultdict(int)  # Tracks queries per interval
-all_ips = set()  # Tracks all IPs that have ever connected
 lock = threading.Lock()
 
 
@@ -33,7 +32,6 @@ def dns_server():
 
             with lock:
                 dns_query_counts[ip] += 1  # Count only within the interval
-                all_ips.add(ip)  # Track all IPs that have ever connected
                 print(f"[+] Received DNS Query from {addr}")
     except Exception as e:
         print(f"[!] Error in DNS server: {e}")
@@ -54,14 +52,13 @@ def log_query_counts():
         elapsed_time = int(time.time() - start_time)
 
         with lock:
-            if dns_query_counts or all_ips:
+            if dns_query_counts:
                 with open(CSV_FILENAME, "a", newline="") as csvfile:
                     writer = csv.writer(csvfile)
-                    for ip in all_ips:
-                        count = dns_query_counts.get(ip, 0)
+                    for ip, count in dns_query_counts.items():
                         writer.writerow([elapsed_time, ip, count])
 
-                print(f"Logged {len(all_ips)} IP(s) at {elapsed_time}s")
+                print(f"Logged {len(dns_query_counts)} IP(s) at {elapsed_time}s")
 
             # Reset the count for the next interval
             dns_query_counts.clear()

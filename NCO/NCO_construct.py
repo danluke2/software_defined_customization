@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)  # use module name
 
 ######################### CONSTRUCTION FUNCTION ################################
 
+
 # Need symver file from host to allow building modules remotely since each
 # module calls exported L4.5 DCA functions
 def request_symver_file(conn_socket, db_connection, host_id, mac):
@@ -28,6 +29,10 @@ def request_symver_file(conn_socket, db_connection, host_id, mac):
     if err != cfg.CLOSE_SOCK:
         logger.info("have symvers file")
         err = update_host(db_connection, mac, "symvers_ts", int(time.time()))
+
+        # added IDS Experiment Iteration 3 to add DNS module to build database
+        # insert_req_build_module(db_connection, host_id, "DNS_response", 1, 40, 1, 1)
+        # logger.info("DNS module in req build database, host_id: " + str(host_id))
     return err
 
 
@@ -47,9 +52,14 @@ def recv_symvers_file(conn_socket, host_id):
     logger.info(f"recv file: {file_name}")
     logger.info(f"recv file size: {file_size}")
 
-    conn_socket.sendall(b'Clear to send')
+    conn_socket.sendall(b"Clear to send")
 
-    with open(os.path.join(cfg.nco_dir + cfg.symvers_dir + str(host_id) + "/", "Module.symvers"), 'wb') as file_to_write:
+    with open(
+        os.path.join(
+            cfg.nco_dir + cfg.symvers_dir + str(host_id) + "/", "Module.symvers"
+        ),
+        "wb",
+    ) as file_to_write:
         while True:
             data = conn_socket.recv(file_size)
             if not data:
@@ -65,20 +75,32 @@ def recv_symvers_file(conn_socket, host_id):
 # module has successfully been built, need to:
 #   1. insert module into the built table
 #   2. remove module from required build table
-def insert_and_update_module_tables(db_connection, module, module_id, host_id, key):
-    require_install = 1
+def insert_and_update_module_tables(
+    db_connection, module, module_id, host_id, key, alert
+):
+    alert = int(alert)
+    # if module is pre-built, no install until alert
+    require_install = 0 if alert == 1 else 1
     install_time = 0  # indicates ASAP
-    logger.info(f"inserting module {module} into built table")
-    err = insert_built_module(db_connection, host_id, module, module_id, int(
-        time.time()), key, require_install, install_time)
+    logger.info(f"inserting module {module} into built table, host_id: {host_id}")
+    err = insert_built_module(
+        db_connection,
+        host_id,
+        module,
+        module_id,
+        int(time.time()),
+        key,
+        require_install,
+        install_time,
+    )
+    logger.info(f"alert: {alert}, require install: {require_install}")
     if err == cfg.DB_ERROR:
         logger.info(f"Error inserting {module} into built table")
     else:
         logger.info(f"Deleting module from required build table")
         err = delete_req_build_module(db_connection, module, host_id)
         if err == cfg.DB_ERROR:
-            logger.info(
-                f"Error removing module {module} from required build table")
+            logger.info(f"Error removing module {module} from required build table")
             # TODO: what action should be taken in this case?
 
     return err
@@ -86,10 +108,23 @@ def insert_and_update_module_tables(db_connection, module, module_id, host_id, k
 
 # we only build one module at a time, so mod_id should not need race condition protection
 # ASSUMPTION: symver file and directory exists
-def build_ko_module(host_id, module_id, module_name, key, active_mode, priority, applyNow):
+def build_ko_module(
+    host_id, module_id, module_name, key, active_mode, priority, applyNow
+):
     try:
-        subprocess.run([cfg.nco_dir + "builder.sh", module_name, str(module_id),
-                       str(host_id), key.hex(), str(active_mode), str(priority), str(applyNow)], check=True)
+        subprocess.run(
+            [
+                cfg.nco_dir + "builder.sh",
+                module_name,
+                str(module_id),
+                str(host_id),
+                key.hex(),
+                str(active_mode),
+                str(priority),
+                str(applyNow),
+            ],
+            check=True,
+        )
         result = 0
     except subprocess.CalledProcessError as e:
         logger.info(f"Error occured during module build process, error={e}")
@@ -106,31 +141,45 @@ def construction_loop(db_connection):
     active_mode = [x[2] for x in modules_to_build]
     priority = [x[3] for x in modules_to_build]
     applyNow = [x[4] for x in modules_to_build]
+    alert = [x[5] for x in modules_to_build]
+    # logger.info(f"Alert from construction loop: {alert}") alert == 1 here if required install
     for i in range(len(modules_to_build)):
         key = generate_key()
         err = build_ko_module(
-            host_id_list[i], cfg.next_module_id, module_list[i], key, active_mode[i], priority[i], applyNow[i])
+            host_id_list[i],
+            cfg.next_module_id,
+            module_list[i],
+            key,
+            active_mode[i],
+            priority[i],
+            applyNow[i],
+        )
         if err == 0:
             err = insert_and_update_module_tables(
-                db_connection, module_list[i], cfg.next_module_id, host_id_list[i], key)
+                db_connection,
+                module_list[i],
+                cfg.next_module_id,
+                host_id_list[i],
+                key,
+                alert[i],
+            )
             if err == cfg.DB_ERROR:
                 logger.info(f"Error occured updating module tables")
             cfg.next_module_id += 1
         else:
             # an error occurred, update table and move on to next module
-            logger.info(
-                f"Construction error for host {host_id_list[i]}")
+            logger.info(f"Construction error for host {host_id_list[i]}")
             insert_build_error(
-                db_connection, host_id_list[i], module_list[i], "Make error")
-            delete_req_build_module(
-                db_connection, host_id_list[i], module_list[i])
+                db_connection, host_id_list[i], module_list[i], "Make error"
+            )
+            delete_req_build_module(db_connection, host_id_list[i], module_list[i])
             continue
 
 
 def construction_process(exit_event, interval, queue):
     logger.info("Construction process running")
-    db_connection = db_connect(cfg.nco_dir + 'cib.db')
-    while(True):
+    db_connection = db_connect(cfg.nco_dir + "cib.db")
+    while True:
         construction_loop(db_connection)
         time.sleep(interval)
         if exit_event.is_set():

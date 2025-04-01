@@ -242,6 +242,13 @@ def device_thread(conn, ip, port, buffer_size, interval):
             if len(modules) > 0:
                 # send built modules to host
                 send_install_modules(conn, host_id, modules)
+
+                # update deployed table
+                # TO DO: this can be handled elsewhere
+                # insert_deployed(
+                #    db_connection, host_id, modules, "?", "?", "?", "?", "?", "?", "?"
+                # )
+
                 # get a full report from host since we installed new modules
                 logger.info(f"NCO Requesting report after install")
                 request_report(conn, host_id)
@@ -251,7 +258,7 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     break
 
                 # TO DO: change method of removal from DB
-                delete_built_module(db_connection, host_id, "IDS_server_MT")
+                delete_built_module(db_connection, host_id, "IDS_web_logger")
                 delete_built_module(db_connection, host_id, "DNS_response")
 
                 # Middlebox requirement: update inverse module table (if necessary)

@@ -55,7 +55,7 @@ SYMVER_LOCATION="f'/usr/lib/modules/{distro}/layer4_5/'"
 # VAGRANT VM machine settings
 SERVER_IP=192.168.0.18
 SERVER_PASSWD="vagrant"
-CLIENT_IP=192.168.0.12
+CLIENT_IP=192.168.0.19
 CLIENT_PASSWD="vagrant"
 
 GENI_USERNAME=$1

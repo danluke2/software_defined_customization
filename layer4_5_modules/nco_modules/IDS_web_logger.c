@@ -1,6 +1,6 @@
-// @file IDS_client_MT.c
+// @file IDS_web_logger.c
 // @brief An IDS customization module to modify python3 send/recv calls to detect a specific string
-// data<ALERT>  <-- ALERT is only set if data contained target string (search_str)
+//
 
 #include <linux/inet.h>
 #include <linux/init.h>
@@ -40,13 +40,10 @@ u16 applyNow = 0;
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
     // IDS variables
-    char *search_str = "test"; // The string to search for
+    char *search_str = "exampleurl.com"; // The string to search for
     char *found_str = NULL;
-    char cust_input[8] = "<ALERT>"; // char array for alert message
-
-    size_t cust_input_size;
+    char alert_str[8] = "BLOCKED"; // char array for alert message
     bool copy_success;
-    cust_input_size = (size_t)sizeof(cust_input) - 1;
 
     send_buf_st->copy_length = 0;
     set_module_struct_flags(send_buf_st, false);
@@ -57,9 +54,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         send_buf_st->try_next = true;
         return;
     }
-
-    memset(send_buf_st->buf, 0, 1024);
-    trace_printk("L4.5: Content of IDS before copy: %s\n", IDS);
 
     // copy data from src_iter to buf
     copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
@@ -85,19 +79,36 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
     if (found_str != NULL)
     {
-        strscpy(IDS, "ALERT", sizeof(IDS));
-        trace_printk("L4.5: Content of IDS: %s\n", IDS);
+        // if search string is found, set IDS to alert message
+        strscpy(IDS, "ALERT:STRING1", sizeof(IDS));
 
-        send_buf_st->copy_length = send_buf_st->length;
-        // increase copy length to include customization message
-        send_buf_st->copy_length = send_buf_st->length + cust_input_size;
+        // Ensure enough space in buffer before modifying it
+        size_t alert_len = sizeof(alert_str) - 1; // Exclude null terminator
+        size_t total_needed = send_buf_st->length + alert_len;
 
-        // copy customization message to buffer
-        memcpy(send_buf_st->buf + send_buf_st->length, cust_input, cust_input_size);
+        if (total_needed <= send_buf_st->buf_size)
+        {
+            // Move existing buffer contents right to make space for alert_str
+            memmove(send_buf_st->buf + alert_len, send_buf_st->buf, send_buf_st->length);
+
+            // Insert modification to prevent connection to malicious URL
+            memcpy(send_buf_st->buf, alert_str, alert_len);
+
+            // Update copy_length
+            send_buf_st->copy_length = total_needed;
+        }
+        else
+        {
+            trace_printk("L4.5 ALERT: Not enough space to prepend alert message\n");
+            send_buf_st->copy_length = send_buf_st->length; // Just send original message
+        }
+
+        // Debug output
         trace_printk("L4.5: send buffer contents if ALERT: %s\n", send_buf_st->buf);
     }
     else
     {
+
         // traceprintK for debugging
         trace_printk("L4.5: send buffer contents: %s\n", send_buf_st->buf);
         send_buf_st->copy_length = send_buf_st->length;
@@ -136,8 +147,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 // @post Layer 4.5 customization registered
 int __init sample_client_start(void)
 {
-    char thread_name[16] = "python3";
-    char application_name[16] = "python3";
+    char thread_name[16] = "*";
+    char application_name[16] = "*";
     int result;
 
     python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
@@ -166,13 +177,14 @@ int __init sample_client_start(void)
     // Client: no source IP or port set unless client called bind first
     // python_cust->target_flow.dest_port = (u16)destination_port;
     // python_cust->target_flow.source_port = (u16)source_port;
-    python_cust->target_flow.dest_port = (u16)destination_port;
-    python_cust->target_flow.source_port = (u16)source_port;
+    python_cust->target_flow.dest_port = 8080; // HTTP requests
+    python_cust->target_flow.source_port = 0;  // any source port
 
     // IP is a __be32 value
     // python_cust->target_flow.dest_ip = in_aton(destination_ip);
     // python_cust->target_flow.source_ip = in_aton(source_ip);
-    python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
+    // python_cust->target_flow.dest_ip = in_aton("127.0.0.1");
+    python_cust->target_flow.dest_ip = 0;
     python_cust->target_flow.source_ip = 0;
 
     // These functions must be defined and will be used to modify the
@@ -184,7 +196,7 @@ int __init sample_client_start(void)
     python_cust->recv_buffer_size = 32;   // we don't plan to use this buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = 42;
+    python_cust->cust_id = module_id;
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;

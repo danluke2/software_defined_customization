@@ -1,4 +1,4 @@
-// @file IDS_server_MT.c
+// @file IDS_client_MT.c
 // @brief An IDS customization module to modify python3 send/recv calls to detect a specific string
 // data<ALERT>  <-- ALERT is only set if data contained target string (search_str)
 
@@ -11,7 +11,7 @@
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <common_structs.h>
 #include <helpers.h>
-// ************** END STANDARD PARAMS ****************
+//  ************** END STANDARD PARAMS ****************
 
 extern int register_customization(struct customization_node *cust, u16 applyNow);
 
@@ -22,20 +22,22 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
 
 extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
 
+extern int alert_customization(u16 cust_id);
+
 // Kernel module parameters with default values
-static char *destination_ip = "0.0.0.0";
+static char *destination_ip = "0.0.0.0";   // was 127.0.0.1
 module_param(destination_ip, charp, 0600); // root only access to change
 MODULE_PARM_DESC(destination_ip, "Dest IP to match");
 
-static char *source_ip = "127.0.0.1";
+static char *source_ip = "0.0.0.0";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
-static unsigned int destination_port = 0;
+static unsigned int destination_port = 8080; // was 65432
 module_param(destination_port, uint, 0600);
 MODULE_PARM_DESC(destination_port, "DPORT to match");
 
-static unsigned int source_port = 65432;
+static unsigned int source_port = 0;
 module_param(source_port, uint, 0600);
 MODULE_PARM_DESC(source_port, "SPORT to match");
 
@@ -56,14 +58,18 @@ module_param(priority, ushort, 0600);
 MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
 struct customization_node *python_cust;
+char IDS[16];
 
-/* NCO VARIABLES GO HERE
-u16 module_id = 1;
-char hex_key[HEX_KEY_LENGTH] = "";
-u16 activate = 0;
-u16 priority = 0;
-u16 applyNow = 0;
-*/
+bool is_root_user(void) // Renamed to avoid name clash with `current_uid` macro
+{
+    kuid_t kuid = current_uid();                // Get the current process UID
+    uid_t uid = from_kuid(&init_user_ns, kuid); // Convert to uid_t
+
+    // trace_printk("L4.5 Current process UID: %u\n", uid); // Debug print
+
+    return (uid == 0); // Return true if UID is 0 (root), false otherwise
+}
+
 // Function to customize the msg sent from the application to layer 4
 // @param[I] send_buf_st Pointer to the send buffer structure
 // @param[I] socket_flow Pointer to the flow struct matching cust parameters
@@ -71,8 +77,13 @@ u16 applyNow = 0;
 // @post send_buf_st->src_buf holds customized message for DCA to send to Layer 4
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-    send_buf_st->copy_length = 0;
+    // IDS variables
+    char alert_str[8] = "BLOCKED";            // char array for alert message
+    size_t alert_len = sizeof(alert_str) - 1; // Exclude null terminator
+    size_t total_needed = send_buf_st->length + alert_len;
+    bool copy_success;
 
+    send_buf_st->copy_length = 0;
     set_module_struct_flags(send_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
@@ -82,8 +93,53 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    // not customizing send path
-    send_buf_st->no_cust = true;
+    // reset alert
+    strscpy(IDS, "", sizeof(IDS));
+
+    // copy data from src_iter to buf
+    copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
+    if (copy_success == false)
+    {
+        // not all bytes were copied, so pick scenario 1 or 2 below
+        trace_printk("L4.5 ALERT: Failed to copy all bytes to cust buffer\n");
+        // Scenario 1: keep cust loaded and allow normal msg to be sent
+        send_buf_st->copy_length = 0;
+    }
+
+    // check if root user is making the request
+    if (is_root_user())
+    {
+        // insert BLOCK string at the beginning of the buffer
+        if (total_needed <= send_buf_st->buf_size)
+        {
+            // Move existing buffer contents right to make space for alert_str
+            memmove(send_buf_st->buf + alert_len, send_buf_st->buf, send_buf_st->length);
+
+            // Insert modification to prevent connection to malicious URL
+            memcpy(send_buf_st->buf, alert_str, alert_len);
+
+            // Update copy_length
+            send_buf_st->copy_length = total_needed;
+
+            trace_printk("L4.5 ALERT: Buffer contents: %s\n", send_buf_st->buf);
+        }
+        else
+        {
+            trace_printk("L4.5 ALERT: Not enough space to prepend alert message\n");
+            send_buf_st->copy_length = 0; // block message
+        }
+
+        // update IDS with DNS alert
+        strscpy(IDS, "ALERT:STRING1", sizeof(IDS));
+
+        return;
+    }
+    else
+    {
+        // Allow normal message to be sent if not root user
+        send_buf_st->copy_length = send_buf_st->length;
+    }
+
     return;
 }
 
@@ -95,15 +151,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // NOTE: copy_length must be <= length
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-    // IDS variables
-    char *found_str = NULL;
-    char cust_input[8] = "<ALERT>"; // char array for alert message
-
-    size_t cust_input_size;
-    bool copy_success;
-    cust_input_size = (size_t)sizeof(cust_input) - 1;
-
-    recv_buf_st->copy_length = 0;
     set_module_struct_flags(recv_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
@@ -113,41 +160,9 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         return;
     }
 
-    // **Clear the buffer contents before copying new data**
-    memset(recv_buf_st->buf, 0, 1024);
-
-    copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->recv_return, recv_buf_st->src_iter);
-    if (copy_success == false)
-    {
-        // not all bytes were copied, so pick scenario 1 or 2 below
-        trace_printk("L4.5 ALERT: Failed to copy all bytes to cust buffer\n");
-        // Scenario 1: keep cust loaded and allow normal msg to be sent
-        recv_buf_st->copy_length = 0;
-    }
-
-    // Ensure the buffer is null-terminated before searching (this prevents long strings from generating ALERT flag)
-    if (recv_buf_st->length < recv_buf_st->buf_size)
-    {
-        ((char *)recv_buf_st->buf)[recv_buf_st->length] = '\0';
-    }
-
-    // Search for ALERT message in the received buffer
-    found_str = strstr(recv_buf_st->buf, cust_input);
-
-    trace_printk("L4.5: recv buffer CONTENTS: %s\n", recv_buf_st->buf);
-
-    if (found_str != NULL)
-    {
-        trace_printk("L4.5: CLIENT ALERT AT SERVER\n");
-        // Remove the size of the alert message from the buffer
-        recv_buf_st->copy_length = recv_buf_st->recv_return - cust_input_size;
-    }
-    else
-    {
-        // traceprintK for debugging
-        trace_printk("L4.5: No client ALERT\n");
-        recv_buf_st->copy_length = recv_buf_st->recv_return;
-    }
+    // no cust being performed on recv path
+    recv_buf_st->no_cust = true;
+    return;
 }
 
 // The init function that calls the functions to register a Layer 4.5 customization
@@ -158,8 +173,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 // @post Layer 4.5 customization registered
 int __init sample_client_start(void)
 {
-    char thread_name[16] = "python3";
-    char application_name[16] = "python3";
+    char thread_name[16] = "*";
+    char application_name[16] = "*";
     int result;
 
     python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
@@ -168,6 +183,10 @@ int __init sample_client_start(void)
         trace_printk("L4.5 ALERT: client kmalloc failed\n");
         return -1;
     }
+
+    // IDS additions
+    python_cust->IDS_ptr = IDS;
+    python_cust->security_mod = true;
 
     // provide pointer for DCA to toggle active mode instead of new function
     python_cust->active_mode = &activate;
@@ -198,7 +217,7 @@ int __init sample_client_start(void)
     python_cust->recv_buffer_size = 32;   // we don't plan to use this buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = 41;
+    python_cust->cust_id = 42;
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;

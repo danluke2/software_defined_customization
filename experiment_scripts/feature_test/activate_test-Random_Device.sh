@@ -18,7 +18,7 @@ DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 CUST_LOCATION=/usr/lib/modules/$distro/layer4_5/customizations
 SERVER_IP=192.168.0.18
 SERVER_PASSWD=vagrant
-CLIENT_IP=192.168.0.19
+CLIENT_IP=192.168.0.12
 CLIENT_PASSWD=vagrant
 # ************** END STANDARD PARAMS  ****************
 EXP_SCRIPT_DIR=/home/vagrant/software_defined_customization/experiment_scripts

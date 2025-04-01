@@ -1,10 +1,11 @@
 import subprocess
 
 # ************** STANDARD PARAMS MUST GO HERE ****************
-distro=subprocess.run(['uname', '-r'])
-HOST='192.168.0.18'
-dca_dir='/home/vagrant/software_defined_customization/DCA_user/'
-symver_location=f'/usr/lib/modules/{distro}/layer4_5/'
+# distro = subprocess.run(["uname", "-r"])
+system_release = "5.13.0-35-generic"
+HOST = "10.0.0.20"
+dca_dir = "/home/vagrant/software_defined_customization/DCA_user/"
+symver_location = f"/usr/lib/modules/{system_release}/layer4_5/"
 # ************** END STANDARD PARAMS ****************
 
 

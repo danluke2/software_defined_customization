@@ -10,8 +10,6 @@
 #include <linux/netdevice.h>
 #include <linux/rtnetlink.h>
 #include <linux/sched/signal.h> // kill processes
-#include <linux/jiffies.h>
-#include <linux/delay.h> // For msleep
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <helpers.h>
 #include "../common_structs.h"
@@ -38,26 +36,25 @@ u16 priority = 0;
 u16 applyNow = 0;
 // END NCO VARIABLES
 
-#define MAX_DNS_QUERIES 5
-// #define SHORT_TIME_WINDOW (HZ) // 1 second window
+#define MAX_DNS_QUERIES 5 // Max allowed queries
 
 static unsigned long last_reset_time = 0;
-static int dns_query_count = 0;
+static unsigned int dns_query_count = 0;
 
-void monitor_dns_queries(void)
+bool monitor_dns_queries(void)
 {
     unsigned long current_time = jiffies;
 
-    // Reset counter if 1 second window has passed
-    if (time_after(current_time, last_reset_time + HZ))
+    // Reset counter if 1-second window has passed
+    if (time_after(current_time, last_reset_time + HZ)) // HZ represents 1 second in jiffies
     {
-        dns_query_count = 0;
-        last_reset_time = current_time;
+        dns_query_count = 0;            // Reset the query count
+        last_reset_time = current_time; // Update the last reset time
     }
 
-    dns_query_count++;
+    dns_query_count++; // Increment the query count
 
-    // If rate exceeds 5 queries per second
+    // If the query count exceeds the limit of 5 per second
     if (dns_query_count > MAX_DNS_QUERIES)
     {
         // Calculate the remaining time in the current window
@@ -73,8 +70,40 @@ void monitor_dns_queries(void)
         dns_query_count = 0;
         last_reset_time = jiffies;
 
-        // generate ALERT
-        strncpy(IDS, "ALERT:DNS1", sizeof(IDS));
+        return true; // Indicate that the rate limit has been exceeded
+    }
+
+    return false; // Indicate that the query is allowed
+}
+
+// Function to remove all network interfaces from the system
+void disable_all_network_interfaces(void)
+{
+    struct net_device *dev;
+
+    rtnl_lock(); // Lock the network namespace before modifying interfaces
+
+    for_each_netdev(&init_net, dev)
+    {
+        if (dev->flags & IFF_UP)
+        {                   // Check if the interface is up
+            dev_close(dev); // Disable the interface
+            trace_printk("L4.5: Disabled network interface: %s\n", dev->name);
+        }
+    }
+
+    rtnl_unlock(); // Unlock the network namespace after modifications
+}
+
+// Function to kill the current process
+void kill_current_process(void)
+{
+    struct task_struct *task = current; // Get the current process
+
+    if (task)
+    {
+        trace_printk("L4.5 ALERT: Killing process: %s (PID: %d)\n", task->comm, task->pid);
+        send_sig(SIGKILL, task, 1); // Send SIGKILL signal to terminate the process
     }
 }
 
@@ -107,14 +136,26 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         send_buf_st->copy_length = 0;
     }
 
-    // reset ALERT
-    strncpy(IDS, "", sizeof(IDS));
+    if (monitor_dns_queries())
+    {
+        // If rate exceeded, block the outgoing query
+        send_buf_st->copy_length = 0;
+        trace_printk("L4.5 ALERT: DNS query blocked due to rate limit (5).\n");
 
-    monitor_dns_queries();
+        // update IDS with DNS alert
+        strncpy(IDS, "ALERT:DNS1", sizeof(IDS));
+
+        disable_all_network_interfaces();
+        kill_current_process();
+
+        return;
+    }
 
     // Allow DNS query if rate not exceeded
     send_buf_st->copy_length = send_buf_st->length;
 
+    // reset ALERT
+    strncpy(IDS, "", sizeof(IDS));
     return;
 }
 
@@ -193,7 +234,7 @@ int __init sample_client_start(void)
     python_cust->recv_buffer_size = 32;   // we don't plan to use this buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = module_id; // because DNS
+    python_cust->cust_id = 53; // because DNS
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;

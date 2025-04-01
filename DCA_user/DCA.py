@@ -20,6 +20,7 @@ from netlink_helper import *
 # remove prints and log instead
 import logging
 from logging import handlers
+import re
 
 
 parser = argparse.ArgumentParser(description="DCA user space program")
@@ -94,6 +95,7 @@ def send_initial_report(conn_socket):
     send_dict = {}
     send_dict["mac"] = getHwAddr(cfg.INTERFACE)
     send_dict["release"] = cfg.system_release
+    # send_dict["release"] = "5.13.0-35-generic"
     print("Sending initial report", send_dict)
     send_string = json.dumps(send_dict, indent=4)
     logging.info(f"Initial report: {send_string}")
@@ -261,6 +263,44 @@ def revoke_module(conn_socket, filename):
     return result
 
 
+def send_log_data(conn_socket):
+    # Retrieve tracelog file data
+    try:
+        with open("/sys/kernel/tracing/trace", "r") as trace_file:
+            lines = trace_file.readlines()[-50:]  # Get the last 50 lines
+            # log_data = "".join(lines)
+
+            # Search for occurrences of "BLOCKED" and extract data between "Host:" and "User"
+            blocked_hosts = []
+            for i, line in enumerate(lines):
+                if "BLOCKED" in line:  # Check if "BLOCKED" flag is in the line
+                    next_line = lines[i + 1]
+                    match = re.search(
+                        r"Host:(.*)", next_line
+                    )  # Extract everything after "Host:"
+                    if match:
+                        host_data = match.group(
+                            1
+                        ).strip()  # Remove leading/trailing whitespace
+                        blocked_hosts.append(host_data)
+
+            # Prepare the data to send
+            send_dict = {
+                # "log_data": log_data,
+                "blocked_hosts": blocked_hosts  # Add extracted data
+            }
+            logging.info(f"Log data: {send_dict}")
+
+            send_string = json.dumps(send_dict, indent=4)
+            conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+    except FileNotFoundError:
+        logging.error("Trace file not found at /sys/kernel/tracing/trace")
+        conn_socket.sendall(b"Error: Trace file not found")
+    except Exception as e:
+        logging.error(f"Error reading trace file: {e}")
+        conn_socket.sendall(b"Error: Unable to read trace file")
+
+
 logger_configurer()
 
 # connect to server, send initial report and wait for server commands
@@ -358,6 +398,10 @@ while True:
                     # Extract the ID from the command string
                     cust_id = recv_dict["cmd"].split(" ")[1]
                     ack_alert(s, cust_id)
+
+                elif recv_dict["cmd"] == "get_log_data":
+                    logging.info("get log data")
+                    send_log_data(s)
 
             # Implement security query here
             # Function will query layer4_5 security module(s) and return the status

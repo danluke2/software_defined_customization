@@ -30,6 +30,7 @@ def db_close(con):
     con.close()
     return
 
+
 #  create all the tables PCC needs
 
 
@@ -73,24 +74,40 @@ def drop_table(con, table):
 
 # ***************** HOST TABLE ***********************
 
+
 def init_host_table(con):
     # host table uses primary mac to associate to host and store host info
-    con.execute('''CREATE TABLE hosts
+    con.execute(
+        """CREATE TABLE hosts
                    (mac text NOT NULL PRIMARY KEY, host_id integer,
                    host_ip text, host_port text,
                    symvers_ts integer, config_ts integer,
-                   linux_version text, interval integer)''')
+                   linux_version text, interval integer)"""
+    )
 
 
-def insert_host(con, mac, host_id, host_ip, host_port, symvers_ts, config_ts, version, interval):
+def insert_host(
+    con, mac, host_id, host_ip, host_port, symvers_ts, config_ts, version, interval
+):
     result = 0
     # Successful, con.commit() is called automatically afterwards
     # con.rollback() is called after the with block finishes with an exception, the
     # exception is still raised and must be caught
     try:
         with con:
-            con.execute("INSERT INTO hosts VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (mac,
-                        host_id, host_ip, host_port, symvers_ts, config_ts, version, interval))
+            con.execute(
+                "INSERT INTO hosts VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    mac,
+                    host_id,
+                    host_ip,
+                    host_port,
+                    symvers_ts,
+                    config_ts,
+                    version,
+                    interval,
+                ),
+            )
     except sl.Error as er:
         logger.info(f"Error inserting host mac = {mac}")
         logger.info(f"Error = {er}")
@@ -103,11 +120,12 @@ def update_host(con, mac, col_name, col_value):
     result = 0
     try:
         with con:
-            con.execute("UPDATE hosts SET {} = :col_value WHERE mac = :mac;".format(
-                col_name), {"col_value": col_value, "mac": mac})
+            con.execute(
+                "UPDATE hosts SET {} = :col_value WHERE mac = :mac;".format(col_name),
+                {"col_value": col_value, "mac": mac},
+            )
     except sl.Error as er:
-        logger.info(
-            f"Error updating host column = {col_name}, value = {col_value}")
+        logger.info(f"Error updating host column = {col_name}, value = {col_value}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -155,25 +173,52 @@ def select_all_hosts(con):
 
 # ***************** DEPLOYED TABLE ***********************
 
+
 def init_deployed_table(con):
     # each id and module pair must be unique
-    con.execute('''CREATE TABLE deployed
+    con.execute(
+        """CREATE TABLE deployed
                    (host_id integer NOT NULL, module_id integer NOT NULL,
                    sock_count integer, active_mode integer,
                    security_window integer, last_security_ts integer,
                    registered_ts integer, deprecated_ts integer, host_error_ts integer,
-                   PRIMARY KEY (host_id, module_id))''')
+                   PRIMARY KEY (host_id, module_id))"""
+    )
 
 
-def insert_deployed(con, host_id, module_id, count, active_mode, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts):
+def insert_deployed(
+    con,
+    host_id,
+    module_id,
+    count,
+    active_mode,
+    sec_window,
+    sec_ts,
+    registered_ts,
+    deprecated_ts,
+    host_error_ts,
+):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO deployed VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (host_id,
-                        module_id, count, active_mode, sec_window, sec_ts, registered_ts, deprecated_ts, host_error_ts))
+            con.execute(
+                "INSERT INTO deployed VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    host_id,
+                    module_id,
+                    count,
+                    active_mode,
+                    sec_window,
+                    sec_ts,
+                    registered_ts,
+                    deprecated_ts,
+                    host_error_ts,
+                ),
+            )
     except sl.Error as er:
         logger.info(
-            f"Error inserting module into deployed, module_id = {module_id}, host_id = {host_id}")
+            f"Error inserting module into deployed, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -183,13 +228,22 @@ def update_deployed(con, host_id, module_id, count, active_mode, registered_ts):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE deployed
+            con.execute(
+                """UPDATE deployed
             SET sock_count = :count, active_mode = :active_mode, registered_ts = :reg
-            WHERE host_id = :host AND module_id =:module;''',
-                        {"count": count, "active_mode": active_mode, "reg": registered_ts, "host": host_id, "module": module_id})
+            WHERE host_id = :host AND module_id =:module;""",
+                {
+                    "count": count,
+                    "active_mode": active_mode,
+                    "reg": registered_ts,
+                    "host": host_id,
+                    "module": module_id,
+                },
+            )
     except sl.Error as er:
         logger.info(
-            f"Error updating deployed row, module_id = {module_id}, host_id = {host_id}")
+            f"Error updating deployed row, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -199,13 +253,16 @@ def update_deployed_sec_window(con, host_id, module_id, sec_window):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE deployed
+            con.execute(
+                """UPDATE deployed
             SET security_window = :window
-            WHERE host_id = :host AND module_id =:module;''',
-                        {"window": sec_window, "host": host_id, "module": module_id})
+            WHERE host_id = :host AND module_id =:module;""",
+                {"window": sec_window, "host": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error updating deployed sec window, module_id = {module_id}, host_id = {host_id}")
+            f"Error updating deployed sec window, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -215,13 +272,16 @@ def update_deployed_sec_ts(con, host_id, module_id, sec_ts):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE deployed
+            con.execute(
+                """UPDATE deployed
             SET last_security_ts = :ts
-            WHERE host_id = :host AND module_id =:module;''',
-                        {"ts": sec_ts, "host": host_id, "module": module_id})
+            WHERE host_id = :host AND module_id =:module;""",
+                {"ts": sec_ts, "host": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error updating deployed sec window, module_id = {module_id}, host_id = {host_id}")
+            f"Error updating deployed sec window, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -231,13 +291,16 @@ def update_deployed_deprecated_ts(con, host_id, module_id, deprecated_ts):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE deployed
+            con.execute(
+                """UPDATE deployed
             SET deprecated_ts = :ts
-            WHERE host_id = :host AND module_id =:module;''',
-                        {"ts": deprecated_ts, "host": host_id, "module": module_id})
+            WHERE host_id = :host AND module_id =:module;""",
+                {"ts": deprecated_ts, "host": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error updating deployed deprecated_ts, module_id = {module_id}, host_id = {host_id}")
+            f"Error updating deployed deprecated_ts, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -247,13 +310,16 @@ def update_deployed_host_error(con, host_id, module_id, host_error_ts):
     result = 0
     try:
         with con:
-            con.execute('''UPDATE deployed
+            con.execute(
+                """UPDATE deployed
             SET host_error_ts = :ts
-            WHERE host_id = :host AND module_id =:module;''',
-                        {"ts": host_error_ts, "host": host_id, "module": module_id})
+            WHERE host_id = :host AND module_id =:module;""",
+                {"ts": host_error_ts, "host": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error updating deployed error, module_id = {module_id}, host_id = {host_id}")
+            f"Error updating deployed error, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -263,11 +329,14 @@ def delete_deployed(con, host_id, module_id):
     result = 1
     try:
         with con:
-            con.execute("DELETE FROM deployed WHERE host_id = :host AND module_id =:module;", {
-                        "host": host_id, "module": module_id})
+            con.execute(
+                "DELETE FROM deployed WHERE host_id = :host AND module_id =:module;",
+                {"host": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting deployed row, module_id = {module_id}, host_id = {host_id}")
+            f"Error deleting deployed row, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -278,11 +347,15 @@ def select_deployed_modules(con, host_id):
     try:
         with con:
             cur = con.cursor()
-            result = [mod_id[0] for mod_id in cur.execute(
-                "SELECT module_id FROM deployed WHERE host_id =:id;", {"id": host_id})]
+            result = [
+                mod_id[0]
+                for mod_id in cur.execute(
+                    "SELECT module_id FROM deployed WHERE host_id =:id;",
+                    {"id": host_id},
+                )
+            ]
     except sl.Error as er:
-        logger.info(
-            f"Error selecting deployed modules for host_id = {host_id}")
+        logger.info(f"Error selecting deployed modules for host_id = {host_id}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -293,12 +366,10 @@ def select_all_deployed_rows(con, host_id):
     try:
         with con:
             cur = con.cursor()
-            cur.execute(
-                "SELECT * FROM deployed WHERE host_id =:id;", {"id": host_id})
+            cur.execute("SELECT * FROM deployed WHERE host_id =:id;", {"id": host_id})
             result = cur.fetchall()
     except sl.Error as er:
-        logger.info(
-            f"Error selecting deployed modules for host_id = {host_id}")
+        logger.info(f"Error selecting deployed modules for host_id = {host_id}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -309,21 +380,26 @@ def select_all_deployed_rows(con, host_id):
 
 def init_require_active_toggle_table(con):
     # each id and module pair must be unique
-    con.execute('''CREATE TABLE req_active_toggle
+    con.execute(
+        """CREATE TABLE req_active_toggle
                    (host_id integer NOT NULL, module_id integer NOT NULL,
                     mode integer NOT NULL,
-                    PRIMARY KEY (host_id, module_id))''')
+                    PRIMARY KEY (host_id, module_id))"""
+    )
 
 
 def insert_req_active_toggle(con, host_id, module_id, mode):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO req_active_toggle VALUES (?, ?, ?)",
-                        (host_id, module_id, mode))
+            con.execute(
+                "INSERT INTO req_active_toggle VALUES (?, ?, ?)",
+                (host_id, module_id, mode),
+            )
     except sl.Error as er:
         logger.info(
-            f"Error inserting module into req_active_toggle, module_id = {module_id}, host_id = {host_id}")
+            f"Error inserting module into req_active_toggle, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -333,11 +409,14 @@ def delete_req_active_toggle_by_id(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM req_active_toggle WHERE host_id = :id AND module_id =:module;", {
-                        "id": host_id, "module": module_id})
+            con.execute(
+                "DELETE FROM req_active_toggle WHERE host_id = :id AND module_id =:module;",
+                {"id": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting req_active_toggle row, module={module_id}, host={host_id}")
+            f"Error deleting req_active_toggle row, module={module_id}, host={host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -349,7 +428,8 @@ def select_all_req_active_toggle(con, host_id):
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM req_active_toggle WHERE host_id = :id;", {"id": host_id})
+                "SELECT * FROM req_active_toggle WHERE host_id = :id;", {"id": host_id}
+            )
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error slecting all req_active_toggle for host {host_id}")
@@ -360,23 +440,29 @@ def select_all_req_active_toggle(con, host_id):
 
 # ***************** SET PRIORITY TABLE ***********************
 
+
 def init_require_set_priority_table(con):
     # each id and module pair must be unique
-    con.execute('''CREATE TABLE req_set_priority
+    con.execute(
+        """CREATE TABLE req_set_priority
                    (host_id integer NOT NULL, module_id integer NOT NULL,
                     priority integer NOT NULL,
-                    PRIMARY KEY (host_id, module_id))''')
+                    PRIMARY KEY (host_id, module_id))"""
+    )
 
 
 def insert_req_set_priority(con, host_id, module_id, priority):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO req_set_priority VALUES (?, ?, ?)",
-                        (host_id, module_id, priority))
+            con.execute(
+                "INSERT INTO req_set_priority VALUES (?, ?, ?)",
+                (host_id, module_id, priority),
+            )
     except sl.Error as er:
         logger.info(
-            f"Error inserting module into req_set_priority, module_id = {module_id}, host_id = {host_id}")
+            f"Error inserting module into req_set_priority, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -386,11 +472,14 @@ def delete_req_set_priority_by_id(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM req_set_priority WHERE host_id = :id AND module_id =:module;", {
-                        "id": host_id, "module": module_id})
+            con.execute(
+                "DELETE FROM req_set_priority WHERE host_id = :id AND module_id =:module;",
+                {"id": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting req_set_priority row, module={module_id}, host={host_id}")
+            f"Error deleting req_set_priority row, module={module_id}, host={host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -402,7 +491,8 @@ def select_all_req_set_priority(con, host_id):
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM req_set_priority WHERE host_id = :id;", {"id": host_id})
+                "SELECT * FROM req_set_priority WHERE host_id = :id;", {"id": host_id}
+            )
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error slecting all req_set_priority for host {host_id}")
@@ -416,20 +506,22 @@ def select_all_req_set_priority(con, host_id):
 
 def init_require_deprecate_table(con):
     # each id and module pair must be unique
-    con.execute('''CREATE TABLE req_deprecate
+    con.execute(
+        """CREATE TABLE req_deprecate
                    (host_id integer NOT NULL, module_id integer NOT NULL,
-                   PRIMARY KEY (host_id, module_id))''')
+                   PRIMARY KEY (host_id, module_id))"""
+    )
 
 
 def insert_req_deprecate(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO req_deprecate VALUES (?, ?)",
-                        (host_id, module_id))
+            con.execute("INSERT INTO req_deprecate VALUES (?, ?)", (host_id, module_id))
     except sl.Error as er:
         logger.info(
-            f"Error inserting module into req_deprecate, module_id = {module_id}, host_id = {host_id}")
+            f"Error inserting module into req_deprecate, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -439,11 +531,14 @@ def delete_req_deprecate_by_id(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM req_deprecate WHERE host_id = :id AND module_id =:module;", {
-                        "id": host_id, "module": module_id})
+            con.execute(
+                "DELETE FROM req_deprecate WHERE host_id = :id AND module_id =:module;",
+                {"id": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting req_deprecate row, module={module_id}, host={host_id}")
+            f"Error deleting req_deprecate row, module={module_id}, host={host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -455,7 +550,8 @@ def select_all_req_deprecate(con, host_id):
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM req_deprecate WHERE host_id = :id;", {"id": host_id})
+                "SELECT * FROM req_deprecate WHERE host_id = :id;", {"id": host_id}
+            )
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error slecting all req_deprecate for host {host_id}")
@@ -469,20 +565,25 @@ def select_all_req_deprecate(con, host_id):
 
 def init_require_revocation_table(con):
     # revoked table can have multiple rows with same id or module
-    con.execute('''CREATE TABLE req_revocation
+    con.execute(
+        """CREATE TABLE req_revocation
                    (host_id integer NOT NULL, module_id integer NOT NULL,
-                   module text NOT NULL)''')
+                   module text NOT NULL)"""
+    )
 
 
 def insert_req_revocation(con, host_id, module_id, mod_name):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO req_revocation VALUES (?, ?, ?)",
-                        (host_id, module_id, mod_name))
+            con.execute(
+                "INSERT INTO req_revocation VALUES (?, ?, ?)",
+                (host_id, module_id, mod_name),
+            )
     except sl.Error as er:
         logger.info(
-            f"Error inserting module into req_revocation, module_id = {module_id}, host_id = {host_id}")
+            f"Error inserting module into req_revocation, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -492,11 +593,14 @@ def delete_req_revocation_by_id(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM req_revocation WHERE host_id = :id AND module_id =:module;", {
-                        "id": host_id, "module": module_id})
+            con.execute(
+                "DELETE FROM req_revocation WHERE host_id = :id AND module_id =:module;",
+                {"id": host_id, "module": module_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting revocation row, module={module_id}, host={host_id}")
+            f"Error deleting revocation row, module={module_id}, host={host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -506,11 +610,14 @@ def delete_req_revocation_by_name(con, host_id, module_name):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM req_revocation WHERE host_id = :id AND module =:module;", {
-                        "id": host_id, "module": module_name})
+            con.execute(
+                "DELETE FROM req_revocation WHERE host_id = :id AND module =:module;",
+                {"id": host_id, "module": module_name},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting revocation row, module={module_name}, host={host_id}")
+            f"Error deleting revocation row, module={module_name}, host={host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -522,11 +629,11 @@ def select_all_req_revocation(con, host_id):
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM req_revocation WHERE host_id = :id;", {"id": host_id})
+                "SELECT * FROM req_revocation WHERE host_id = :id;", {"id": host_id}
+            )
             result = cur.fetchall()
     except sl.Error as er:
-        logger.info(
-            f"Error slecting all required revocations for host {host_id}")
+        logger.info(f"Error slecting all required revocations for host {host_id}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -534,22 +641,27 @@ def select_all_req_revocation(con, host_id):
 
 # ***************** REVOKED TABLE ***********************
 
+
 def init_revoked_table(con):
     # revoked table can have multiple rows with same id or module
-    con.execute('''CREATE TABLE revoked
+    con.execute(
+        """CREATE TABLE revoked
                    (host_id integer NOT NULL, module_id integer NOT NULL,
-                   revoked_ts integer NOT NULL)''')
+                   revoked_ts integer NOT NULL)"""
+    )
 
 
 def insert_revoked(con, host_id, module_id, ts):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO revoked VALUES (?, ?, ?)",
-                        (host_id, module_id, ts))
+            con.execute(
+                "INSERT INTO revoked VALUES (?, ?, ?)", (host_id, module_id, ts)
+            )
     except sl.Error as er:
         logger.info(
-            f"Error inserting module into revoked, module_id = {module_id}, host_id = {host_id}")
+            f"Error inserting module into revoked, module_id = {module_id}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -559,11 +671,12 @@ def delete_revoked(con, host_id, module_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM revoked WHERE host_id = :id AND module_id =:module;", {
-                        "id": host_id, "module": module_id})
+            con.execute(
+                "DELETE FROM revoked WHERE host_id = :id AND module_id =:module;",
+                {"id": host_id, "module": module_id},
+            )
     except sl.Error as er:
-        logger.info(
-            f"Error deleting revoked row, module={module_id}, host={host_id}")
+        logger.info(f"Error deleting revoked row, module={module_id}, host={host_id}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -571,24 +684,29 @@ def delete_revoked(con, host_id, module_id):
 
 # ***************** REQUIRE_BUILD_MOD TABLE ***********************
 # TODO: add an error column to prevent building over and over if error exists
-
+# IDS: added alert column
 def init_require_build_module_table(con):
-    con.execute('''CREATE TABLE req_build_modules
+    con.execute(
+        """CREATE TABLE req_build_modules
                    (host_id integer NOT NULL, module text NOT NULL,
                     active_mode integer NOT NULL, priority integer NOT NULL,
-                    applyNow integer NOT NULL,
-                   PRIMARY KEY (host_id, module))''')
+                    applyNow integer NOT NULL, alert integer NOT NULL,
+                   PRIMARY KEY (host_id, module))"""
+    )
 
 
-def insert_req_build_module(con, host_id, module, active_mode, priority, apply):
+def insert_req_build_module(con, host_id, module, active_mode, priority, apply, alert):
     result = 0
     try:
         with con:
             con.execute(
-                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?, ?)", (host_id, module, active_mode, priority, apply))
+                "INSERT INTO req_build_modules VALUES (?, ?, ?, ?, ?, ?)",
+                (host_id, module, active_mode, priority, apply, alert),
+            )
     except sl.Error as er:
         logger.info(
-            f"Error inserting req_build_modules module = {module}, host_id = {host_id}")
+            f"Error inserting req_build_modules module = {module}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -598,11 +716,14 @@ def delete_req_build_module(con, module, host_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM req_build_modules WHERE host_id = :id AND module =:module;", {
-                        "module": module, "id": host_id})
+            con.execute(
+                "DELETE FROM req_build_modules WHERE host_id = :id AND module =:module;",
+                {"module": module, "id": host_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting required module, module = {module}, host_id = {host_id}")
+            f"Error deleting required module, module = {module}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -624,25 +745,31 @@ def select_all_req_build_modules(con):
 
 # ***************** BUILT_MOD TABLE ***********************
 
+
 def init_built_modules_table(con):
     # module, id pair should be unique since we only keep latest build
-    con.execute('''CREATE TABLE built_modules
+    con.execute(
+        """CREATE TABLE built_modules
                    (host_id integer NOT NULL, module text NOT NULL,
                    module_id integer NOT NULL, make_ts integer NOT NULL,
                    module_key BLOB NOT NULL,
                    req_install integer NOT NULL, ts_to_install integer,
-                   PRIMARY KEY (host_id, module))''')
+                   PRIMARY KEY (host_id, module))"""
+    )
 
 
 def insert_built_module(con, host_id, module, module_id, make_ts, key, req_install, ts):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO built_modules VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (host_id, module, module_id, make_ts, key, req_install, ts))
+            con.execute(
+                "INSERT INTO built_modules VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (host_id, module, module_id, make_ts, key, req_install, ts),
+            )
     except sl.Error as er:
         logger.info(
-            f"Error inserting built_modules module = {module}, host_id = {host_id}")
+            f"Error inserting built_modules module = {module}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -652,11 +779,12 @@ def delete_built_module(con, host_id, module):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM built_modules WHERE host_id = :id AND module =:module;", {
-                        "module": module, "id": host_id})
+            con.execute(
+                "DELETE FROM built_modules WHERE host_id = :id AND module =:module;",
+                {"module": module, "id": host_id},
+            )
     except sl.Error as er:
-        logger.info(
-            f"Error deleting module, module = {module}, host_id = {host_id}")
+        logger.info(f"Error deleting module, module = {module}, host_id = {host_id}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -666,13 +794,21 @@ def update_built_module_install_requirement(con, host_id, module_id, req_install
     result = 0
     try:
         with con:
-            con.execute('''UPDATE built_modules
+            con.execute(
+                """UPDATE built_modules
             SET req_install = :req, ts_to_install = :ts_value
-            WHERE host_id = :host AND module_id =:mod_id ;''',
-                        {"mod_id": module_id, "host": host_id, "req": req_install, "ts_value": ts})
+            WHERE host_id = :host AND module_id =:mod_id ;""",
+                {
+                    "mod_id": module_id,
+                    "host": host_id,
+                    "req": req_install,
+                    "ts_value": ts,
+                },
+            )
     except sl.Error as er:
         logger.info(
-            f"Error updating built_modules row, host = {host_id}, module_id={module_id}")
+            f"Error updating built_modules row, host = {host_id}, module_id={module_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -683,8 +819,10 @@ def select_built_module(con, host_id, module):
     try:
         with con:
             cur = con.cursor()
-            cur.execute("SELECT * FROM built_modules WHERE host_id =:id AND module = :mod;",
-                        {"id": host_id, "mod": module})
+            cur.execute(
+                "SELECT * FROM built_modules WHERE host_id =:id AND module = :mod;",
+                {"id": host_id, "mod": module},
+            )
             result = cur.fetchone()
     except sl.Error as er:
         logger.info(f"Error checking built modules for host_id = {host_id}")
@@ -698,8 +836,10 @@ def select_built_module_by_id(con, host_id, mod_id):
     try:
         with con:
             cur = con.cursor()
-            cur.execute("SELECT * FROM built_modules WHERE host_id =:id AND module_id = :mod_id;",
-                        {"id": host_id, "mod_id": mod_id})
+            cur.execute(
+                "SELECT * FROM built_modules WHERE host_id =:id AND module_id = :mod_id;",
+                {"id": host_id, "mod_id": mod_id},
+            )
             result = cur.fetchone()
     except sl.Error as er:
         logger.info(f"Error checking built modules for host_id = {host_id}")
@@ -714,7 +854,9 @@ def select_modules_to_install(con, host_id, req_install):
         with con:
             cur = con.cursor()
             result = cur.execute(
-                "SELECT * FROM built_modules WHERE host_id =:id AND req_install = :req;", {"id": host_id, "req": req_install})
+                "SELECT * FROM built_modules WHERE host_id =:id AND req_install = :req;",
+                {"id": host_id, "req": req_install},
+            )
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error selecting install modules for host_id = {host_id}")
@@ -728,8 +870,10 @@ def select_built_module_key(con, host_id, module_id):
     try:
         with con:
             cur = con.cursor()
-            cur.execute("SELECT module_key FROM built_modules WHERE host_id =:id AND module_id = :mod;", {
-                        "id": host_id, "mod": module_id})
+            cur.execute(
+                "SELECT module_key FROM built_modules WHERE host_id =:id AND module_id = :mod;",
+                {"id": host_id, "mod": module_id},
+            )
             result = cur.fetchone()[0]
     except sl.Error as er:
         logger.info(f"Error checking built modules for host_id = {host_id}")
@@ -741,11 +885,14 @@ def select_built_module_key(con, host_id, module_id):
 # ***************** BUILD_ERROR TABLE ***********************
 # TODO: add an error column to prevent building over and over if error exists
 
+
 def init_build_error_table(con):
-    con.execute('''CREATE TABLE build_error
+    con.execute(
+        """CREATE TABLE build_error
                    (host_id integer NOT NULL, module text NOT NULL,
                    error text NOT NULL,
-                   PRIMARY KEY (host_id, module))''')
+                   PRIMARY KEY (host_id, module))"""
+    )
 
 
 def insert_build_error(con, host_id, module, error):
@@ -753,10 +900,12 @@ def insert_build_error(con, host_id, module, error):
     try:
         with con:
             con.execute(
-                "INSERT INTO build_error VALUES (?, ?, ?)", (host_id, module, error))
+                "INSERT INTO build_error VALUES (?, ?, ?)", (host_id, module, error)
+            )
     except sl.Error as er:
         logger.info(
-            f"Error inserting build_error module = {module}, host_id = {host_id}")
+            f"Error inserting build_error module = {module}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -766,11 +915,14 @@ def delete_build_error(con, module, host_id):
     result = 0
     try:
         with con:
-            con.execute("DELETE FROM build_error WHERE host_id = :id AND module =:module;", {
-                        "module": module, "id": host_id})
+            con.execute(
+                "DELETE FROM build_error WHERE host_id = :id AND module =:module;",
+                {"module": module, "id": host_id},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting build_error module, module = {module}, host_id = {host_id}")
+            f"Error deleting build_error module, module = {module}, host_id = {host_id}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -793,21 +945,26 @@ def select_all_build_error_modules(con):
 # ***************** MIDDLEBOX (NON-L4.5) TABLE ***********************
 # Table to hold middlebox info to allow matching inverse modules for deployment
 
+
 def init_middlebox_table(con):
     # host table uses primary mac to associate to host and store host info
-    con.execute('''CREATE TABLE middlebox
+    con.execute(
+        """CREATE TABLE middlebox
                    (mac text NOT NULL, mid_id integer,
                    ip text, port text, type text,
                    linux_version text, interval integer,
-                   PRIMARY KEY (mac, mid_id))''')
+                   PRIMARY KEY (mac, mid_id))"""
+    )
 
 
 def insert_middlebox(con, mac, mid_id, ip, port, type, version, interval):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO middlebox VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (mac, mid_id, ip, port, type, version, interval))
+            con.execute(
+                "INSERT INTO middlebox VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (mac, mid_id, ip, port, type, version, interval),
+            )
     except sl.Error as er:
         logger.info(f"Error inserting middlebox mac = {mac}")
         logger.info(f"Error = {er}")
@@ -820,11 +977,16 @@ def update_middlebox(con, mac, col_name, col_value):
     result = 0
     try:
         with con:
-            con.execute("UPDATE middlebox SET {} = :col_value WHERE mac = :mac;".format(
-                col_name), {"col_value": col_value, "mac": mac})
+            con.execute(
+                "UPDATE middlebox SET {} = :col_value WHERE mac = :mac;".format(
+                    col_name
+                ),
+                {"col_value": col_value, "mac": mac},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error updating middlebox column = {col_name}, value = {col_value}")
+            f"Error updating middlebox column = {col_name}, value = {col_value}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -847,8 +1009,7 @@ def select_middlebox(con, mac):
     try:
         with con:
             cur = con.cursor()
-            cur.execute(
-                "SELECT * FROM middlebox WHERE mac =:mac;", {"mac": mac})
+            cur.execute("SELECT * FROM middlebox WHERE mac =:mac;", {"mac": mac})
             result = cur.fetchone()
     except sl.Error as er:
         logger.info(f"Error selecting middlebox, mac = {mac}")
@@ -876,8 +1037,7 @@ def select_middlebox_by_type(con, type):
     try:
         with con:
             cur = con.cursor()
-            cur.execute(
-                "SELECT * FROM middlebox WHERE type = :type;", {"type": type})
+            cur.execute("SELECT * FROM middlebox WHERE type = :type;", {"type": type})
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error selecting middlebox, type = {type}")
@@ -890,22 +1050,25 @@ def select_middlebox_by_type(con, type):
 # Table to correlate a Layer 4.5 module with its inverse module and what type
 # of middlebox it needs to be deployed on
 
+
 def init_inverse_module_table(con):
-    con.execute('''CREATE TABLE inverse_modules
+    con.execute(
+        """CREATE TABLE inverse_modules
                    (module text NOT NULL, inverse text NOT NULL,
                    type text NOT NULL,
-                   PRIMARY KEY (module, inverse))''')
+                   PRIMARY KEY (module, inverse))"""
+    )
 
 
 def insert_inverse_module(con, module, inverse, type):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO inverse_modules VALUES (?, ?, ?)",
-                        (module, inverse, type))
+            con.execute(
+                "INSERT INTO inverse_modules VALUES (?, ?, ?)", (module, inverse, type)
+            )
     except sl.Error as er:
-        logger.info(
-            f"Error inserting inverse module = {module}, inverse = {inverse}")
+        logger.info(f"Error inserting inverse module = {module}, inverse = {inverse}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -915,12 +1078,15 @@ def delete_inverse_module(con, module, inverse, type):
     result = 0
     try:
         with con:
-            con.execute('''DELETE FROM inverse_modules
-                        WHERE module =:mod AND inverse =:inv AND type=:type;''',
-                        {"mod": module, "inv": inverse, "type": type})
+            con.execute(
+                """DELETE FROM inverse_modules
+                        WHERE module =:mod AND inverse =:inv AND type=:type;""",
+                {"mod": module, "inv": inverse, "type": type},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error deleting inverse, module = {module}, inverse = {inverse}, type = {type}")
+            f"Error deleting inverse, module = {module}, inverse = {inverse}, type = {type}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -932,7 +1098,8 @@ def select_inverse_by_module(con, module):
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM inverse_modules WHERE module = :mod;", {"mod": module})
+                "SELECT * FROM inverse_modules WHERE module = :mod;", {"mod": module}
+            )
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error checking inverse modules for module = {module}")
@@ -947,7 +1114,8 @@ def select_inverse_by_inverse(con, inverse):
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM inverse_modules WHERE inverse = :inv;", {"inv": inverse})
+                "SELECT * FROM inverse_modules WHERE inverse = :inv;", {"inv": inverse}
+            )
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error checking inverse modules for inverse = {inverse}")
@@ -962,7 +1130,8 @@ def select_inverse_by_type(con, type):
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM inverse_modules WHERE type = :type;", {"type": type})
+                "SELECT * FROM inverse_modules WHERE type = :type;", {"type": type}
+            )
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error checking inverse modules for type = {type}")
@@ -974,19 +1143,24 @@ def select_inverse_by_type(con, type):
 # ***************** DEPLOY INVERSE TABLE ***********************
 # Table to hold scheduled inverse modules to deploy to indicated middlebox
 
+
 def init_deploy_inverse_table(con):
-    con.execute('''CREATE TABLE deploy_inverse
+    con.execute(
+        """CREATE TABLE deploy_inverse
                    (inverse text NOT NULL, middlebox text NOT NULL,
                    req_install int NOT NULL, installed_ts int,
-                   PRIMARY KEY (inverse, middlebox))''')
+                   PRIMARY KEY (inverse, middlebox))"""
+    )
 
 
 def insert_deploy_inverse(con, inverse, middlebox, require, ts):
     result = 0
     try:
         with con:
-            con.execute("INSERT INTO deploy_inverse VALUES (?, ?, ?, ?)",
-                        (inverse, middlebox, require, ts))
+            con.execute(
+                "INSERT INTO deploy_inverse VALUES (?, ?, ?, ?)",
+                (inverse, middlebox, require, ts),
+            )
     except sl.Error as er:
         logger.info(f"Error inserting deploy inverse module = {inverse}")
         logger.info(f"Error = {er}")
@@ -998,12 +1172,13 @@ def delete_deploy_inverse(con, inverse, middlebox):
     result = 0
     try:
         with con:
-            con.execute('''DELETE FROM deploy_inverse
-                        WHERE inverse =:inv AND middlebox=:mid;''',
-                        {"inv": inverse, "mid": middlebox})
+            con.execute(
+                """DELETE FROM deploy_inverse
+                        WHERE inverse =:inv AND middlebox=:mid;""",
+                {"inv": inverse, "mid": middlebox},
+            )
     except sl.Error as er:
-        logger.info(
-            f"Error deleting inverse = {inverse}, middlebox = {middlebox}")
+        logger.info(f"Error deleting inverse = {inverse}, middlebox = {middlebox}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -1013,13 +1188,16 @@ def update_inverse_module_installed_status(con, inverse, middlebox, require, ts)
     result = 0
     try:
         with con:
-            con.execute('''UPDATE deploy_inverse
+            con.execute(
+                """UPDATE deploy_inverse
                         SET req_install = :req, installed_ts = :ts
-                        WHERE inverse =:inv AND middlebox=:mid ;''',
-                        {"inv": inverse, "mid": middlebox, "req": require, "ts": ts})
+                        WHERE inverse =:inv AND middlebox=:mid ;""",
+                {"inv": inverse, "mid": middlebox, "req": require, "ts": ts},
+            )
     except sl.Error as er:
         logger.info(
-            f"Error updating inverse row, inverse = {inverse}, middlebox = {middlebox}")
+            f"Error updating inverse row, inverse = {inverse}, middlebox = {middlebox}"
+        )
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
@@ -1030,8 +1208,10 @@ def select_deploy_inverse_by_module(con, inverse, require):
     try:
         with con:
             cur = con.cursor()
-            cur.execute("SELECT * FROM deploy_inverse WHERE inverse = :mod AND req_install = :req;",
-                        {"mod": inverse, "req": require})
+            cur.execute(
+                "SELECT * FROM deploy_inverse WHERE inverse = :mod AND req_install = :req;",
+                {"mod": inverse, "req": require},
+            )
             result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error checking inverse modules for module = {inverse}")
@@ -1046,11 +1226,12 @@ def select_deploy_inverse_by_ip(con, middlebox):
         with con:
             cur = con.cursor()
             cur.execute(
-                "SELECT * FROM deploy_inverse WHERE middlebox = :mid;", {"mid": middlebox})
+                "SELECT * FROM deploy_inverse WHERE middlebox = :mid;",
+                {"mid": middlebox},
+            )
             result = cur.fetchall()
     except sl.Error as er:
-        logger.info(
-            f"Error checking inverse modules for middlebox = {middlebox}")
+        logger.info(f"Error checking inverse modules for middlebox = {middlebox}")
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result

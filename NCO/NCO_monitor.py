@@ -46,8 +46,10 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
     deployed_list = json_data["Installed"]
     deprecated_list = json_data["Deprecated"]
     revoked_list = json_data["Revoked"]
-    alert_list = json_data.get("Alerts", [])
-    logger.info(f"Alert list: {alert_list}")
+
+    # TODO: use alert_list for future alert processing
+    # alert_list = json_data["Alerted"]
+    # logger.info(f"Alert list: {alert_list}")
 
     # update deployed table based on revoked list
     handle_revoke_update(db_connection, host_id, revoked_list)
@@ -72,15 +74,16 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
             alert_type = "DNS"
         elif ids_value == "ALERT:STRING":
             alert_type = "STRING"
+        elif ids_value == "ALERT:STRING1":
+            alert_type = "STRING1"
 
     # Process alert if it's new for this host
     if alert_modules and host_id not in processed_alerts:
         processed_alerts.add(host_id)
-        logger.info(f"ALERT detected for host {host_id}")
 
         for module in alert_modules:
             cust_id = module.get("ID")
-            logger.info(f"Processing ALERT for cust_id: {cust_id}")
+            logger.info(f"Processing ALERT for host: {host_id} cust_id: {cust_id}")
 
             # Send acknowledgment for each ALERT
             acknowledge_alert(conn_socket, host_id, cust_id)
@@ -96,13 +99,72 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
                 )
 
         # Determine module name based on alert type
+        # TO DO: Update logic to handle alert string(s)
         if alert_type == "DNS":
-            module_name = "DNS_response"
+            # Check if module is already built
+            response_module = select_built_module(
+                db_connection, host_id, "DNS_response"
+            )
+            if response_module:
+                logger.info(f"Response module: {response_module} already built")
+                # extract mod_id from response_module
+                mod_id = response_module[2]
+                # Module already built, set require_install to 1
+                ts = int(
+                    time.time()
+                )  # TO DO add function to retrieve ts from built_module table
+                update_built_module_install_requirement(
+                    db_connection, host_id, mod_id, 1, ts
+                )
+                logger.info(f"Set require_install to 1 for module with mod_id 1")
+                # Skip insert_req_build_module call
+                module_name = None  # Ensure module_name is not set
+            else:
+                # Check if the host id has already been sent the mod_id
+                deployed_modules = select_deployed_modules(db_connection, host_id)
+                if any(module["mod_id"] == 1 for module in deployed_modules):
+                    logger.info(f"Module with mod_id 1 already sent to host {host_id}")
+                    module_name = None  # Ensure module_name is not set
+                else:
+                    # if module is not in built table or deployed, then insert into req_build
+                    module_name = "DNS_response"
+
         elif alert_type == "STRING":
-            module_name = "IDS_server_MT"
+            module_name = "IDS_web_logger"
+
+        elif alert_type == "STRING1":
+            get_log_data(conn_socket, host_id)
+            module_name = None  # Ensure module_name is not set
+
+        logger.info(f"host_id: {host_id}, module name: {module_name}")
 
         # Check if module needs to be built
-        insert_req_build_module(db_connection, host_id, module_name, 1, 42, 1)
+        # Only call insert_req_build_module if module_name is set
+        if module_name is not None:
+            # insert module into req_build table for ALERTING host
+            insert_req_build_module(db_connection, host_id, module_name, 1, 40, 1, 0)
+            logger.info(
+                f"Module {module_name} inserted into req_build table for host {host_id}, ApplyNow"
+            )
+
+            # get all host ids in the database [2] = host_id
+            all_host_ids = [row[1] for row in select_all_hosts(db_connection)]
+            logger.info(f"All host ids in database: {all_host_ids}")
+
+            # remove hosts in processed_alerts from all_host_ids
+            all_host_ids = [
+                host_id for host_id in all_host_ids if host_id not in processed_alerts
+            ]
+            logger.info(f"All host ids not alerting: {all_host_ids}")
+
+            # build module for hosts NOT alerting
+            for host_id in all_host_ids:
+                insert_req_build_module(
+                    db_connection, host_id, module_name, 1, 41, 1, 0
+                )
+                logger.info(
+                    f"Module {module_name} inserted into req_build table for host {host_id}, no ALERT"
+                )
 
     # Reset interval when ALERT clears
     elif not alert_modules and host_id in processed_alerts:
@@ -116,6 +178,24 @@ def process_report(conn_socket, db_connection, host_id, buffer_size):
             logger.info(f"Host ID {host_id} not found in database, skipping reset.")
 
     return 0
+
+
+def get_log_data(conn_socket, host_id):
+    """Request log data from host"""
+    command = {"cmd": "get_log_data"}
+    logger.info(f"Sending get log data request to {host_id}, command: {command}")
+    send_string = json.dumps(command, indent=4)
+    conn_socket.sendall(bytes(send_string, encoding="utf-8"))
+
+    """Receive log data from host"""
+    try:
+        data = conn_socket.recv(4096)
+        url_data = json.loads(data)
+    except json.decoder.JSONDecodeError as e:
+        logger.info(f"Error on process report recv call, {e}")
+        return cfg.CLOSE_SOCK
+
+    logger.info(f"Malicious URL data: {url_data}")
 
 
 def get_mac_by_host_id(con, host_id):
@@ -137,7 +217,7 @@ def acknowledge_alert(conn_socket, host_id, cust_id):
     logger.info(f"Sending acknowledge alert to {host_id}, command: {command}")
     send_string = json.dumps(command, indent=4)
     conn_socket.sendall(bytes(send_string, encoding="utf-8"))
-    logger.info(f"Sent acknowledge alert to {host_id}")
+    # logger.info(f"Sent acknowledge alert to {host_id}")
 
 
 # Build directory structure for storing host files

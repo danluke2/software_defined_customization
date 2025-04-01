@@ -590,6 +590,8 @@ void ack_alert(char *message, size_t *message_size, char *data)
   }
 
   // Update the message and message size
+  trace_printk("ack_alert(): cust_id = %u, rem_length = %zu\n", cust_id, rem_length);
+
   snprintf(message, rem_length, "ACK Alert, cust ID: %u", cust_id);
   *message_size = strlen(message);
   return;

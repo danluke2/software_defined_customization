@@ -1,6 +1,6 @@
-// @file IDS_client_MT.c
-// @brief An IDS customization module to modify python3 send/recv calls to detect a specific string
-// data<ALERT>  <-- ALERT is only set if data contained target string (search_str)
+// @file IDS_root_mintor.c
+// @brief An IDS customization module monitoring for root uid requests to destination port 8080
+// sets the send_buf_st->copy_length = 0 when root uid makes request
 
 #include <linux/inet.h>
 #include <linux/init.h>
@@ -8,6 +8,7 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/uio.h> // For iter structures
+#include <linux/cred.h>
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <common_structs.h>
 #include <helpers.h>
@@ -22,10 +23,8 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
 
 extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
 
-extern int alert_customization(u16 cust_id);
-
 // Kernel module parameters with default values
-static char *destination_ip = "127.0.0.1";
+static char *destination_ip = "0.0.0.0";
 module_param(destination_ip, charp, 0600); // root only access to change
 MODULE_PARM_DESC(destination_ip, "Dest IP to match");
 
@@ -33,7 +32,7 @@ static char *source_ip = "0.0.0.0";
 module_param(source_ip, charp, 0600);
 MODULE_PARM_DESC(source_ip, "Dest IP to match");
 
-static unsigned int destination_port = 65432;
+static unsigned int destination_port = 8080; // port 8080 used for testing purposes
 module_param(destination_port, uint, 0600);
 MODULE_PARM_DESC(destination_port, "DPORT to match");
 
@@ -60,6 +59,17 @@ MODULE_PARM_DESC(priority, "Customization priority level used when attaching mod
 struct customization_node *python_cust;
 char IDS[16];
 
+// Function to check which user is making the web request
+bool is_root_user(void) // Renamed to avoid name clash with `current_uid` macro
+{
+    kuid_t kuid = current_uid();                // Get the current process UID
+    uid_t uid = from_kuid(&init_user_ns, kuid); // Convert to uid_t
+
+    // trace_printk("L4.5 Current process UID: %u\n", uid); // Debug print
+
+    return (uid == 0); // Return true if UID is 0 (root), false otherwise
+}
+
 // Function to customize the msg sent from the application to layer 4
 // @param[I] send_buf_st Pointer to the send buffer structure
 // @param[I] socket_flow Pointer to the flow struct matching cust parameters
@@ -67,14 +77,9 @@ char IDS[16];
 // @post send_buf_st->src_buf holds customized message for DCA to send to Layer 4
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-    // IDS variables
-    char *search_str = "test"; // The string to search for
+    char *search_str = "exampleurl.com"; // Malicious URL to search for
     char *found_str = NULL;
-    char cust_input[8] = "<ALERT>"; // char array for alert message
-
-    size_t cust_input_size;
     bool copy_success;
-    cust_input_size = (size_t)sizeof(cust_input) - 1;
 
     send_buf_st->copy_length = 0;
     set_module_struct_flags(send_buf_st, false);
@@ -86,9 +91,6 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    memset(send_buf_st->buf, 0, 1024);
-    trace_printk("L4.5: Content of IDS before copy: %s\n", IDS);
-
     // copy data from src_iter to buf
     copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
     if (copy_success == false)
@@ -99,35 +101,29 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         send_buf_st->copy_length = 0;
     }
 
-    // Ensure the buffer is null-terminated before searching (this prevents long strings from generating ALERT flag)
-    if (send_buf_st->length < send_buf_st->buf_size)
-    {
-        ((char *)send_buf_st->buf)[send_buf_st->length] = '\0';
-    }
+    // clear IDS string to prevent duplicate ALERT messages
+    strscpy(IDS, "", sizeof(IDS));
 
     // search for substring within buffer
     found_str = strstr(send_buf_st->buf, search_str);
 
-    // clear IDS string to prevent duplicate ALERT messages
-    strscpy(IDS, "", sizeof(IDS));
-
-    if (found_str != NULL)
+    // check uid and search string
+    if (is_root_user() && found_str != NULL)
     {
+        // if search string is found, and root user
+        // set IDS to alert message
         strscpy(IDS, "ALERT:STRING", sizeof(IDS));
-        trace_printk("L4.5: Content of IDS: %s\n", IDS);
 
-        send_buf_st->copy_length = send_buf_st->length;
-        // increase copy length to include customization message
-        send_buf_st->copy_length = send_buf_st->length + cust_input_size;
+        // block the outgoing query
+        send_buf_st->copy_length = 0;
 
-        // copy customization message to buffer
-        memcpy(send_buf_st->buf + send_buf_st->length, cust_input, cust_input_size);
-        trace_printk("L4.5: send buffer contents if ALERT: %s\n", send_buf_st->buf);
+        // Debug output
+        trace_printk("L4.5 ALERT: root user attempted to contact malicious URL.\n");
     }
     else
     {
-        // traceprintK for debugging
-        trace_printk("L4.5: send buffer contents: %s\n", send_buf_st->buf);
+        // if not root, clear IDS string to prevent duplicate ALERT messages
+        strscpy(IDS, "", sizeof(IDS));
         send_buf_st->copy_length = send_buf_st->length;
     }
 
@@ -164,8 +160,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 // @post Layer 4.5 customization registered
 int __init sample_client_start(void)
 {
-    char thread_name[16] = "python3";
-    char application_name[16] = "python3";
+    char thread_name[16] = "*";
+    char application_name[16] = "*";
     int result;
 
     python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
@@ -187,7 +183,7 @@ int __init sample_client_start(void)
 
     // python_cust->target_flow.protocol = 17; // UDP
     // python_cust->protocol = 6; // TCP
-    python_cust->target_flow.protocol = (u16)protocol; // TCP and UDP
+    python_cust->target_flow.protocol = (u16)protocol; // TCP (6) and UDP (17)
     memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
     memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
@@ -208,7 +204,7 @@ int __init sample_client_start(void)
     python_cust->recv_buffer_size = 32;   // we don't plan to use this buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = 42;
+    python_cust->cust_id = 8080; // unique cust_id
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;

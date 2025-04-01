@@ -7,6 +7,10 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/uio.h> // For iter structures
+
+#include <linux/jiffies.h>
+#include <linux/time.h>
+#include <linux/types.h>
 // ************** STANDARD PARAMS MUST GO HERE ****************
 #include <common_structs.h>
 #include <helpers.h>
@@ -57,30 +61,33 @@ MODULE_PARM_DESC(priority, "Customization priority level used when attaching mod
 struct customization_node *python_cust;
 char IDS[16];
 
-void monitor_dns_queries(struct customization_flow *socket_flow)
+#define MAX_DNS_QUERIES 10 // Max allowed queries per second
+// #define TIME_WINDOW *HZ    //
+
+static unsigned int dns_query_count = 0;
+static unsigned long last_reset_time = 0;
+
+// Function to monitor DNS queries
+bool monitor_dns_queries(void)
 {
-    static unsigned int dns_query_count = 0;
-    static unsigned long last_reset_time = 0;
     unsigned long current_time = jiffies;
 
-    if (time_before_eq(last_reset_time + 10 * HZ, current_time))
+    // Reset counter if time window has passed
+    if (time_after(current_time, last_reset_time + HZ))
     {
         dns_query_count = 0;
         last_reset_time = current_time;
-
-        // Reset IDS when the rate drops below the threshold
-        strscpy(IDS, "", sizeof(IDS));
-        trace_printk("L4.5: DNS query rate normalized. IDS reset.\n");
     }
 
     dns_query_count++;
-    trace_printk("L4.5: DNS Query Count: %u\n", dns_query_count);
 
-    if (dns_query_count > 5)
+    // If query count exceeds threshold, return true to indicate throttling
+    if (dns_query_count > MAX_DNS_QUERIES)
     {
-        strscpy(IDS, "ALERT:DNS", sizeof(IDS));
-        trace_printk("L4.5: DNS query rate exceeded. Content of IDS: %s\n", IDS);
+        return true; // Rate exceeded, block query
     }
+
+    return false; // Query allowed
 }
 
 // Function to customize the msg sent from the application to layer 4
@@ -90,16 +97,8 @@ void monitor_dns_queries(struct customization_flow *socket_flow)
 // @post send_buf_st->src_buf holds customized message for DCA to send to Layer 4
 void modify_buffer_send(struct customization_buffer *send_buf_st, struct customization_flow *socket_flow)
 {
-    // Only proceed if the process name contains "isc-socket"
-    /*if (strstr(socket_flow->task_name_tgid, "isc-socket") == NULL)
-    {
-        trace_printk("L4.5: Ignoring process %s, only monitoring isc-socket threads\n", socket_flow->task_name_tgid);
-        send_buf_st->try_next = true; // Allow normal processing for other processes
-        return;
-    }*/
-    monitor_dns_queries(socket_flow);
+    bool copy_success;
     send_buf_st->copy_length = 0;
-
     set_module_struct_flags(send_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
@@ -109,8 +108,31 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         return;
     }
 
-    // not customizing send path
-    send_buf_st->no_cust = true;
+    // copy data from src_iter to buf
+    copy_success = copy_from_iter_full(send_buf_st->buf, send_buf_st->length, send_buf_st->src_iter);
+    if (copy_success == false)
+    {
+        // not all bytes were copied, so pick scenario 1 or 2 below
+        trace_printk("L4.5 ALERT: Failed to copy all bytes to cust buffer\n");
+        // Scenario 1: keep cust loaded and allow normal msg to be sent
+        send_buf_st->copy_length = 0;
+    }
+
+    if (monitor_dns_queries())
+    {
+        send_buf_st->copy_length = send_buf_st->length;
+        // trace_printk("L4.5 ALERT: DNS query blocked due to rate limit (10).\n");
+
+        // update IDS with DNS alert
+        strncpy(IDS, "ALERT:DNS", sizeof(IDS));
+        return;
+    }
+
+    // Allow DNS query if rate not exceeded
+    send_buf_st->copy_length = send_buf_st->length;
+
+    // reset ALERT
+    strncpy(IDS, "", sizeof(IDS));
     return;
 }
 
@@ -122,7 +144,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 // NOTE: copy_length must be <= length
 void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customization_flow *socket_flow)
 {
-    monitor_dns_queries(socket_flow);
+    monitor_dns_queries();
     set_module_struct_flags(recv_buf_st, false);
 
     // if module hasn't been activated, then don't perform customization
@@ -189,7 +211,7 @@ int __init sample_client_start(void)
     python_cust->recv_buffer_size = 32;   // we don't plan to use this buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = 42;
+    python_cust->cust_id = 55;
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;
