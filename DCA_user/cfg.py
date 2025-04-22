@@ -3,7 +3,7 @@ import subprocess
 # ************** STANDARD PARAMS MUST GO HERE ****************
 # distro = subprocess.run(["uname", "-r"])
 system_release = "5.13.0-35-generic"
-HOST = "10.0.0.20"
+HOST = "10.0.8.21"
 dca_dir = "/home/vagrant/software_defined_customization/DCA_user/"
 symver_location = f"/usr/lib/modules/{system_release}/layer4_5/"
 # ************** END STANDARD PARAMS ****************

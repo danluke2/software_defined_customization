@@ -7,6 +7,7 @@ import traceback
 import sys
 import argparse
 import signal
+import subprocess
 import threading
 import multiprocessing
 
@@ -324,6 +325,15 @@ if __name__ == "__main__":
     queue = multiprocessing.Queue(-1)
 
     try:
+        # Start the NCO_UI.py process
+        ui_process = subprocess.Popen(["python3", "NCO_UI.py"])
+        logger.info("Started NCO_UI.py as a separate process")
+    except Exception as e:
+        logger.info(f"Failed to start NCO_UI.py: {e}")
+        traceback.print_exc()
+        sys.exit()
+
+    try:
         # logging process starts first to allow logging for all processes
         listener = multiprocessing.Process(
             target=logger_process, args=(exit_event, queue)
@@ -399,3 +409,7 @@ if __name__ == "__main__":
         for x in device_threads:
             x.join()
         exit_event.set()
+
+    # Terminate the NCO_UI.py process when NCO.py exits
+    ui_process.terminate()
+    logger.info("Terminated NCO_UI.py process")
