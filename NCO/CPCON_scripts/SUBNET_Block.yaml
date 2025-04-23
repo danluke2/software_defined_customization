@@ -1,0 +1,32 @@
+---
+- name: Block all inbound and outbound traffic on router 10.0.2.20
+  hosts: 10.0.2.20
+  remote_user: vagrant
+  become: true
+  vars:
+    ansible_become_pass: "vagrant"
+
+  tasks:
+    - name: Flush all current iptables rules
+      iptables:
+        flush: yes
+
+    - name: Block all inbound traffic
+      iptables:
+        chain: INPUT
+        jump: DROP
+        state: present
+
+    - name: Block all outbound traffic
+      iptables:
+        chain: OUTPUT
+        jump: DROP
+        state: present
+
+    - name: Save iptables rules (if applicable - RedHat)
+      shell: /sbin/iptables-save > /etc/sysconfig/iptables
+      when: ansible_os_family == "RedHat"
+
+    - name: Save iptables rules (if applicable - Debian/Ubuntu)
+      shell: /sbin/iptables-save > /etc/iptables/rules.v4
+      when: ansible_os_family == "Debian"
