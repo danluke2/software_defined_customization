@@ -1,5 +1,5 @@
-// @file MILCOM_isolate.c
-// @brief customization module to disable network interfaces
+// @file MILCOM_server.c
+// @brief customization module to monitor for malicious activity
 
 #include <linux/inet.h>
 #include <linux/init.h>
@@ -36,25 +36,6 @@ u16 priority = 0;
 u16 applyNow = 0;
 // END NCO VARIABLES
 
-// Function to remove all network interfaces from the system
-void disable_all_network_interfaces(void)
-{
-    struct net_device *dev;
-
-    rtnl_lock(); // Lock the network namespace before modifying interfaces
-
-    for_each_netdev(&init_net, dev)
-    {
-        if (dev->flags & IFF_UP)
-        {                   // Check if the interface is up
-            dev_close(dev); // Disable the interface
-            trace_printk("L4.5: Disabled network interface: %s\n", dev->name);
-        }
-    }
-
-    rtnl_unlock(); // Unlock the network namespace after modifications
-}
-
 // Function to customize the msg sent from the application to layer 4
 // @param[I] send_buf_st Pointer to the send buffer structure
 // @param[I] socket_flow Pointer to the flow struct matching cust parameters
@@ -84,15 +65,24 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         send_buf_st->copy_length = 0;
     }
 
-    disable_all_network_interfaces();
-    strncpy(IDS, "ALERT: HOST_ISOLATED", sizeof(IDS));
-    trace_printk("L4.5 ALERT: HOST_ISOLATED\n");
+    // Check if source port is >1024 and destination port is 80 or 443
+    // if so, block the message, send CPCON Event Message
+    if (socket_flow->source_port > 1024)
+    {
+        // Block the message and send alert to DCA
+        strncpy(IDS, "ALERT:CPCON3", sizeof(IDS));
+        send_buf_st->copy_length = 0; // block the message
+        trace_printk("L4.5 ALERT: Port > 1024, blocking message\n");
+        // print contents of IDS
+        trace_printk("L4.5 ALERT: IDS Contents: %s\n", IDS);
+        return;
+    }
 
-    // Allow DNS query if rate not exceeded
+    // Allow traffic if well known port number
     send_buf_st->copy_length = send_buf_st->length;
 
-    // reset ALERT
-    strncpy(IDS, "", sizeof(IDS));
+    // DO NOT reset ALERT
+    // strncpy(IDS, "", sizeof(IDS));
     return;
 }
 
@@ -149,7 +139,7 @@ int __init sample_client_start(void)
 
     // python_cust->target_flow.protocol = 17; // UDP
     //  python_cust->protocol = 6; // TCP
-    python_cust->target_flow.protocol = 256; // match any layer 4 protocol
+    python_cust->target_flow.protocol = 6; // match any layer 4 protocol
     memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
     memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
@@ -170,7 +160,7 @@ int __init sample_client_start(void)
     python_cust->recv_buffer_size = 32;   // we don't plan to use this buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = 535;
+    python_cust->cust_id = 512;
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;

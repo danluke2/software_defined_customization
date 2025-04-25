@@ -1,5 +1,7 @@
 import sys
+import cfg
 import subprocess
+from CIB_helper import *
 
 
 # from some_python_file import (
@@ -23,7 +25,7 @@ CPCON_SCRIPTS = {
 # CPCON_FUNCTIONS = {
 #     1: function_for_cpcon_1,
 #     2: function_for_cpcon_2,
-#     3: function_for_cpcon_3,
+#     3: select_all_hosts(db_connection),
 #     4: None,
 #     5: None,
 # }
@@ -33,15 +35,20 @@ def main():
     while True:
         try:
             # Prompt the user for input
-            print("Enter desired CPCON level (1-5): ", end="")
+            print("Enter desired CPCON level (1-5) or type 'exit' to quit: ", end="")
             user_input = input().strip()
+
+            # Check if the user wants to exit
+            if user_input.lower() == "exit":
+                print("Exiting program.")
+                sys.exit()
 
             # Validate the input
             if user_input.isdigit():
                 user_CPCON = int(user_input)
 
                 if 1 <= user_CPCON <= 5:
-                    print(f"CPCON level set to {user_CPCON}")
+                    print(f"Setting CPCON level: {user_CPCON}")
 
                     # Get the corresponding script and function for the CPCON level
                     script_to_run = CPCON_SCRIPTS.get(user_CPCON)
@@ -50,13 +57,15 @@ def main():
                     # Run the script using subprocess
                     if script_to_run:
                         try:
-                            subprocess.run(["bash", script_to_run], check=True)
+                            subprocess.run(["/bin/bash", script_to_run], check=True)
                         except FileNotFoundError:
                             print(f"Error: Script {script_to_run} not found.")
                         except subprocess.CalledProcessError as e:
                             print(
                                 f"Error: Script {script_to_run} failed with error: {e}"
                             )
+
+                    # db_connection = db_connect(cfg.nco_dir + "cib.db")
 
                     # Call the Python function
                     # if function_to_call:
@@ -68,7 +77,9 @@ def main():
                 else:
                     print("Invalid input. Please enter an integer between 1 and 5.")
             else:
-                print("Invalid input. Please enter an integer between 1 and 5.")
+                print(
+                    "Invalid input. Please enter an integer between 1 and 5 or type 'exit' to quit."
+                )
 
         except KeyboardInterrupt:
             # Handle program exit gracefully

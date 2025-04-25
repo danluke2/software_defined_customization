@@ -1,5 +1,5 @@
-// @file MILCOM_isolate.c
-// @brief customization module to disable network interfaces
+// @file IDS_client_MT.c
+// @brief An IDS customization module to test nco module before running scripts
 
 #include <linux/inet.h>
 #include <linux/init.h>
@@ -7,13 +7,9 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/uio.h> // For iter structures
-#include <linux/netdevice.h>
-#include <linux/rtnetlink.h>
-#include <linux/sched/signal.h> // kill processes
 // ************** STANDARD PARAMS MUST GO HERE ****************
+#include <common_structs.h>
 #include <helpers.h>
-#include "../common_structs.h"
-
 //  ************** END STANDARD PARAMS ****************
 
 extern int register_customization(struct customization_node *cust, u16 applyNow);
@@ -25,35 +21,43 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
 
 extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
 
+extern int alert_customization(u16 cust_id);
+
+// Kernel module parameters with default values
+static char *destination_ip = "0.0.0.0";   // was 127.0.0.1
+module_param(destination_ip, charp, 0600); // root only access to change
+MODULE_PARM_DESC(destination_ip, "Dest IP to match");
+
+static char *source_ip = "0.0.0.0";
+module_param(source_ip, charp, 0600);
+MODULE_PARM_DESC(source_ip, "Dest IP to match");
+
+static unsigned int destination_port = 0; // was 65432
+module_param(destination_port, uint, 0600);
+MODULE_PARM_DESC(destination_port, "DPORT to match");
+
+static unsigned int source_port = 0;
+module_param(source_port, uint, 0600);
+MODULE_PARM_DESC(source_port, "SPORT to match");
+
+static unsigned int protocol = 256; // TCP or UDP
+module_param(protocol, uint, 0600);
+MODULE_PARM_DESC(protocol, "L4 protocol to match");
+
+static unsigned short applyNow = 0;
+module_param(applyNow, ushort, 0600);
+MODULE_PARM_DESC(applyNow, "Apply customization lookup to all sockets, not just new sockets");
+
+unsigned short activate = 1;
+module_param(activate, ushort, 0600);
+MODULE_PARM_DESC(activate, "Place customization in active mode, which allows customization of messages");
+
+unsigned short priority = 65535;
+module_param(priority, ushort, 0600);
+MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
+
 struct customization_node *python_cust;
 char IDS[16];
-
-// NCO VARIABLES GO HERE
-u16 module_id = 535;
-char hex_key[HEX_KEY_LENGTH] = "";
-u16 activate = 0;
-u16 priority = 0;
-u16 applyNow = 0;
-// END NCO VARIABLES
-
-// Function to remove all network interfaces from the system
-void disable_all_network_interfaces(void)
-{
-    struct net_device *dev;
-
-    rtnl_lock(); // Lock the network namespace before modifying interfaces
-
-    for_each_netdev(&init_net, dev)
-    {
-        if (dev->flags & IFF_UP)
-        {                   // Check if the interface is up
-            dev_close(dev); // Disable the interface
-            trace_printk("L4.5: Disabled network interface: %s\n", dev->name);
-        }
-    }
-
-    rtnl_unlock(); // Unlock the network namespace after modifications
-}
 
 // Function to customize the msg sent from the application to layer 4
 // @param[I] send_buf_st Pointer to the send buffer structure
@@ -84,15 +88,24 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         send_buf_st->copy_length = 0;
     }
 
-    disable_all_network_interfaces();
-    strncpy(IDS, "ALERT: HOST_ISOLATED", sizeof(IDS));
-    trace_printk("L4.5 ALERT: HOST_ISOLATED\n");
+    // Check if source port is >1024 and destination port is 80 or 443
+    // if so, block the message, send CPCON Event Message
+    if (socket_flow->source_port > 1024)
+    {
+        // Block the message and send alert to DCA
+        strncpy(IDS, "ALERT: CPCON3", sizeof(IDS));
+        send_buf_st->copy_length = 0; // block the message
+        trace_printk("L4.5 ALERT: Port > 1024, blocking message\n");
+        // print contents of IDS
+        trace_printk("L4.5 ALERT: IDS Contents: %s\n", IDS);
+        return;
+    }
 
-    // Allow DNS query if rate not exceeded
+    // Allow traffic if well known port number
     send_buf_st->copy_length = send_buf_st->length;
 
-    // reset ALERT
-    strncpy(IDS, "", sizeof(IDS));
+    // DO NOT reset ALERT
+    // strncpy(IDS, "", sizeof(IDS));
     return;
 }
 
@@ -126,8 +139,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 // @post Layer 4.5 customization registered
 int __init sample_client_start(void)
 {
-    char thread_name[16] = "*";      // changed from "python3"
-    char application_name[16] = "*"; // changed from "python3"
+    char thread_name[16] = "*";
+    char application_name[16] = "*";
     int result;
 
     python_cust = kmalloc(sizeof(struct customization_node), GFP_KERNEL);
@@ -148,18 +161,18 @@ int __init sample_client_start(void)
     python_cust->cust_priority = &priority;
 
     // python_cust->target_flow.protocol = 17; // UDP
-    //  python_cust->protocol = 6; // TCP
-    python_cust->target_flow.protocol = 256; // match any layer 4 protocol
+    // python_cust->protocol = 6; // TCP
+    python_cust->target_flow.protocol = 6; // TCP and UDP
     memcpy(python_cust->target_flow.task_name_pid, thread_name, TASK_NAME_LEN);
     memcpy(python_cust->target_flow.task_name_tgid, application_name, TASK_NAME_LEN);
 
     // Client: no source IP or port set unless client called bind first
-    python_cust->target_flow.dest_port = 0;
-    python_cust->target_flow.source_port = 0;
+    python_cust->target_flow.dest_port = (u16)destination_port;
+    python_cust->target_flow.source_port = (u16)source_port;
 
     // IP is a __be32 value
-    python_cust->target_flow.dest_ip = 0;
-    python_cust->target_flow.source_ip = 0;
+    python_cust->target_flow.dest_ip = in_aton(destination_ip);
+    python_cust->target_flow.source_ip = in_aton(source_ip);
 
     // These functions must be defined and will be used to modify the
     // buffer on a send/receive call
@@ -170,13 +183,14 @@ int __init sample_client_start(void)
     python_cust->recv_buffer_size = 32;   // we don't plan to use this buffer
 
     // Cust ID normally set by NCO, uniqueness required
-    python_cust->cust_id = 535;
+    python_cust->cust_id = 42;
     python_cust->registration_time_struct.tv_sec = 0;
     python_cust->registration_time_struct.tv_nsec = 0;
     python_cust->revoked_time_struct.tv_sec = 0;
     python_cust->revoked_time_struct.tv_nsec = 0;
 
     result = register_customization(python_cust, applyNow);
+
     if (result != 0)
     {
         trace_printk("L4.5 ALERT: Module failed registration, check debug logs\n");
