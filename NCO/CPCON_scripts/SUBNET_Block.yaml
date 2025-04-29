@@ -1,32 +1,66 @@
 ---
-- name: Block all inbound and outbound traffic on router 10.0.2.20
+- name: Allow only SSH from 10.0.8.22
   hosts: 10.0.2.20
-  remote_user: vagrant
   become: true
+  remote_user: vagrant
   vars:
     ansible_become_pass: "vagrant"
 
   tasks:
-    - name: Flush all current iptables rules
+    - name: Flush existing rules
       iptables:
         flush: yes
 
-    - name: Block all inbound traffic
+    - name: Set default FORWARD policy to DROP
+      iptables:
+        chain: FORWARD
+        policy: DROP
+
+    - name: Allow SSH from 10.0.8.22 to port 22
       iptables:
         chain: INPUT
-        jump: DROP
+        protocol: tcp
+        source: 10.0.8.22
+        destination_port: 22
+        jump: ACCEPT
         state: present
 
-    - name: Block all outbound traffic
+    - name: Allow SSH response to 10.0.8.22
       iptables:
         chain: OUTPUT
+        protocol: tcp
+        destination: 10.0.8.22
+        source_port: 22
+        jump: ACCEPT
+        state: present
+
+    - name: Set default OUTPUT policy to DROP
+      iptables:
+        chain: OUTPUT
+        policy: DROP
+
+    - name: Set default INPUT policy to DROP
+      iptables:
+        chain: INPUT
+        policy: DROP
+
+    - name: Drop all loopback traffic
+      iptables:
+        chain: INPUT
+        in_interface: lo
         jump: DROP
         state: present
 
-    - name: Save iptables rules (if applicable - RedHat)
-      shell: /sbin/iptables-save > /etc/sysconfig/iptables
-      when: ansible_os_family == "RedHat"
+    - name: Allow established INPUT connections
+      iptables:
+        chain: INPUT
+        ctstate: ESTABLISHED,RELATED
+        jump: ACCEPT
+        state: present
 
-    - name: Save iptables rules (if applicable - Debian/Ubuntu)
-      shell: /sbin/iptables-save > /etc/iptables/rules.v4
-      when: ansible_os_family == "Debian"
+    - name: Allow established OUTPUT connections
+      iptables:
+        chain: OUTPUT
+        ctstate: ESTABLISHED,RELATED
+        jump: ACCEPT
+        state: present
