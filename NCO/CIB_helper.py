@@ -62,6 +62,8 @@ def init_db_tables(con):
 
     init_deploy_inverse_table(con)
 
+    init_alert_table(con)
+
     # init_available_modules_table(con)
 
     return
@@ -70,6 +72,139 @@ def init_db_tables(con):
 def drop_table(con, table):
     command = "DROP TABLE " + table + ";"
     con.execute(command)
+
+
+# ***************** ALERT TABLE ***********************
+def init_alert_table(con):
+    # alert table can have multiple rows with same id or module
+    con.execute(
+        """
+                CREATE TABLE alerts (
+                    host_id INTEGER NOT NULL,
+                    alert_data TEXT NOT NULL,
+                    UNIQUE(host_id, alert_data)
+                );
+            """
+    )
+
+
+def insert_alert(con, host_id, alert_data):
+    result = 0
+    try:
+        with con:
+            con.execute(
+                "INSERT OR IGNORE INTO alerts (host_id, alert_data) VALUES (?, ?)",
+                (host_id, alert_data),
+            )
+    except sl.Error as er:
+        logger.info(
+            f"Error inserting alert for host_id = {host_id}, alert_data = {alert_data}"
+        )
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def update_alert(con, host_id, alert_data):
+    # host_id is an integer, alert_data is a string
+    result = 0
+    try:
+        with con:
+            con.execute(
+                "UPDATE alerts SET alert_data = ? WHERE host_id = ?",
+                (alert_data, host_id),
+            )
+    except sl.Error as er:
+        logger.info(
+            f"Error updating alert for host_id = {host_id}, alert_data = {alert_data}"
+        )
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_all_alerts(con):
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT host_id, alert_data FROM alerts;")
+            rows = cur.fetchall()
+
+            host_alerts = {}
+            for host_id, alert_data in rows:
+                host_alerts.setdefault(host_id, []).append(alert_data)
+
+            return host_alerts
+    except sl.Error as er:
+        logger.info("Error selecting all alerts")
+        logger.info(f"Error = {er}")
+        return {}
+
+
+# ***************** POLICY TABLE *********************
+
+
+def init_policy_table(con):
+    # policy table records policies deployed
+    con.execute(
+        """CREATE TABLE policies
+                   (cpcon_level text NOT NULL,
+                     threat text, action text, host_id integer)"""
+    )
+
+
+def insert_policy(con, cpcon_level, threat, action, host_id):
+    # cpcon_level is a string, threat is a string, action is a string, host_id is an integer
+    result = 0
+    try:
+        with con:
+            con.execute(
+                "INSERT INTO policies (cpcon_level, threat, action, host_id) VALUES (?, ?, ?, ?)",
+                (cpcon_level, threat, action, host_id),
+            )
+    except sl.Error as er:
+        logger.info(
+            f"Error inserting policy for host_id = {host_id}, cpcon_level = {cpcon_level}, threat = {threat}, action = {action}"
+        )
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def update_policy(con, cpcon_level, threat, action, host_id):
+    # cpcon_level is a string, threat is a string, action is a string, host_id is an integer
+    result = 0
+    try:
+        with con:
+            con.execute(
+                "UPDATE policies SET cpcon_level = ?, threat = ?, action = ? WHERE host_id = ?",
+                (cpcon_level, threat, action, host_id),
+            )
+    except sl.Error as er:
+        logger.info(
+            f"Error updating policy for host_id = {host_id}, cpcon_level = {cpcon_level}, threat = {threat}, action = {action}"
+        )
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def view_all_policies(con):
+    # cpcon_level is a string, threat is a string, action is a string, host_id is an integer
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM policies;")
+            result = cur.fetchall()
+            if not result:  # Check if the result is empty
+                logger.info("No policies found in the database.")
+                result = None
+    except sl.Error as er:
+        logger.info(f"Error selecting all policies")
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
 
 
 # ***************** HOST TABLE ***********************

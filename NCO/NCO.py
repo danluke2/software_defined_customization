@@ -259,8 +259,8 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     break
 
                 # TO DO: change method of removal from DB
-                delete_built_module(db_connection, host_id, "IDS_web_logger")
-                delete_built_module(db_connection, host_id, "DNS_response")
+                delete_built_module(db_connection, host_id, "MILCOM_isolate")
+                delete_built_module(db_connection, host_id, "MILCOM_server")
 
                 # Middlebox requirement: update inverse module table (if necessary)
                 update_inverse_module_requirements(db_connection, modules)
@@ -325,11 +325,11 @@ if __name__ == "__main__":
     queue = multiprocessing.Queue(-1)
 
     try:
-        # Start the NCO_UI.py process
-        ui_process = subprocess.Popen(["python3", "NCO_UI.py"])
-        logger.info("Started NCO_UI.py as a separate process")
+        # Start the NCO_UI.py process in a separate terminal window
+        subprocess.Popen(["gnome-terminal", "--", "python3", "NCO_UI.py"])
+        logger.info("Started NCO_UI.py in a separate terminal window")
     except Exception as e:
-        logger.info(f"Failed to start NCO_UI.py: {e}")
+        logger.info(f"Failed to start NCO_UI.py in a separate terminal window: {e}")
         traceback.print_exc()
         sys.exit()
 

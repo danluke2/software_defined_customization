@@ -57,7 +57,7 @@ else:
 hosts = select_all_hosts(db_connection)
 print("Hosts in database:")
 for host in hosts:
-    print(host)
+    print(f"Host ID: {host[1]}, Host IP: {host[2]}")
 
 # Define DMZ subnet, to protect servers
 target_subnet = ipaddress.IPv4Network("10.0.8.0/24")
@@ -76,6 +76,9 @@ for host in hosts:
     # Check if the host IP is in the target subnet
     if ipaddress.IPv4Address(host_ip) in target_subnet:
         hosts_in_subnet.append(host_id)
+
+    # Update database with the new policy
+    update_policy(db_connection, host_id, "MILCOM_isolate", 1, active_mode, applyNow)
 
 # Print the host_ids of hosts in the target subnet
 print("Host IDs in the 10.0.8.0/24 subnet:", hosts_in_subnet)

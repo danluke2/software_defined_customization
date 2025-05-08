@@ -1,5 +1,5 @@
 ---
-- name: Block HTTP/HTTPS traffic to 10.0.8.0/24
+- name: Block HTTP/HTTPS traffic for 10.0.2.0/24 subnet
   hosts: 10.0.2.20
   remote_user: vagrant
   become: true
@@ -7,30 +7,42 @@
     ansible_become_pass: "vagrant"
 
   tasks:
-    - name: Block incoming HTTP traffic to 10.0.8.0/24
+    - name: Flush iptables rules
       iptables:
-        chain: OUTPUT
+        flush: yes
+
+    - name: Block outbound HTTP from 10.0.2.0/24 to the internet
+      iptables:
+        chain: FORWARD
         protocol: tcp
+        source: 10.0.2.0/24
         destination_port: "80"
-        destination: 10.0.8.0/24
         jump: DROP
-        state: present
+        rule_num: "1"
 
-    - name: Block incoming HTTPS traffic to 10.0.8.0/24
+    - name: Block outbound HTTPS from 10.0.2.0/24 to the internet
       iptables:
-        chain: OUTPUT
+        chain: FORWARD
         protocol: tcp
+        source: 10.0.2.0/24
         destination_port: "443"
-        destination: 10.0.8.0/24
         jump: DROP
-        state: present
+        rule_num: "2"
 
-    - name: Save iptables rules (if applicable - RedHat)
-      shell: /sbin/iptables-save > /etc/sysconfig/iptables
-      when: ansible_os_family == "RedHat"
-      become: true
+    - name: Block inbound HTTP from internet to 10.0.2.0/24
+      iptables:
+        chain: FORWARD
+        protocol: tcp
+        destination: 10.0.2.0/24
+        destination_port: "80"
+        jump: DROP
+        rule_num: "3"
 
-    - name: Save iptables rules (if applicable - Debian/Ubuntu)
-      shell: /sbin/iptables-save > /etc/iptables/rules.v4
-      when: ansible_os_family == "Debian"
-      become: true
+    - name: Block inbound HTTPS from internet to 10.0.2.0/24
+      iptables:
+        chain: FORWARD
+        protocol: tcp
+        destination: 10.0.2.0/24
+        destination_port: "443"
+        jump: DROP
+        rule_num: "4"

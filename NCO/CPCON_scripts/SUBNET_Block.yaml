@@ -21,7 +21,7 @@
         chain: INPUT
         protocol: tcp
         source: 10.0.8.22
-        destination_port: 22
+        destination_port: "22"
         jump: ACCEPT
         state: present
 
@@ -30,7 +30,7 @@
         chain: OUTPUT
         protocol: tcp
         destination: 10.0.8.22
-        source_port: 22
+        source_port: "22"
         jump: ACCEPT
         state: present
 
@@ -51,16 +51,16 @@
         jump: DROP
         state: present
 
-    - name: Allow established INPUT connections
-      iptables:
-        chain: INPUT
-        ctstate: ESTABLISHED,RELATED
-        jump: ACCEPT
-        state: present
+    # - name: Allow established INPUT connections
+    #   iptables:
+    #     chain: INPUT
+    #     ctstate: ESTABLISHED,RELATED
+    #     jump: ACCEPT
+    #     state: present
 
-    - name: Allow established OUTPUT connections
-      iptables:
-        chain: OUTPUT
-        ctstate: ESTABLISHED,RELATED
-        jump: ACCEPT
-        state: present
+    # - name: Allow established OUTPUT connections
+    #   iptables:
+    #     chain: OUTPUT
+    #     ctstate: ESTABLISHED,RELATED
+    #     jump: ACCEPT
+    #     state: present
