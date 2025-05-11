@@ -259,8 +259,8 @@ def device_thread(conn, ip, port, buffer_size, interval):
                     break
 
                 # TO DO: change method of removal from DB
-                delete_built_module(db_connection, host_id, "MILCOM_isolate")
-                delete_built_module(db_connection, host_id, "MILCOM_server")
+                # delete_built_module(db_connection, host_id, "MILCOM_isolate")
+                # delete_built_module(db_connection, host_id, "MILCOM_server")
 
                 # Middlebox requirement: update inverse module table (if necessary)
                 update_inverse_module_requirements(db_connection, modules)
