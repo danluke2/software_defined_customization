@@ -6,7 +6,7 @@ from collections import defaultdict
 
 # DNS Server Settings
 DNS_PORT = 53
-DNS_IP = "0.0.0.0"
+DNS_IP = "10.0.8.21"
 LOG_INTERVAL = 1  # Log query counts every 1 second
 CSV_FILENAME = "dns_query_log.csv"
 

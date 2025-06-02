@@ -97,7 +97,7 @@ def insert_and_update_module_tables(
     if err == cfg.DB_ERROR:
         logger.info(f"Error inserting {module} into built table")
     else:
-        logger.info(f"Deleting module from required build table")
+        logger.info(f"Deleting {module} from required build table")
         err = delete_req_build_module(db_connection, module, host_id)
         if err == cfg.DB_ERROR:
             logger.info(f"Error removing module {module} from required build table")

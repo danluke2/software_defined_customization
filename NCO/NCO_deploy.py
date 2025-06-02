@@ -132,6 +132,20 @@ def send_ko_module(conn_socket, host_id, module):
 def retrieve_install_list(db_connection, host_id):
     install_list = select_modules_to_install(db_connection, host_id, 1)
     modules = [x[1] for x in install_list]
+    # TO DO : find a better was to get module into deployed list
+    for x in install_list:
+        insert_deployed(
+            db_connection,
+            host_id,
+            x[2],
+            count=None,
+            active_mode=None,
+            sec_window=None,
+            sec_ts=None,
+            registered_ts=None,
+            deprecated_ts=None,
+            host_error_ts=None,
+        )
     return modules
 
 

@@ -4,7 +4,7 @@ import socket
 import threading
 import time
 
-SOURCE_PORT = 34567
+SOURCE_PORT = 1050
 DEST_PORT = 80
 HOST = "127.0.0.1"
 DATA = b"Hello from source port >1024"

@@ -243,12 +243,11 @@ def device_thread(conn, ip, port, buffer_size, interval):
             if len(modules) > 0:
                 # send built modules to host
                 send_install_modules(conn, host_id, modules)
-
-                # update deployed table
-                # TO DO: this can be handled elsewhere
-                # insert_deployed(
-                #    db_connection, host_id, modules, "?", "?", "?", "?", "?", "?", "?"
-                # )
+                for mod in modules:
+                    update_built_module_install_requirement(
+                        db_connection, host_id, mod, 0, time.time()
+                    )
+                    # insert_deployed(db_connection, host_id, mod, 0, time.time())
 
                 # get a full report from host since we installed new modules
                 logger.info(f"NCO Requesting report after install")
@@ -257,10 +256,6 @@ def device_thread(conn, ip, port, buffer_size, interval):
                 if err == cfg.CLOSE_SOCK:
                     conn.close()
                     break
-
-                # TO DO: change method of removal from DB
-                # delete_built_module(db_connection, host_id, "MILCOM_isolate")
-                # delete_built_module(db_connection, host_id, "MILCOM_server")
 
                 # Middlebox requirement: update inverse module table (if necessary)
                 update_inverse_module_requirements(db_connection, modules)
@@ -326,7 +321,7 @@ if __name__ == "__main__":
 
     try:
         # Start the NCO_UI.py process in a separate terminal window
-        subprocess.Popen(["gnome-terminal", "--", "python3", "NCO_UI.py"])
+        subprocess.Popen(["python3", "NCO_UI.py"], start_new_session=True)
         logger.info("Started NCO_UI.py in a separate terminal window")
     except Exception as e:
         logger.info(f"Failed to start NCO_UI.py in a separate terminal window: {e}")

@@ -59,7 +59,7 @@ module_param(priority, ushort, 0600);
 MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
 struct customization_node *python_cust;
-char IDS[16];
+char IDS[32];
 
 #define MAX_DNS_QUERIES 10 // Max allowed queries per second
 // #define TIME_WINDOW *HZ    //
@@ -124,7 +124,7 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
         // trace_printk("L4.5 ALERT: DNS query blocked due to rate limit (10).\n");
 
         // update IDS with DNS alert
-        strncpy(IDS, "ALERT:DNS", sizeof(IDS));
+        strncpy(IDS, "ALERT:DNS_DoS", sizeof(IDS));
         return;
     }
 

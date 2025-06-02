@@ -4,7 +4,7 @@ import time
 import atexit
 
 # DNS Server (Use 8.8.8.8 for Google's Public DNS, or your custom DNS server)
-DNS_SERVER = "192.168.0.18"
+DNS_SERVER = "10.0.8.21"
 DNS_PORT = 53
 TARGET_DOMAIN = "example.com"
 RESTORE_SCRIPT = "interface_restore.py"

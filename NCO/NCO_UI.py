@@ -1,148 +1,223 @@
 import sys
 import cfg
 import subprocess
+import threading
+import tkinter as tk
+from tkinter import ttk, scrolledtext, messagebox
+
 from CIB_helper import *
+import logging
+import ipaddress
 
+logger = logging.getLogger(__name__)
 
-# from some_python_file import (
-#     function_for_cpcon_1,
-#     function_for_cpcon_2,
-#     function_for_cpcon_3,
-#     function_for_cpcon_4,
-#     function_for_cpcon_5,
-# )  # Import Python functions as needed
-
-# Mapping of CPCON levels to corresponding shell scripts
 CPCON_SCRIPTS = {
-    1: "CPCON_scripts/cpcon_level_1.sh",
+    1: None,
     2: "CPCON_scripts/cpcon_level_2.sh",
     3: "CPCON_scripts/cpcon_level_3.sh",
-    4: "None",
-    5: "None",
+    4: None,
+    5: None,
 }
 
-# # Mapping of CPCON levels to corresponding Python functions
-# CPCON_FUNCTIONS = {
-#     1: function_for_cpcon_1,
-#     2: function_for_cpcon_2,
-#     3: select_all_hosts(db_connection),
-#     4: None,
-#     5: None,
-# }
 
+class NCO_UI(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("NCO Control Panel")
+        self.geometry("800x600")
 
-def list_hosts(db_connection):
-    """List all hosts in the database."""
-    hosts = select_all_hosts(db_connection)
-    print("Hosts in database:\n")
-    print(f"{'Host ID':<10}{'Host IP':<15}")
-    for host in hosts:
-        print(f"{host[1]:<10}{host[2]:<15}")
-
-
-def view_policy(db_connection):
-    """View all policies in the database."""
-    policies = view_all_policies(db_connection)
-    if policies == None:
-        print("No policies found in the database.")
-        return
-    elif policies == DB_ERROR:
-        print("Error: Unable to retrieve policies from the database.")
-        return
-
-    print("Policies in database:")
-    for policy in policies:
-        print(f"Policy ID: {policy[0]}, Policy Name: {policy[1]}")
-
-
-def view_alerts(db_connection):
-    """View all alerts in the database."""
-    alerts = select_all_alerts(db_connection)
-    if alerts is None:
-        print("No alerts found in the database.")
-        return
-    elif alerts == DB_ERROR:
-        print("Error: Unable to retrieve alerts from the database.")
-        return
-
-    print("Alerts in database:\n")
-    print(f"{'Host ID':<10}{'Host Alerts':<15}")
-    for host_id, alert_list in alerts.items():
-        for alert in alert_list:
-            print(f"{host_id:<10}{alert:<15}")
-
-
-def main():
-    try:
-        # Establish the database connection once at the beginning
-        db_connection = db_connect(cfg.nco_dir + "cib.db")
-    except Exception as e:
-        print(f"Error: Unable to connect to the database: {e}")
-        sys.exit()
-
-    while True:
         try:
-            # Prompt the user for input
-            print(
-                "\n Enter desired CPCON level (1-5),\n 'list' to view hosts,\n 'view' to view policies,\n 'events' to view alerts,\n or type 'exit' to quit: ",
-                end="",
+            self.db_connection = db_connect(cfg.nco_dir + "cib.db")
+        except Exception as e:
+            messagebox.showerror(
+                "Database Error", f"Unable to connect to database:\n{e}"
             )
-            user_input = input().strip()
+            sys.exit()
 
-            # Check if the user wants to view policies
-            if user_input.lower() == "view":
-                view_policy(db_connection)
-                continue
+        self.create_widgets()
 
-            # Check if the user wants to list hosts
-            if user_input.lower() == "list":
-                list_hosts(db_connection)
-                continue
+    def create_widgets(self):
+        # CPCON Level Dropdown
+        tk.Label(self, text="CPCON Level:").pack(pady=(10, 0))
+        self.cpcon_level = ttk.Combobox(self, values=[1, 2, 3, 4, 5], state="readonly")
+        self.cpcon_level.pack()
 
-            if user_input.lower() == "events":
-                # Call the function to view alerts (assuming it's defined elsewhere)
-                view_alerts(db_connection)
-                continue
+        # Threat Intelligence Dropdown
+        tk.Label(self, text="Threat Type:").pack(pady=(10, 0))
+        self.threat_type = ttk.Combobox(
+            self,
+            values=["Denial of Service", "Web attacks", "Phishing", "Other"],
+            state="readonly",
+        )
+        self.threat_type.pack()
 
-            # Check if the user wants to exit
-            if user_input.lower() == "exit":
-                print("Exiting program.")
-                sys.exit()
+        # Submit Button
+        tk.Button(self, text="Set CPCON", command=self.set_cpcon).pack(pady=10)
 
-            # Validate the input
-            if user_input.isdigit():
-                user_CPCON = int(user_input)
+        # Buttons
+        button_frame = tk.Frame(self)
+        button_frame.pack(pady=10)
 
-                if 1 <= user_CPCON <= 5:
-                    print(f"Setting CPCON level: {user_CPCON}")
+        tk.Button(button_frame, text="View Hosts", command=self.view_hosts).pack(
+            side=tk.LEFT, padx=5
+        )
+        tk.Button(button_frame, text="View Policies", command=self.view_policies).pack(
+            side=tk.LEFT, padx=5
+        )
+        tk.Button(button_frame, text="View Alerts", command=self.view_alerts).pack(
+            side=tk.LEFT, padx=5
+        )
 
-                    # Get the corresponding script for the CPCON level
-                    script_to_run = CPCON_SCRIPTS.get(user_CPCON)
+        # Output display
+        self.output = scrolledtext.ScrolledText(
+            self, width=100, height=25, wrap=tk.WORD
+        )
+        self.output.pack(pady=10)
 
-                    # Run the script using subprocess
-                    if script_to_run:
-                        try:
-                            subprocess.run(["/bin/bash", script_to_run], check=True)
-                        except FileNotFoundError:
-                            print(f"Error: Script {script_to_run} not found.")
-                        except subprocess.CalledProcessError as e:
-                            print(
-                                f"Error: Script {script_to_run} failed with error: {e}"
-                            )
-                else:
-                    print("Invalid input. Please enter an integer between 1 and 5.")
+        # Exit
+        tk.Button(self, text="Exit", command=self.quit).pack(pady=10)
+
+    def append_output(self, text):
+        self.output.insert(tk.END, text + "\n")
+        self.output.see(tk.END)
+
+    def set_cpcon(self):
+        try:
+
+            cpcon = self.cpcon_level.get()
+            threat = self.threat_type.get()
+
+            if not cpcon or not threat:
+                messagebox.showwarning(
+                    "Input Required", "Please select both CPCON level and threat type."
+                )
+                return
+
+            # TO DO: check to see if policy has already been implemented/verified
+            cpcon = int(cpcon)
+            insert_policy(self.db_connection, cpcon, threat, None, None)
+            self.append_output(f"Set CPCON {cpcon} with threat '{threat}'")
+
+            script = CPCON_SCRIPTS.get(cpcon)
+            if script:
+                try:
+                    subprocess.Popen(
+                        [
+                            "gnome-terminal",
+                            "--",
+                            "bash",
+                            "-c",
+                            f"/bin/bash {script}; exit",
+                        ],
+                        start_new_session=True,
+                    )
+
+                    self.append_output(f"Executed script: {script}")
+                except Exception as e:
+                    self.append_output(f"Script failed: {e}")
             else:
-                print(
-                    "Invalid input. Please enter an integer between 1 and 5 or type 'exit' to quit."
+                self.append_output(f"No script defined for CPCON {cpcon}")
+
+        except Exception as e:
+            self.append_output(f"Error setting CPCON: {e}")
+
+    def view_hosts(self):
+        try:
+
+            hosts = select_all_hosts(self.db_connection)
+            if not hosts or hosts == DB_ERROR:
+                self.append_output("No hosts found in the database.")
+                return
+
+            hosts = sorted(hosts, key=lambda h: ipaddress.ip_address(h["host_ip"]))
+
+            self.append_output("\nHost Modules Table:")
+            self.append_output(
+                f"{'Host ID':<10}{'Host IP':<15}{'Built Modules':<30}{'Deployed Modules':<30}"
+            )
+            self.append_output("-" * 95)
+
+            for host in hosts:
+                host_id = host["host_id"]
+                host_ip = host["host_ip"]
+
+                built_rows = select_all_built_modules(self.db_connection, host_id)
+                built_modules = (
+                    [
+                        row["module"]
+                        .replace("MILCOM_isolate", "host_isolate")
+                        .replace("MILCOM_server", "server_monitor")
+                        for row in built_rows
+                    ]
+                    if built_rows and built_rows != DB_ERROR
+                    else []
                 )
 
-        except KeyboardInterrupt:
-            # Handle program exit gracefully
-            print("\nExiting program.")
-            sys.exit()
+                # built_modules = (
+                #     [row["module"] for row in built_rows]
+                #     if built_rows and built_rows != DB_ERROR
+                #     else []
+                # )
+
+                deployed_ids = select_deployed_modules(self.db_connection, host_id)
+                deployed_modules = []
+                if deployed_ids and deployed_ids != DB_ERROR:
+                    for mod_id in deployed_ids:
+                        mod_row = select_built_module_by_id(
+                            self.db_connection, host_id, mod_id
+                        )
+                        deployed_modules.append(
+                            mod_row["module"]
+                            .replace("MILCOM_isolate", "host_isolate")
+                            .replace("MILCOM_server", "server_monitor")
+                            if mod_row and mod_row != DB_ERROR
+                            else f"ID:{mod_id}"
+                        )
+
+                        # deployed_modules.append(
+                        #     mod_row["module"]
+                        #     if mod_row and mod_row != DB_ERROR
+                        #     else f"ID:{mod_id}"
+                        # )
+
+                self.append_output(
+                    f"{host_id:<10}{host_ip:<15}{', '.join(built_modules) or 'None':<30}{', '.join(deployed_modules) or 'None':<30}"
+                )
+
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            self.append_output(f"Error viewing hosts: {e}")
+
+    def view_policies(self):
+        try:
+            policies = view_all_policies(self.db_connection)
+            if not policies or policies == DB_ERROR:
+                self.append_output("No policies found or DB error.")
+                return
+
+            self.append_output(f"\n{'CPCON':<10}{'Threat':<25}{'Verified':<10}")
+            for p in policies:
+                cpcon = p[0]
+                threat = p[1]
+                verified = p[4] if len(p) > 4 and p[4] is not None else "N/A"
+                self.append_output(f"{cpcon:<10}{threat:<25}{verified:<10}")
+        except Exception as e:
+            self.append_output(f"Error viewing policies: {e}")
+
+    def view_alerts(self):
+        try:
+
+            alerts = select_all_alerts(self.db_connection)
+            if not alerts or alerts == DB_ERROR:
+                self.append_output("No alerts found or DB error.")
+                return
+            self.append_output(f"\n{'Host ID':<10}{'Host Alerts':<15}")
+            for host_id, alert_list in alerts.items():
+                for alert in alert_list:
+                    self.append_output(f"{host_id:<10}{alert:<15}")
+        except Exception as e:
+            self.append_output(f"Error viewing alerts: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    app = NCO_UI()
+    app.mainloop()

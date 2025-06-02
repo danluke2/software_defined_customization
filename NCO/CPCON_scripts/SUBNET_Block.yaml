@@ -1,10 +1,19 @@
----
 - name: Allow only SSH from 10.0.8.22
   hosts: 10.0.2.20
   become: true
   remote_user: vagrant
-  vars:
-    ansible_become_pass: "vagrant"
+
+  pre_tasks:
+    - name: Wait for SSH to be available
+      wait_for:
+        port: 22
+        host: "{{ inventory_hostname }}"
+        timeout: 60
+        state: started
+      register: ssh_wait
+      retries: 5
+      delay: 10
+      until: ssh_wait is succeeded
 
   tasks:
     - name: Flush existing rules
@@ -15,6 +24,14 @@
       iptables:
         chain: FORWARD
         policy: DROP
+        state: present
+
+    - name: Explicitly drop all forwarded UDP traffic
+      iptables:
+        chain: FORWARD
+        protocol: udp
+        jump: DROP
+        state: present
 
     - name: Allow SSH from 10.0.8.22 to port 22
       iptables:
@@ -50,6 +67,20 @@
         in_interface: lo
         jump: DROP
         state: present
+
+    # - name: Explicitly drop all incoming UDP traffic
+    #   iptables:
+    #     chain: INPUT
+    #     protocol: udp
+    #     jump: DROP
+    #     state: present
+
+    # - name: Explicitly drop all outgoing UDP traffic
+    #   iptables:
+    #     chain: OUTPUT
+    #     protocol: udp
+    #     jump: DROP
+    #     state: present
 
     # - name: Allow established INPUT connections
     #   iptables:

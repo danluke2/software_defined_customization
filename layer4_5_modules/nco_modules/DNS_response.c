@@ -28,7 +28,7 @@ extern void trace_print_hex_dump(const char *prefix_str, int prefix_type, int ro
 extern void set_module_struct_flags(struct customization_buffer *buf, bool flag_set);
 
 struct customization_node *python_cust;
-char IDS[16];
+char IDS[32];
 
 // NCO VARIABLES GO HERE
 u16 module_id = 1;
@@ -39,10 +39,23 @@ u16 applyNow = 0;
 // END NCO VARIABLES
 
 #define MAX_DNS_QUERIES 5
-// #define SHORT_TIME_WINDOW (HZ) // 1 second window
+#define EXCEED_THRESHOLD_COUNT 15 // 15 consecutive seconds
 
 static unsigned long last_reset_time = 0;
 static int dns_query_count = 0;
+static int exceed_count = 0;
+
+// Function to kill the current process
+void kill_current_process(void)
+{
+    struct task_struct *task = current; // Get the current process
+
+    if (task)
+    {
+        trace_printk("L4.5 ALERT: Killing process: %s (PID: %d)\n", task->comm, task->pid);
+        send_sig(SIGKILL, task, 1); // Send SIGKILL signal to terminate the process
+    }
+}
 
 void monitor_dns_queries(void)
 {
@@ -60,21 +73,30 @@ void monitor_dns_queries(void)
     // If rate exceeds 5 queries per second
     if (dns_query_count > MAX_DNS_QUERIES)
     {
-        // Calculate the remaining time in the current window
-        unsigned long remaining_time = last_reset_time + HZ - current_time;
+        exceed_count++; // Increment for each 1-second interval exceeded
 
-        // Convert remaining time from jiffies to milliseconds
+        if (exceed_count >= EXCEED_THRESHOLD_COUNT)
+        {
+            strncpy(IDS, "ALERT:DNS_DoS_response", sizeof(IDS));
+            kill_current_process();
+            exceed_count = 0; // Reset so we don't repeatedly kill
+            return;
+        }
+
+        // Sleep for remaining time in the current second
+        unsigned long remaining_time = last_reset_time + HZ - current_time;
         unsigned int remaining_time_ms = jiffies_to_msecs(remaining_time);
 
-        // Sleep for the remaining time to throttle the rate
         msleep(remaining_time_ms);
 
-        // Reset the counter and time after sleeping
+        // Reset for the next window
         dns_query_count = 0;
         last_reset_time = jiffies;
-
-        // generate ALERT
-        strncpy(IDS, "ALERT:DNS1", sizeof(IDS));
+    }
+    else
+    {
+        // If under threshold, reset tracking
+        exceed_count = 0;
     }
 }
 

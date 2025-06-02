@@ -3,8 +3,18 @@
   hosts: 10.0.2.20
   remote_user: vagrant
   become: true
-  vars:
-    ansible_become_pass: "vagrant"
+
+  pre_tasks:
+    - name: Wait for SSH to be available
+      wait_for:
+        port: 22
+        host: "{{ inventory_hostname }}"
+        timeout: 60
+        state: started
+      register: ssh_wait
+      retries: 5
+      delay: 10
+      until: ssh_wait is succeeded
 
   tasks:
     - name: Flush iptables rules

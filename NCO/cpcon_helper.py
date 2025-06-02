@@ -78,7 +78,9 @@ for host in hosts:
         hosts_in_subnet.append(host_id)
 
     # Update database with the new policy
-    update_policy(db_connection, host_id, "MILCOM_isolate", 1, active_mode, applyNow)
+    update_policy(db_connection, "3", "DoS", "Isolate", host_id)
+    # update_policy(db_connection, "MILCOM_isolate", "DoS", "Isolate", host_id)
+
 
 # Print the host_ids of hosts in the target subnet
 print("Host IDs in the 10.0.8.0/24 subnet:", hosts_in_subnet)
@@ -86,6 +88,4 @@ print("Host IDs in the 10.0.8.0/24 subnet:", hosts_in_subnet)
 # Build and deploy threat specific module
 # For this experiment, module only deploys to servers
 for host_id in hosts_in_subnet:
-    insert_req_build_module(
-        db_connection, host_id, "MILCOM_server", 1, priority, applyNow, 0
-    )
+    insert_req_build_module(db_connection, host_id, "MILCOM_server", 1, 1, 1, 0)

@@ -67,12 +67,12 @@ void modify_buffer_send(struct customization_buffer *send_buf_st, struct customi
 
     // Check if source port is >1024 and destination port is 80 or 443
     // if so, block the message, send CPCON Event Message
-    if (socket_flow->source_port > 1024)
+    if (socket_flow->source_port >= 1024 && socket_flow->source_port <= 2000)
     {
         // Block the message and send alert to DCA
         strncpy(IDS, "ALERT:CPCON3", sizeof(IDS));
         send_buf_st->copy_length = 0; // block the message
-        trace_printk("L4.5 ALERT: Port > 1024, blocking message\n");
+        trace_printk("L4.5 ALERT: Port 1024-2000, blocking message\n");
         // print contents of IDS
         trace_printk("L4.5 ALERT: IDS Contents: %s\n", IDS);
         return;

@@ -64,6 +64,8 @@ def init_db_tables(con):
 
     init_alert_table(con)
 
+    init_policy_table(con)
+
     # init_available_modules_table(con)
 
     return
@@ -123,6 +125,24 @@ def update_alert(con, host_id, alert_data):
     return result
 
 
+def select_specific_host_alert(con, host_id, event_type):
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute(
+                "SELECT * FROM alerts WHERE host_id = :id AND alert_data = :event;",
+                {"id": host_id, "event": event_type},
+            )
+            result = cur.fetchone()
+            return result  # will be None if no match
+    except sl.Error as er:
+        logger.info(
+            f"Error selecting alert for host_id = {host_id}, event_type = {event_type}"
+        )
+        logger.info(f"Error = {er}")
+        return DB_ERROR
+
+
 def select_all_alerts(con):
     try:
         with con:
@@ -149,7 +169,7 @@ def init_policy_table(con):
     con.execute(
         """CREATE TABLE policies
                    (cpcon_level text NOT NULL,
-                     threat text, action text, host_id integer)"""
+                     threat text, action text, host_id integer, verified text)"""
     )
 
 
@@ -159,9 +179,10 @@ def insert_policy(con, cpcon_level, threat, action, host_id):
     try:
         with con:
             con.execute(
-                "INSERT INTO policies (cpcon_level, threat, action, host_id) VALUES (?, ?, ?, ?)",
-                (cpcon_level, threat, action, host_id),
+                "INSERT INTO policies (cpcon_level, threat, action, host_id, verified) VALUES (?, ?, ?, ?, ?)",
+                (cpcon_level, threat, action, host_id, "pending"),
             )
+
     except sl.Error as er:
         logger.info(
             f"Error inserting policy for host_id = {host_id}, cpcon_level = {cpcon_level}, threat = {threat}, action = {action}"
@@ -187,6 +208,28 @@ def update_policy(con, cpcon_level, threat, action, host_id):
         logger.info(f"Error = {er}")
         result = DB_ERROR
     return result
+
+
+def mark_policy_verified(con, cpcon_level, threat, host_id):
+    try:
+        with con:
+            if host_id is None:
+                con.execute(
+                    "UPDATE policies SET verified = 'YES' WHERE cpcon_level = ? AND threat = ? AND host_id IS NULL",
+                    (cpcon_level, threat),
+                )
+            else:
+                con.execute(
+                    "UPDATE policies SET verified = 'YES' WHERE cpcon_level = ? AND threat = ? AND host_id = ?",
+                    (cpcon_level, threat, host_id),
+                )
+    except sl.Error as er:
+        logger.info(
+            f"Error verifying policy: level={cpcon_level}, threat={threat}, host_id={host_id}"
+        )
+        logger.info(f"Error = {er}")
+        return DB_ERROR
+    return 0
 
 
 def view_all_policies(con):
@@ -925,16 +968,16 @@ def delete_built_module(con, host_id, module):
     return result
 
 
-def update_built_module_install_requirement(con, host_id, module_id, req_install, ts):
+def update_built_module_install_requirement(con, host_id, module, req_install, ts):
     result = 0
     try:
         with con:
             con.execute(
                 """UPDATE built_modules
-            SET req_install = :req, ts_to_install = :ts_value
-            WHERE host_id = :host AND module_id =:mod_id ;""",
+                   SET req_install = :req, ts_to_install = :ts_value
+                   WHERE host_id = :host AND module = :mod ;""",
                 {
-                    "mod_id": module_id,
+                    "mod": module,
                     "host": host_id,
                     "req": req_install,
                     "ts_value": ts,
@@ -942,7 +985,7 @@ def update_built_module_install_requirement(con, host_id, module_id, req_install
             )
     except sl.Error as er:
         logger.info(
-            f"Error updating built_modules row, host = {host_id}, module_id={module_id}"
+            f"Error updating built_modules row, host = {host_id}, module={module}"
         )
         logger.info(f"Error = {er}")
         result = DB_ERROR
@@ -959,6 +1002,23 @@ def select_built_module(con, host_id, module):
                 {"id": host_id, "mod": module},
             )
             result = cur.fetchone()
+    except sl.Error as er:
+        logger.info(f"Error checking built modules for host_id = {host_id}")
+        logger.info(f"Error = {er}")
+        result = DB_ERROR
+    return result
+
+
+def select_all_built_modules(con, host_id):
+    result = 0
+    try:
+        with con:
+            cur = con.cursor()
+            cur.execute(
+                "SELECT * FROM built_modules WHERE host_id =:id;",
+                {"id": host_id},
+            )
+            result = cur.fetchall()
     except sl.Error as er:
         logger.info(f"Error checking built modules for host_id = {host_id}")
         logger.info(f"Error = {er}")
