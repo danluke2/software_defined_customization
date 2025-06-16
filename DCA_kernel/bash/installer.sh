@@ -6,13 +6,19 @@ set -e
 PM="/bin/apt" # Package Manager
 CURDIR="$(pwd)"
 
+# Used to check if aarch64 or x86
+ARCH="$(arch)"
+
+
+
 # ************** STANDARD PARAMS MUST GO HERE ****************
+distro="$(uname -r)"
 INSTALLER_MAKEFILE_DIR=/home/vagrant/software_defined_customization/DCA_kernel
-INSTALL_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5
-INCLUDE_DIR=/usr/lib/modules/5.13.0-35-generic/build/include
-CUST_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/customizations
+INSTALL_LOCATION=/usr/lib/modules/$distro/layer4_5
+INCLUDE_DIR=/usr/lib/modules/$distro/build/include
+CUST_LOCATION=/usr/lib/modules/$distro/layer4_5/customizations
 GIT_DIR=/home/vagrant/software_defined_customization
-DCA_LOCATION=/usr/lib/modules/5.13.0-35-generic/layer4_5/DCA
+DCA_LOCATION=/usr/lib/modules/$distro/layer4_5/DCA
 DCA_USER_DIR=/home/vagrant/software_defined_customization/DCA_user
 # ************** END STANDARD PARAMS ****************
 
@@ -41,10 +47,12 @@ echo "***************************"
 echo "Copying files for module includes"
 cd $INSTALLER_MAKEFILE_DIR
 cp common_structs.h $INCLUDE_DIR
+cp common_defines.h $INCLUDE_DIR
 cp util/helpers.h $INCLUDE_DIR
 
 # this just helps for vscode to find file on my mac
 cp common_structs.h $GIT_DIR/no_include
+cp common_defines.h $GIT_DIR/no_include
 cp util/helpers.h $GIT_DIR/no_include
 
 echo "***************************"
@@ -53,7 +61,16 @@ echo "Making Layer 4.5 modules"
 # Make the files
 cd $INSTALLER_MAKEFILE_DIR
 make clean || error_exit "Makefile clean error detected"
+# Uncomment line 59 and comment line 60 for the VMWare install
+
+if [[ $ARCH != "aarch64" ]]; then
+  make && make install || error_exit "Makefile error detected"
+  else
+  echo $ARCH
 make && make install || error_exit "Makefile error detected"
+fi
+
+# CC=aarch64-linux-gnu-gcc-12
 
 # Start layer 4.5 processing
 insmod $INSTALL_LOCATION/layer4_5.ko layer4_5_path="$INSTALL_LOCATION"

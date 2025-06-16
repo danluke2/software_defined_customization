@@ -1,3 +1,6 @@
 .DS_Store
 .vagrant
+.vagrant/*
 *.box
+Vagrantfile
+setup.sh

@@ -56,8 +56,10 @@ unsigned short priority = 65535;
 module_param(priority, ushort, 0600);
 MODULE_PARM_DESC(priority, "Customization priority level used when attaching modules to socket");
 
-// test message for this plugin
-char cust_test[12] = "testCustMod";
+// test messages for this plugin
+// char cust_test[12] = "testCustMod";
+char cust_start[8] = "<start>";
+char cust_end[6] =   "<end>";
 
 struct customization_node *python_cust;
 
@@ -98,7 +100,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
 {
     bool copy_success;
     //-1 b/c don't want terminating part
-    size_t cust_test_size = (size_t)sizeof(cust_test) - 1;
+    size_t cust_start_size = (size_t)sizeof(cust_start) - 1;
+    size_t cust_end_size = (size_t)sizeof(cust_end) - 1;
 
     set_module_struct_flags(recv_buf_st, false);
 
@@ -109,7 +112,8 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
         return;
     }
 
-    recv_buf_st->copy_length = recv_buf_st->recv_return - cust_test_size;
+    // modified to reflect that both cust_start and cust_end will be removed from the received msg
+    recv_buf_st->copy_length = recv_buf_st->recv_return - (cust_start_size + cust_end_size);
 
     // only necessary if you need to make the buffer larger than default size
     // recv_buf_st->buf = krealloc(recv_buf_st->buf, INSERT_NEW_LENGTH_HERE, GFP_KERNEL);
@@ -121,7 +125,7 @@ void modify_buffer_recv(struct customization_buffer *recv_buf_st, struct customi
     // recv_buf_st->buf_size = INSERT_NEW_LENGTH_HERE;
 
     // adjust iter offset to start of actual message, then copy
-    iov_iter_advance(recv_buf_st->src_iter, cust_test_size);
+    iov_iter_advance(recv_buf_st->src_iter, cust_start_size);
 
     copy_success = copy_from_iter_full(recv_buf_st->buf, recv_buf_st->copy_length, recv_buf_st->src_iter);
     if (copy_success == false)

@@ -1,8 +1,9 @@
+import subprocess
 # ************** STANDARD PARAMS MUST GO HERE ****************
+distro=subprocess.run(['uname', '-r'])
 HOST='10.0.0.20'
 dca_dir='/home/vagrant/software_defined_customization/DCA_user/'
-symver_location='/usr/lib/modules/5.13.0-35-generic/layer4_5/'
-system_release='5.13.0-35-generic'
+symver_location=f'/usr/lib/modules/{distro}/layer4_5/'
 # ************** END STANDARD PARAMS ****************
 
 
@@ -12,7 +13,6 @@ PORT = 65432        # The port used by the NCO
 MIDDLE_PORT = 65433        # The middlebox port used by the NCO
 INTERFACE = "enp0s8"
 # system_name = platform.system()
-# system_release = platform.release()
 
 download_dir = symver_location + "customizations"
 
