@@ -1,7 +1,0 @@
-.DS_Store
-*.cmd*
-*.ko
-*.mod*
-*.o
-Module.symvers
-modules.order

@@ -1,0 +1,169 @@
+2025-06-13 11:52:35,835  __main__  Socket bind complete
+2025-06-13 11:52:35,837  NCO_construct  Construction process running
+2025-06-13 11:52:35,839  NCO_middlebox  Middlebox process running
+2025-06-13 11:52:35,840  NCO_middlebox  Socket bind complete
+2025-06-13 11:52:41,843  __main__  Accepting connection from 10.0.8.23:41570
+2025-06-13 11:52:41,857  NCO_monitor  Inserting host 08:00:27:66:d8:04, ID = 10847
+2025-06-13 11:52:41,962  NCO_construct  Sent symver request
+2025-06-13 11:52:42,004  NCO_construct  recv file: Module.symvers
+2025-06-13 11:52:42,004  NCO_construct  recv file size: 675
+2025-06-13 11:52:42,013  NCO_construct  have symvers file
+2025-06-13 11:52:42,035  __main__  NCO Requesting report
+2025-06-13 11:52:42,039  NCO_monitor  Sent report request to 10847
+2025-06-13 11:52:42,039  NCO_monitor  Processing report for host: 10847
+2025-06-13 11:52:42,046  NCO_monitor  Process Report String: {
+    "Installed": [
+        {
+            "ID": 55,
+            "Activated": 1,
+            "Count": 0,
+            "ts": 1749840698,
+            "IDS": "||DNS_RESOLVE:nps.edu->52.36.234.65|TTL:748|TIME:2025-06-13 18:52:04||DNS_RESOLVE:nps.edu->52.42.202.22|TTL:748|TIME:2025-06-13 18:52:04||TLS_SNI:www.nps.edu|DEST_IP:52.36.234.65|VER:TLSv1.2|CIPHER:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384|COMP:0x00|EXT:None|TIME:2025-06-13 18:52:13|TLS_RECORD:98 bytes"
+        },
+        {
+            "ID": 52,
+            "Activated": 1,
+            "Count": 0,
+            "ts": 1749840692,
+            "IDS": "||DNS_RESOLVE:nps.edu->52.36.234.65|TTL:748|TIME:2025-06-13 18:52:04||DNS_RESOLVE:nps.edu->52.42.202.22|TTL:748|TIME:2025-06-13 18:52:04||TLS_SNI:www.nps.edu|DEST_IP:52.36.234.65|VER:TLSv1.2|CIPHER:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384|COMP:0x00|EXT:None|TIME:2025-06-13 18:52:13|TLS_RECORD:98 bytes"
+        }
+    ],
+    "Deprecated": [],
+    "Revoked": [],
+    "Alerted": []
+}
+2025-06-13 11:52:42,050  NCO_deploy  host has deployed module not in deployed or Install DB, module = 55
+2025-06-13 11:52:42,050  NCO_deploy  host has deployed module not in deployed or Install DB, module = 52
+2025-06-13 11:52:42,051  NCO_monitor  [TLS][ID=55] Parsed TLS: {'TLS_SNI': 'www.nps.edu', 'DEST_IP': '52.36.234.65', 'VER': 'TLSv1.2', 'CIPHER': 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'COMP': '0x00', 'EXT': 'None', 'TIME': '2025-06-13 18:52:13', 'TLS_RECORD': '98 bytes'}
+2025-06-13 11:52:42,085  NCO_monitor  [DNS][ID=55] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.36.234.65', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:52:42,105  NCO_monitor  [DNS][ID=55] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.42.202.22', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:52:42,124  NCO_monitor  [TLS][ID=52] Parsed TLS: {'TLS_SNI': 'www.nps.edu', 'DEST_IP': '52.36.234.65', 'VER': 'TLSv1.2', 'CIPHER': 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'COMP': '0x00', 'EXT': 'None', 'TIME': '2025-06-13 18:52:13', 'TLS_RECORD': '98 bytes'}
+2025-06-13 11:52:42,147  NCO_monitor  [DNS][ID=52] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.36.234.65', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:52:42,182  NCO_monitor  [DNS][ID=52] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.42.202.22', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:52:42,214  __main__  NCO Checking install list, []
+2025-06-13 11:52:42,214  __main__  Entering a wait state to interact with host again
+
+
+2025-06-13 11:53:12,260  __main__  NCO Requesting report
+2025-06-13 11:53:12,261  NCO_monitor  Sent report request to 10847
+2025-06-13 11:53:12,261  NCO_monitor  Processing report for host: 10847
+2025-06-13 11:53:12,265  NCO_monitor  Process Report String: {
+    "Installed": [
+        {
+            "ID": 55,
+            "Activated": 1,
+            "Count": 0,
+            "ts": 1749840698,
+            "IDS": "||DNS_RESOLVE:nps.edu->52.36.234.65|TTL:748|TIME:2025-06-13 18:52:04||DNS_RESOLVE:nps.edu->52.42.202.22|TTL:748|TIME:2025-06-13 18:52:04||TLS_SNI:www.nps.edu|DEST_IP:52.36.234.65|VER:TLSv1.2|CIPHER:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384|COMP:0x00|EXT:None|TIME:2025-06-13 18:52:13|TLS_RECORD:98 bytes"
+        },
+        {
+            "ID": 52,
+            "Activated": 1,
+            "Count": 0,
+            "ts": 1749840692,
+            "IDS": "||DNS_RESOLVE:nps.edu->52.36.234.65|TTL:748|TIME:2025-06-13 18:52:04||DNS_RESOLVE:nps.edu->52.42.202.22|TTL:748|TIME:2025-06-13 18:52:04||TLS_SNI:www.nps.edu|DEST_IP:52.36.234.65|VER:TLSv1.2|CIPHER:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384|COMP:0x00|EXT:None|TIME:2025-06-13 18:52:13|TLS_RECORD:98 bytes"
+        }
+    ],
+    "Deprecated": [],
+    "Revoked": [],
+    "Alerted": []
+}
+2025-06-13 11:53:12,268  NCO_deploy  host has deployed module not in deployed or Install DB, module = 55
+2025-06-13 11:53:12,268  NCO_deploy  host has deployed module not in deployed or Install DB, module = 52
+2025-06-13 11:53:12,268  NCO_monitor  [TLS][ID=55] Parsed TLS: {'TLS_SNI': 'www.nps.edu', 'DEST_IP': '52.36.234.65', 'VER': 'TLSv1.2', 'CIPHER': 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'COMP': '0x00', 'EXT': 'None', 'TIME': '2025-06-13 18:52:13', 'TLS_RECORD': '98 bytes'}
+2025-06-13 11:53:12,288  NCO_monitor  [DNS][ID=55] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.36.234.65', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:53:12,307  NCO_monitor  [DNS][ID=55] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.42.202.22', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:53:12,329  NCO_monitor  [TLS][ID=52] Parsed TLS: {'TLS_SNI': 'www.nps.edu', 'DEST_IP': '52.36.234.65', 'VER': 'TLSv1.2', 'CIPHER': 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'COMP': '0x00', 'EXT': 'None', 'TIME': '2025-06-13 18:52:13', 'TLS_RECORD': '98 bytes'}
+2025-06-13 11:53:12,353  NCO_monitor  [DNS][ID=52] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.36.234.65', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:53:12,379  NCO_monitor  [DNS][ID=52] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.42.202.22', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:53:12,416  __main__  NCO Checking install list, []
+2025-06-13 11:53:12,419  __main__  Entering a wait state to interact with host again
+
+
+2025-06-13 11:53:42,463  __main__  NCO Requesting report
+2025-06-13 11:53:42,464  NCO_monitor  Sent report request to 10847
+2025-06-13 11:53:42,464  NCO_monitor  Processing report for host: 10847
+2025-06-13 11:53:42,474  NCO_monitor  Process Report String: {
+    "Installed": [
+        {
+            "ID": 55,
+            "Activated": 1,
+            "Count": 0,
+            "ts": 1749840698,
+            "IDS": "||DNS_RESOLVE:nps.edu->52.36.234.65|TTL:748|TIME:2025-06-13 18:52:04||DNS_RESOLVE:nps.edu->52.42.202.22|TTL:748|TIME:2025-06-13 18:52:04||TLS_SNI:www.nps.edu|DEST_IP:52.36.234.65|VER:TLSv1.2|CIPHER:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384|COMP:0x00|EXT:None|TIME:2025-06-13 18:52:13|TLS_RECORD:98 bytes"
+        },
+        {
+            "ID": 52,
+            "Activated": 1,
+            "Count": 0,
+            "ts": 1749840692,
+            "IDS": "||DNS_RESOLVE:nps.edu->52.36.234.65|TTL:748|TIME:2025-06-13 18:52:04||DNS_RESOLVE:nps.edu->52.42.202.22|TTL:748|TIME:2025-06-13 18:52:04||TLS_SNI:www.nps.edu|DEST_IP:52.36.234.65|VER:TLSv1.2|CIPHER:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384|COMP:0x00|EXT:None|TIME:2025-06-13 18:52:13|TLS_RECORD:98 bytes"
+        }
+    ],
+    "Deprecated": [],
+    "Revoked": [],
+    "Alerted": []
+}
+2025-06-13 11:53:42,476  NCO_deploy  host has deployed module not in deployed or Install DB, module = 55
+2025-06-13 11:53:42,477  NCO_deploy  host has deployed module not in deployed or Install DB, module = 52
+2025-06-13 11:53:42,477  NCO_monitor  [TLS][ID=55] Parsed TLS: {'TLS_SNI': 'www.nps.edu', 'DEST_IP': '52.36.234.65', 'VER': 'TLSv1.2', 'CIPHER': 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'COMP': '0x00', 'EXT': 'None', 'TIME': '2025-06-13 18:52:13', 'TLS_RECORD': '98 bytes'}
+2025-06-13 11:53:42,489  NCO_monitor  [DNS][ID=55] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.36.234.65', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:53:42,512  NCO_monitor  [DNS][ID=55] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.42.202.22', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:53:42,536  NCO_monitor  [TLS][ID=52] Parsed TLS: {'TLS_SNI': 'www.nps.edu', 'DEST_IP': '52.36.234.65', 'VER': 'TLSv1.2', 'CIPHER': 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'COMP': '0x00', 'EXT': 'None', 'TIME': '2025-06-13 18:52:13', 'TLS_RECORD': '98 bytes'}
+2025-06-13 11:53:42,572  NCO_monitor  [DNS][ID=52] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.36.234.65', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:53:42,603  NCO_monitor  [DNS][ID=52] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.42.202.22', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:53:42,641  __main__  NCO Checking install list, []
+2025-06-13 11:53:42,644  __main__  Entering a wait state to interact with host again
+
+
+2025-06-13 11:54:12,688  __main__  NCO Requesting report
+2025-06-13 11:54:12,689  NCO_monitor  Sent report request to 10847
+2025-06-13 11:54:12,689  NCO_monitor  Processing report for host: 10847
+2025-06-13 11:54:12,695  NCO_monitor  Process Report String: {
+    "Installed": [
+        {
+            "ID": 55,
+            "Activated": 1,
+            "Count": 0,
+            "ts": 1749840698,
+            "IDS": "||DNS_RESOLVE:nps.edu->52.36.234.65|TTL:748|TIME:2025-06-13 18:52:04||DNS_RESOLVE:nps.edu->52.42.202.22|TTL:748|TIME:2025-06-13 18:52:04||TLS_SNI:www.nps.edu|DEST_IP:52.36.234.65|VER:TLSv1.2|CIPHER:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384|COMP:0x00|EXT:None|TIME:2025-06-13 18:52:13|TLS_RECORD:98 bytes"
+        },
+        {
+            "ID": 52,
+            "Activated": 1,
+            "Count": 0,
+            "ts": 1749840692,
+            "IDS": "||DNS_RESOLVE:nps.edu->52.36.234.65|TTL:748|TIME:2025-06-13 18:52:04||DNS_RESOLVE:nps.edu->52.42.202.22|TTL:748|TIME:2025-06-13 18:52:04||TLS_SNI:www.nps.edu|DEST_IP:52.36.234.65|VER:TLSv1.2|CIPHER:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384|COMP:0x00|EXT:None|TIME:2025-06-13 18:52:13|TLS_RECORD:98 bytes"
+        }
+    ],
+    "Deprecated": [],
+    "Revoked": [],
+    "Alerted": []
+}
+2025-06-13 11:54:12,696  NCO_deploy  host has deployed module not in deployed or Install DB, module = 55
+2025-06-13 11:54:12,696  NCO_deploy  host has deployed module not in deployed or Install DB, module = 52
+2025-06-13 11:54:12,696  NCO_monitor  [TLS][ID=55] Parsed TLS: {'TLS_SNI': 'www.nps.edu', 'DEST_IP': '52.36.234.65', 'VER': 'TLSv1.2', 'CIPHER': 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'COMP': '0x00', 'EXT': 'None', 'TIME': '2025-06-13 18:52:13', 'TLS_RECORD': '98 bytes'}
+2025-06-13 11:54:12,719  NCO_monitor  [DNS][ID=55] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.36.234.65', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:54:12,737  NCO_monitor  [DNS][ID=55] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.42.202.22', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:54:12,754  NCO_monitor  [TLS][ID=52] Parsed TLS: {'TLS_SNI': 'www.nps.edu', 'DEST_IP': '52.36.234.65', 'VER': 'TLSv1.2', 'CIPHER': 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384', 'COMP': '0x00', 'EXT': 'None', 'TIME': '2025-06-13 18:52:13', 'TLS_RECORD': '98 bytes'}
+2025-06-13 11:54:12,772  NCO_monitor  [DNS][ID=52] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.36.234.65', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:54:12,799  NCO_monitor  [DNS][ID=52] Parsed DNS: {'DNS_RESOLVE': 'nps.edu->52.42.202.22', 'TTL': '748', 'TIME': '2025-06-13 18:52:04'}
+2025-06-13 11:54:12,824  __main__  NCO Checking install list, []
+2025-06-13 11:54:12,827  __main__  Entering a wait state to interact with host again
+
+
+2025-06-13 11:54:29,887  __main__  SIGINT: handler called
+2025-06-13 11:59:48,583  NCO_construct  Construction process running
+2025-06-13 11:59:48,582  NCO_middlebox  Middlebox process running
+2025-06-13 11:59:48,602  NCO_middlebox  Socket bind complete
+2025-06-13 11:59:48,583  __main__  Socket bind complete
+2025-06-13 12:52:26,441  __main__  SIGINT: handler called
+2025-06-24 10:35:29,236  __main__  Bind failed. Error : (<class 'OSError'>, OSError(99, 'Cannot assign requested address'), <traceback object at 0x7fe4218e1c80>)
+2025-06-24 10:35:29,241  NCO_construct  Construction process running
+2025-06-24 10:35:29,260  NCO_middlebox  Middlebox process running
+2025-06-24 10:35:29,262  NCO_middlebox  Bind failed. Error : (<class 'OSError'>, OSError(99, 'Cannot assign requested address'), <traceback object at 0x7fe4218e42c0>)
+2025-06-24 10:35:44,615  __main__  SIGINT: handler called
+2025-06-24 10:36:33,243  __main__  Bind failed. Error : (<class 'OSError'>, OSError(99, 'Cannot assign requested address'), <traceback object at 0x7fcb21681280>)
+2025-06-24 10:36:33,246  NCO_construct  Construction process running
+2025-06-24 10:36:33,252  NCO_middlebox  Middlebox process running
+2025-06-24 10:36:33,265  NCO_middlebox  Bind failed. Error : (<class 'OSError'>, OSError(99, 'Cannot assign requested address'), <traceback object at 0x7fcb21681880>)
